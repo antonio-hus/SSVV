@@ -1,1 +1,1 @@
-export type {WorkoutSessionExercise} from '@/app/generated/prisma/client';
+export type {WorkoutSessionExercise} from '@/prisma/generated/prisma/client';
