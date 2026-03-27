@@ -9,4 +9,5 @@ export type SessionData = {
     fullName: string;
     role: Role;
     memberId?: string;
+    adminId?: string;
 };
