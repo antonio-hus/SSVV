@@ -38,6 +38,7 @@ model User {
   role         Role
 
   member Member?
+  admin  Admin?
 
   @@map("users")
 }
@@ -52,6 +53,15 @@ model Member {
   sessions WorkoutSession[]
 
   @@map("members")
+}
+
+model Admin {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("admins")
 }
 
 model Exercise {

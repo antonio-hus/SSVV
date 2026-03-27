@@ -1,19 +1,19 @@
-import {PrismaClient} from '../app/generated/prisma/client';
-import {PrismaPg} from '@prisma/adapter-pg';
+import { PrismaClient } from '../app/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const adapter = new PrismaPg({connectionString: process.env.DATABASE_URL!});
-const prisma = new PrismaClient({adapter});
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 /**
  * Seeds the database with an initial admin user.
  *
  * - Checks if an admin user already exists to avoid duplicates.
  * - Hashes the admin password securely using bcrypt.
- * - Creates the admin user with default credentials:
+ * - Creates the admin User and its linked Admin record in a single transaction.
  *   - Email: admin@gymtrackerpro.com
  *   - Password: admin
  *
@@ -22,9 +22,8 @@ const prisma = new PrismaClient({adapter});
 const main = async () => {
     console.log('Seeding database...');
 
-    // Check if admin already exists
     const existingAdmin = await prisma.user.findUnique({
-        where: {email: 'admin@gymtrackerpro.com'},
+        where: { email: 'admin@gymtrackerpro.com' },
     });
 
     if (existingAdmin) {
@@ -32,10 +31,9 @@ const main = async () => {
         return;
     }
 
-    // Hash password securely
     const passwordHash = await bcrypt.hash('admin', 12);
 
-    // Create the admin user
+    // Create the User and its Admin profile atomically
     await prisma.user.create({
         data: {
             email: 'admin@gymtrackerpro.com',
@@ -44,6 +42,9 @@ const main = async () => {
             dateOfBirth: new Date('1990-01-01'),
             passwordHash,
             role: 'ADMIN',
+            admin: {
+                create: {},
+            },
         },
     });
 
