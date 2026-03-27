@@ -29,7 +29,6 @@ export const createWorkoutSessionSchema = z.object({
 
 /**
  * Schema for updating a workout session.
- * All fields are optional, but validations are preserved.
  */
 export const updateWorkoutSessionSchema = z.object({
     date: z
@@ -51,8 +50,73 @@ export const updateWorkoutSessionSchema = z.object({
         .describe('Updated optional notes for the session'),
 });
 
+/**
+ * Schema for creating a workout session exercise.
+ */
+export const createWorkoutSessionExerciseSchema = z.object({
+    workoutSessionId: z
+        .string()
+        .min(1, 'Session is required')
+        .describe('ID of the workout session'),
+    exerciseId: z
+        .string()
+        .min(1, 'Exercise is required')
+        .describe('ID of the exercise'),
+    sets: z
+        .coerce
+        .number()
+        .min(0, 'Sets must be greater or equal to 0')
+        .max(6, 'Sets must be at most 6')
+        .describe('Number of sets performed'),
+    reps: z
+        .coerce
+        .number()
+        .min(0, 'Reps must be greater or equal to 0')
+        .max(30, 'Reps must be at most 30')
+        .describe('Number of repetitions per set'),
+    weight: z
+        .coerce
+        .number()
+        .min(0, 'Weight must be greater or equal to 0.0')
+        .max(500, 'Weight must be at most 500.0')
+        .describe('Weight used in the exercise'),
+});
+
+/**
+ * Schema for updating a workout session exercise.
+ */
+export const updateWorkoutSessionExerciseSchema = z.object({
+    sets: z
+        .coerce
+        .number()
+        .min(0, 'Sets must be greater or equal to 0')
+        .max(6, 'Sets must be at most 6')
+        .optional()
+        .describe('Updated number of sets performed'),
+    reps: z
+        .coerce
+        .number()
+        .min(0, 'Reps must be greater or equal to 0')
+        .max(30, 'Reps must be at most 30')
+        .optional()
+        .describe('Updated number of repetitions per set'),
+    weight: z
+        .coerce
+        .number()
+        .min(0, 'Weight must be greater or equal to 0.0')
+        .max(500, 'Weight must be at most 500.0')
+        .optional()
+        .describe('Updated weight used in the exercise'),
+});
+
 /** Input type for creating a workout session. */
 export type CreateWorkoutSessionInput = z.infer<typeof createWorkoutSessionSchema>;
 
 /** Input type for updating a workout session. */
 export type UpdateWorkoutSessionInput = z.infer<typeof updateWorkoutSessionSchema>;
+
+/** Input type for creating a workout session exercise. */
+export type CreateWorkoutSessionExerciseInput = z.infer<typeof createWorkoutSessionExerciseSchema>;
+
+/** Input type for updating a workout session exercise. */
+export type UpdateWorkoutSessionExerciseInput = z.infer<typeof updateWorkoutSessionExerciseSchema>;

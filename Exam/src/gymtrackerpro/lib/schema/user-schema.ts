@@ -30,7 +30,6 @@ export const createUserSchema = z.object({
 
 /**
  * Schema for updating an existing user.
- * All fields are optional.
  */
 export const updateUserSchema = z.object({
     email: z
@@ -86,7 +85,6 @@ export const createMemberSchema = createUserSchema.extend({
 
 /**
  * Schema for updating an existing member.
- * All fields are optional.
  */
 export const updateMemberSchema = updateUserSchema.extend({
     membershipStart: z
@@ -103,7 +101,6 @@ export const createAdminSchema = createUserSchema;
 
 /**
  * Schema for updating an existing admin.
- * All fields are optional.
  */
 export const updateAdminSchema = updateUserSchema;
 
