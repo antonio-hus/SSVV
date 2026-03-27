@@ -15,9 +15,7 @@ public class Set {
 		vS[nVS++]=newVal;
 		return true;
 	}
-	
-	
-	
+
 	public boolean IsInTheSet(int checkVal) {
 		boolean b=false;
 		int i=0;
@@ -29,6 +27,4 @@ public class Set {
 		}	
 		return b;
 	}
-	
-	
 }

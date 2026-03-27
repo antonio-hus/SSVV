@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum MuscleGroup {
+  CHEST
+  SHOULDERS
+  ARMS
+  BACK
+  CORE
+  LEGS
+}
+
+enum Equipment {
+  CABLE
+  DUMBBELL
+  BARBELL
+  MACHINE
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  fullName     String
+  phone        String
+  dateOfBirth  DateTime
+  passwordHash String
+  role         Role
+
+  member Member?
+
+  @@map("users")
+}
+
+model Member {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  membershipStart DateTime
+  isActive        Boolean  @default(true)
+
+  user     User             @relation(fields: [userId], references: [id])
+  sessions WorkoutSession[]
+
+  @@map("members")
+}
+
+model Exercise {
+  id              String      @id @default(uuid())
+  name            String      @unique
+  description     String?
+  muscleGroup     MuscleGroup
+  equipmentNeeded Equipment
+  isActive        Boolean     @default(true)
+
+  sessionExercises WorkoutSessionExercise[]
+
+  @@map("exercises")
+}
+
+model WorkoutSession {
+  id       String   @id @default(uuid())
+  memberId String
+  date     DateTime
+  duration Int
+  notes    String?
+
+  member    Member                   @relation(fields: [memberId], references: [id])
+  exercises WorkoutSessionExercise[]
+
+  @@map("workout_sessions")
+}
+
+model WorkoutSessionExercise {
+  id               String  @id @default(uuid())
+  workoutSessionId String
+  exerciseId       String
+  sets             Int
+  reps             Int
+  weight           Decimal
+
+  session  WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
+  exercise Exercise       @relation(fields: [exerciseId], references: [id])
+
+  @@map("workout_session_exercises")
+}
