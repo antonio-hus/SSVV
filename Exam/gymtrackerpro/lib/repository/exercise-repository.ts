@@ -1,0 +1,110 @@
+import {PrismaClient} from '@/prisma/generated/prisma/client';
+import {Exercise, ExerciseListOptions} from '@/lib/domain/exercise';
+import {CreateExerciseInput, UpdateExerciseInput} from '@/lib/schema/exercise-schema';
+import {PageResult} from '@/lib/domain/pagination';
+import {ConflictError, NotFoundError} from '@/lib/domain/errors';
+import {ExerciseRepositoryInterface} from '@/lib/repository/exercise-repository-interface';
+
+/**
+ * Prisma-backed implementation of {@link ExerciseRepositoryInterface}.
+ */
+export class ExerciseRepository implements ExerciseRepositoryInterface {
+    private static instance: ExerciseRepository;
+    private readonly database: PrismaClient;
+
+    private constructor(database: PrismaClient) {
+        this.database = database;
+    }
+
+    /**
+     * Returns the singleton instance, creating it with the given client on first call.
+     *
+     * @param database - The Prisma client to use for database access.
+     */
+    static getInstance(database: PrismaClient): ExerciseRepository {
+        if (!ExerciseRepository.instance) {
+            ExerciseRepository.instance = new ExerciseRepository(database);
+        }
+        return ExerciseRepository.instance;
+    }
+
+    /** @inheritdoc */
+    async create(data: CreateExerciseInput): Promise<Exercise> {
+        const existing = await this.database.exercise.findUnique({where: {name: data.name}});
+        if (existing) {
+            throw new ConflictError(`Exercise name already in use: ${data.name}`);
+        }
+
+        return this.database.exercise.create({data});
+    }
+
+    /** @inheritdoc */
+    async findById(id: string): Promise<Exercise> {
+        const exercise = await this.database.exercise.findUnique({where: {id}});
+        if (!exercise) {
+            throw new NotFoundError(`Exercise not found: ${id}`);
+        }
+
+        return exercise;
+    }
+
+    /** @inheritdoc */
+    async findAll(options: ExerciseListOptions = {}): Promise<PageResult<Exercise>> {
+        const {search, muscleGroup, includeInactive = false, page = 1, pageSize = 10} = options;
+
+        const where = {
+            ...(includeInactive ? {} : {isActive: true}),
+            ...(muscleGroup ? {muscleGroup} : {}),
+            ...(search ? {name: {contains: search, mode: 'insensitive' as const}} : {}),
+        };
+
+        const [items, total] = await this.database.$transaction([
+            this.database.exercise.findMany({
+                where,
+                skip: (page - 1) * pageSize,
+                take: pageSize,
+                orderBy: {name: 'asc'},
+            }),
+            this.database.exercise.count({where}),
+        ]);
+
+        return {items, total};
+    }
+
+    /** @inheritdoc */
+    async update(id: string, data: UpdateExerciseInput): Promise<Exercise> {
+        const exercise = await this.database.exercise.findUnique({where: {id}});
+        if (!exercise) {
+            throw new NotFoundError(`Exercise not found: ${id}`);
+        }
+
+        if (data.name && data.name !== exercise.name) {
+            const conflict = await this.database.exercise.findUnique({where: {name: data.name}});
+            if (conflict) {
+                throw new ConflictError(`Exercise name already in use: ${data.name}`);
+            }
+        }
+
+        return this.database.exercise.update({where: {id}, data});
+    }
+
+    /** @inheritdoc */
+    async archive(id: string): Promise<Exercise> {
+        const exercise = await this.database.exercise.findUnique({where: {id}});
+        if (!exercise) {
+            throw new NotFoundError(`Exercise not found: ${id}`);
+        }
+
+        return this.database.exercise.update({where: {id}, data: {isActive: false}});
+    }
+
+    /** @inheritdoc */
+    async delete(id: string): Promise<void> {
+        const exercise = await this.database.exercise.findUnique({where: {id}});
+        if (!exercise) {
+            throw new NotFoundError(`Exercise not found: ${id}`);
+        }
+
+        await this.database.exercise.delete({where: {id}});
+    }
+}

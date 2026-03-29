@@ -1,12 +1,12 @@
-import { PrismaClient } from './generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import {PrismaClient} from './generated/prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
 import bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
+const adapter = new PrismaPg({connectionString: process.env.DATABASE_URL!});
+const prisma = new PrismaClient({adapter});
 
 /**
  * Seeds the database with an initial admin user.
@@ -23,7 +23,7 @@ const main = async () => {
     console.log('Seeding database...');
 
     const existingAdmin = await prisma.user.findUnique({
-        where: { email: 'admin@gymtrackerpro.com' },
+        where: {email: 'admin@gymtrackerpro.com'},
     });
 
     if (existingAdmin) {

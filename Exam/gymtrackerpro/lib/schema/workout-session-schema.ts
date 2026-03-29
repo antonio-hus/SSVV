@@ -109,11 +109,22 @@ export const updateWorkoutSessionExerciseSchema = z.object({
         .describe('Updated weight used in the exercise'),
 });
 
+/**
+ * Schema for a single exercise entry submitted as part of atomic session creation.
+ * The session ID is excluded because it is not yet known at creation time.
+ */
+export const workoutSessionExerciseSchema = createWorkoutSessionExerciseSchema.omit({
+    workoutSessionId: true,
+});
+
 /** Input type for creating a workout session. */
 export type CreateWorkoutSessionInput = z.infer<typeof createWorkoutSessionSchema>;
 
 /** Input type for updating a workout session. */
 export type UpdateWorkoutSessionInput = z.infer<typeof updateWorkoutSessionSchema>;
+
+/** Input type for a single exercise entry when creating a session. */
+export type WorkoutSessionExerciseInput = z.infer<typeof workoutSessionExerciseSchema>;
 
 /** Input type for creating a workout session exercise. */
 export type CreateWorkoutSessionExerciseInput = z.infer<typeof createWorkoutSessionExerciseSchema>;
