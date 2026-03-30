@@ -117,6 +117,15 @@ export const workoutSessionExerciseSchema = createWorkoutSessionExerciseSchema.o
     workoutSessionId: true,
 });
 
+/**
+ * Schema for the exercises array submitted alongside session creation.
+ * Requires at least one exercise entry.
+ */
+export const workoutSessionExercisesSchema = z
+    .array(workoutSessionExerciseSchema)
+    .min(1, 'At least one exercise is required'
+);
+
 /** Input type for creating a workout session. */
 export type CreateWorkoutSessionInput = z.infer<typeof createWorkoutSessionSchema>;
 
