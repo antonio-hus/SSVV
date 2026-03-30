@@ -40,6 +40,24 @@ export interface UserRepositoryInterface {
     findById(id: string): Promise<UserWithProfile>;
 
     /**
+     * Finds a member by their member record ID, including the parent user.
+     *
+     * @param memberId - The member ID.
+     * @returns The member record with the parent user included.
+     * @throws {NotFoundError} If no member with the given ID exists.
+     */
+    findMemberById(memberId: string): Promise<MemberWithUser>;
+
+    /**
+     * Finds an admin by their admin record ID, including the parent user.
+     *
+     * @param adminId - The admin ID.
+     * @returns The admin record with the parent user included.
+     * @throws {NotFoundError} If no admin with the given ID exists.
+     */
+    findAdminById(adminId: string): Promise<AdminWithUser>;
+
+    /**
      * Finds a user by their email address, including their role-specific profile.
      *
      * @param email - The user's email address.
@@ -77,6 +95,16 @@ export interface UserRepositoryInterface {
     updateMember(memberId: string, data: UpdateMemberInput): Promise<MemberWithUser>;
 
     /**
+     * Activates or suspends a member by toggling `isActive`.
+     *
+     * @param memberId - The member ID.
+     * @param isActive - `true` to activate, `false` to suspend.
+     * @returns The updated member record with the parent user included.
+     * @throws {NotFoundError} If no member with the given ID exists.
+     */
+    setMemberActive(memberId: string, isActive: boolean): Promise<MemberWithUser>;
+
+    /**
      * Updates an admin's user fields atomically via a single nested write.
      * If a new password is provided it is hashed before persistence.
      *
@@ -88,16 +116,6 @@ export interface UserRepositoryInterface {
      * @throws {TransactionError} If the atomic write fails.
      */
     updateAdmin(adminId: string, data: UpdateAdminInput): Promise<AdminWithUser>;
-
-    /**
-     * Activates or suspends a member by toggling `isActive`.
-     *
-     * @param memberId - The member ID.
-     * @param isActive - `true` to activate, `false` to suspend.
-     * @returns The updated member record with the parent user included.
-     * @throws {NotFoundError} If no member with the given ID exists.
-     */
-    setMemberActive(memberId: string, isActive: boolean): Promise<MemberWithUser>;
 
     /**
      * Permanently removes a member.

@@ -2,7 +2,6 @@ import type {WorkoutSession} from '@/lib/domain/workout-session';
 import type {WorkoutSessionWithExercises, WorkoutSessionListOptions} from '@/lib/domain/workout-session';
 import type {CreateWorkoutSessionInput, WorkoutSessionExerciseInput, UpdateWorkoutSessionInput} from '@/lib/schema/workout-session-schema';
 import type {PageResult} from '@/lib/domain/pagination';
-import type {Report} from '@/lib/domain/report';
 
 /**
  * Contract for workout session data access.
@@ -30,28 +29,16 @@ export interface WorkoutSessionRepositoryInterface {
     findById(id: string): Promise<WorkoutSessionWithExercises>;
 
     /**
-     * Returns a paginated list of sessions for a specific member, ordered newest first.
+     * Returns a filtered, paginated list of workout sessions.
      *
-     * @param memberId - The member ID.
-     * @param options - Optional pagination parameters.
-     * @returns A page of session records (each with exercises) and the total count.
+     * When `page` and `pageSize` are omitted all matching records are returned.
+     * Results are ordered newest-first when paginating, oldest-first otherwise
+     * (chronological order is required for report aggregation).
+     *
+     * @param options - Filters (member, date range) and optional pagination parameters.
+     * @returns A page of session records (each with exercises) and the total matching count.
      */
-    findByMember(memberId: string, options?: WorkoutSessionListOptions): Promise<PageResult<WorkoutSessionWithExercises>>;
-
-    /**
-     * Generates a progress report for a member over a date range.
-     *
-     * Session-level statistics (total count, average duration) are computed with
-     * Prisma's `aggregate`. Exercise volume and breakdowns are derived from the
-     * fetched session data in application memory.
-     *
-     * @param memberId - The member ID.
-     * @param startDate - Inclusive start of the reporting period.
-     * @param endDate - Inclusive end of the reporting period.
-     * @returns A full report including session details and per-exercise breakdowns.
-     * @throws {NotFoundError} If the member does not exist.
-     */
-    generateReport(memberId: string, startDate: Date, endDate: Date): Promise<Report>;
+    findAll(options?: WorkoutSessionListOptions): Promise<PageResult<WorkoutSessionWithExercises>>;
 
     /**
      * Updates session metadata (date, duration, notes).

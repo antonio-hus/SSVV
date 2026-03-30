@@ -89,13 +89,13 @@ export class ExerciseRepository implements ExerciseRepositoryInterface {
     }
 
     /** @inheritdoc */
-    async archive(id: string): Promise<Exercise> {
+    async setActive(id: string, isActive: boolean): Promise<Exercise> {
         const exercise = await this.database.exercise.findUnique({where: {id}});
         if (!exercise) {
             throw new NotFoundError(`Exercise not found: ${id}`);
         }
 
-        return this.database.exercise.update({where: {id}, data: {isActive: false}});
+        return this.database.exercise.update({where: {id}, data: {isActive}});
     }
 
     /** @inheritdoc */

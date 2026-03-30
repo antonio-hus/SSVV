@@ -3,26 +3,26 @@ import type {CreateExerciseInput, UpdateExerciseInput} from '@/lib/schema/exerci
 import type {PageResult} from '@/lib/domain/pagination';
 
 /**
- * Contract for exercise catalogue data access.
+ * Contract for exercise catalogue business logic.
  */
-export interface ExerciseRepositoryInterface {
+export interface ExerciseServiceInterface {
     /**
-     * Creates a new exercise in the catalogue.
+     * Adds a new exercise to the catalogue.
      *
      * @param data - Validated exercise creation input.
      * @returns The newly created exercise record.
      * @throws {ConflictError} If an exercise with the same name already exists.
      */
-    create(data: CreateExerciseInput): Promise<Exercise>;
+    createExercise(data: CreateExerciseInput): Promise<Exercise>;
 
     /**
-     * Finds an exercise by its unique identifier.
+     * Retrieves a single exercise by its unique identifier.
      *
      * @param id - The exercise ID.
      * @returns The exercise record.
      * @throws {NotFoundError} If no exercise with the given ID exists.
      */
-    findById(id: string): Promise<Exercise>;
+    getExercise(id: string): Promise<Exercise>;
 
     /**
      * Returns a paginated list of exercises.
@@ -31,10 +31,10 @@ export interface ExerciseRepositoryInterface {
      * @param options - Filters (name substring, muscle group, active flag) and pagination.
      * @returns A page of exercises and the total matching count.
      */
-    findAll(options?: ExerciseListOptions): Promise<PageResult<Exercise>>;
+    listExercises(options?: ExerciseListOptions): Promise<PageResult<Exercise>>;
 
     /**
-     * Updates an existing exercise by its unique identifier.
+     * Updates an existing exercise in the catalogue.
      *
      * @param id - The exercise ID.
      * @param data - Validated fields to update (all optional).
@@ -42,18 +42,27 @@ export interface ExerciseRepositoryInterface {
      * @throws {NotFoundError} If no exercise with the given ID exists.
      * @throws {ConflictError} If the new name conflicts with an existing exercise.
      */
-    update(id: string, data: UpdateExerciseInput): Promise<Exercise>;
+    updateExercise(id: string, data: UpdateExerciseInput): Promise<Exercise>;
 
     /**
-     * Sets the active state of an exercise — `false` archives it (soft delete),
-     * `true` restores it. Archived exercises are excluded from default list queries.
+     * Marks an exercise as inactive (soft delete).
+     * Archived exercises are excluded from default list queries but preserved for
+     * historical workout session references.
      *
      * @param id - The exercise ID.
-     * @param isActive - `true` to restore, `false` to archive.
-     * @returns The updated exercise record.
+     * @returns The updated exercise record with `isActive` set to `false`.
      * @throws {NotFoundError} If no exercise with the given ID exists.
      */
-    setActive(id: string, isActive: boolean): Promise<Exercise>;
+    archiveExercise(id: string): Promise<Exercise>;
+
+    /**
+     * Restores a previously archived exercise by setting `isActive` back to `true`.
+     *
+     * @param id - The exercise ID.
+     * @returns The updated exercise record with `isActive` set to `true`.
+     * @throws {NotFoundError} If no exercise with the given ID exists.
+     */
+    unarchiveExercise(id: string): Promise<Exercise>;
 
     /**
      * Permanently removes an exercise from the catalogue.
@@ -61,5 +70,5 @@ export interface ExerciseRepositoryInterface {
      * @param id - The exercise ID.
      * @throws {NotFoundError} If no exercise with the given ID exists.
      */
-    delete(id: string): Promise<void>;
+    deleteExercise(id: string): Promise<void>;
 }

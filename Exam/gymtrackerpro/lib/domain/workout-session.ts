@@ -8,8 +8,11 @@ export type WorkoutSessionWithExercises = WorkoutSession & {
     exercises: (WorkoutSessionExercise & {exercise: Exercise})[];
 };
 
-/** Options for paginating a member's session history. */
+/** Options for filtering and paginating workout sessions. */
 export type WorkoutSessionListOptions = {
+    memberId?: string;
+    startDate?: Date;
+    endDate?: Date;
     page?: number;
     pageSize?: number;
 };

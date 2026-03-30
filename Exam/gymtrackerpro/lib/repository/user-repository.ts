@@ -109,6 +109,32 @@ export class UserRepository implements UserRepositoryInterface {
     }
 
     /** @inheritdoc */
+    async findMemberById(memberId: string): Promise<MemberWithUser> {
+        const member = await this.database.member.findUnique({
+            where: {id: memberId},
+            include: {user: true},
+        });
+        if (!member) {
+            throw new NotFoundError(`Member not found: ${memberId}`);
+        }
+
+        return member;
+    }
+
+    /** @inheritdoc */
+    async findAdminById(adminId: string): Promise<AdminWithUser> {
+        const admin = await this.database.admin.findUnique({
+            where: {id: adminId},
+            include: {user: true},
+        });
+        if (!admin) {
+            throw new NotFoundError(`Admin not found: ${adminId}`);
+        }
+
+        return admin;
+    }
+
+    /** @inheritdoc */
     async findByEmail(email: string): Promise<UserWithProfile | null> {
         return this.database.user.findUnique({
             where: {email},
@@ -225,6 +251,18 @@ export class UserRepository implements UserRepositoryInterface {
     }
 
     /** @inheritdoc */
+    async setMemberActive(memberId: string, isActive: boolean): Promise<MemberWithUser> {
+        const member = await this.database.member.findUnique({
+            where: {id: memberId}
+        });
+        if (!member) {
+            throw new NotFoundError(`Member not found: ${memberId}`);
+        }
+
+        return this.database.member.update({where: {id: memberId}, data: {isActive}, include: {user: true}});
+    }
+
+    /** @inheritdoc */
     async updateAdmin(adminId: string, data: UpdateAdminInput): Promise<AdminWithUser> {
         const current = await this.database.admin.findUnique({
             where: {id: adminId},
@@ -272,24 +310,6 @@ export class UserRepository implements UserRepositoryInterface {
     }
 
     /** @inheritdoc */
-    async setMemberActive(memberId: string, isActive: boolean): Promise<MemberWithUser> {
-        const member = await this.database.member.findUnique({
-            where: {id: memberId}
-        });
-        if (!member) {
-            throw new NotFoundError(`Member not found: ${memberId}`);
-        }
-
-        return this.database.member.update({where: {id: memberId}, data: {isActive}, include: {user: true}});
-    }
-
-    /**
-     * Permanently removes the account identified by `id`.
-     * The ID is resolved against members first, then admins.
-     * Both the role-specific profile and the parent `User` record are deleted atomically.
-     *
-     * @inheritdoc
-     */
     async delete(id: string): Promise<void> {
         const member = await this.database.member.findUnique({where: {id}});
         if (member) {
