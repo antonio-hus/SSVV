@@ -1,8 +1,8 @@
-import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
-import {WorkoutSessionServiceInterface} from '@/lib/service/workout-session-service-interface';
 import {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput} from '@/lib/schema/workout-session-schema';
 import {PageResult} from '@/lib/domain/pagination';
+import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
+import {WorkoutSessionServiceInterface} from '@/lib/service/workout-session-service-interface';
 
 /**
  * Implementation of {@link WorkoutSessionServiceInterface} providing workout session management.

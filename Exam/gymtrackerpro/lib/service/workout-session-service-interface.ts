@@ -60,5 +60,4 @@ export interface WorkoutSessionServiceInterface {
      * @throws {NotFoundError} If no workout session with the given ID exists.
      */
     deleteWorkoutSession(workoutSessionId: string): Promise<void>;
-
 }

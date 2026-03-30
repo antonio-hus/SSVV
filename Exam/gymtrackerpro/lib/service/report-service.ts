@@ -1,7 +1,7 @@
+import {ExerciseStats, Report, SessionDetail, SessionExerciseDetail} from '@/lib/domain/report';
 import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {ReportServiceInterface} from '@/lib/service/report-service-interface';
-import {ExerciseStats, Report, SessionDetail, SessionExerciseDetail} from '@/lib/domain/report';
 
 /**
  * Implementation of {@link ReportServiceInterface} providing member progress reports.

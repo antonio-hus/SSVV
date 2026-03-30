@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
-import {AuthServiceInterface} from '@/lib/service/auth-service-interface';
 import {LoginUserInput} from '@/lib/schema/user-schema';
 import {SessionData} from '@/lib/domain/session';
 import {AuthorizationError} from '@/lib/domain/errors';
+import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
+import {AuthServiceInterface} from '@/lib/service/auth-service-interface';
 
 /**
  * Implementation of {@link AuthServiceInterface} providing credential verification.

@@ -1,8 +1,8 @@
-import {ExerciseRepositoryInterface} from '@/lib/repository/exercise-repository-interface';
-import {ExerciseServiceInterface} from '@/lib/service/exercise-service-interface';
 import {Exercise, ExerciseListOptions} from '@/lib/domain/exercise';
 import {CreateExerciseInput, UpdateExerciseInput} from '@/lib/schema/exercise-schema';
 import {PageResult} from '@/lib/domain/pagination';
+import {ExerciseRepositoryInterface} from '@/lib/repository/exercise-repository-interface';
+import {ExerciseServiceInterface} from '@/lib/service/exercise-service-interface';
 
 /**
  * Implementation of {@link ExerciseServiceInterface} providing exercise catalogue management.
