@@ -1,7 +1,6 @@
 'use server';
 
-import {ReportServiceInterface} from '@/lib/service/report-service-interface';
-import {ReportControllerInterface} from '@/lib/controller/report-controller-interface';
+import {reportService} from '@/lib/di';
 import {ActionResult} from '@/lib/domain/action-result';
 import {Report} from '@/lib/domain/report';
 import {z} from 'zod';
@@ -9,51 +8,35 @@ import {memberProgressReportSchema} from '@/lib/schema/report-schema';
 import {AppError} from '@/lib/domain/errors';
 
 /**
- * Implementation of {@link ReportControllerInterface} — progress report server actions.
+ * Validates the date range and generates a progress report for the given member,
+ * summarising workout frequency, volume, and exercise breakdown over the period.
+ *
+ * @param memberId - The member to generate the report for.
+ * @param startDate - Report start date as an ISO date string (YYYY-MM-DD).
+ * @param endDate - Report end date as an ISO date string (YYYY-MM-DD).
+ * @returns The compiled progress report, or a validation/not-found error.
  */
-export class ReportController implements ReportControllerInterface {
-    private static instance: ReportController;
-    private readonly reportService: ReportServiceInterface;
-
-    private constructor(reportService: ReportServiceInterface) {
-        this.reportService = reportService;
+export async function getMemberProgressReport(
+    memberId: string,
+    startDate: string,
+    endDate: string,
+): Promise<ActionResult<Report>> {
+    const result = memberProgressReportSchema.safeParse({memberId, startDate, endDate});
+    if (!result.success) {
+        return {success: false, message: 'Validation failed', errors: z.flattenError(result.error).fieldErrors};
     }
 
-    /**
-     * Returns the singleton instance, creating it with the given service on first call.
-     *
-     * @param reportService - The report service to use for progress report generation.
-     */
-    static getInstance(reportService: ReportServiceInterface): ReportController {
-        if (!ReportController.instance) {
-            ReportController.instance = new ReportController(reportService);
+    try {
+        const report = await reportService.getMemberProgressReport(
+            result.data.memberId,
+            new Date(result.data.startDate),
+            new Date(result.data.endDate),
+        );
+        return {success: true, data: report};
+    } catch (error) {
+        if (error instanceof AppError) {
+            return {success: false, message: error.message};
         }
-        return ReportController.instance;
-    }
-
-    /** @inheritdoc */
-    async getMemberProgressReport(
-        memberId: string,
-        startDate: string,
-        endDate: string,
-    ): Promise<ActionResult<Report>> {
-        const result = memberProgressReportSchema.safeParse({memberId, startDate, endDate});
-        if (!result.success) {
-            return {success: false, message: 'Validation failed', errors: z.flattenError(result.error).fieldErrors};
-        }
-
-        try {
-            const report = await this.reportService.getMemberProgressReport(
-                result.data.memberId,
-                new Date(result.data.startDate),
-                new Date(result.data.endDate),
-            );
-            return {success: true, data: report};
-        } catch (error) {
-            if (error instanceof AppError) {
-                return {success: false, message: error.message};
-            }
-            return {success: false, message: 'An unexpected error occurred'};
-        }
+        return {success: false, message: 'An unexpected error occurred'};
     }
 }

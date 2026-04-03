@@ -1,5 +1,5 @@
-import {AdminListOptions, AdminWithUser, MemberListOptions, MemberWithUser} from '@/lib/domain/user';
-import {CreateAdminInput, CreateMemberInput, UpdateAdminInput, UpdateMemberInput} from '@/lib/schema/user-schema';
+import {AdminListOptions, AdminWithUser, MemberListOptions, MemberWithUser, MemberWithUserAndTempPassword} from '@/lib/domain/user';
+import {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput, UpdateAdminInput, UpdateMemberInput} from '@/lib/schema/user-schema';
 import {PageResult} from '@/lib/domain/pagination';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {UserServiceInterface} from '@/lib/service/user-service-interface';
@@ -27,9 +27,27 @@ export class UserService implements UserServiceInterface {
         return UserService.instance;
     }
 
+    /**
+     * Generates a random temporary password of the given length.
+     * Uses alphanumeric characters (upper, lower, digits).
+     */
+    private generateTempPassword(length = 12): string {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const bytes = new Uint8Array(length);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, b => chars[b % chars.length]).join('');
+    }
+
     /** @inheritdoc */
     async createMember(data: CreateMemberInput): Promise<MemberWithUser> {
         return this.userRepository.createMember(data);
+    }
+
+    /** @inheritdoc */
+    async createMemberWithTempPassword(data: CreateMemberWithTempPasswordInput): Promise<MemberWithUserAndTempPassword> {
+        const tempPassword = this.generateTempPassword();
+        const member = await this.userRepository.createMember({...data, password: tempPassword});
+        return {...member, tempPassword};
     }
 
     /** @inheritdoc */

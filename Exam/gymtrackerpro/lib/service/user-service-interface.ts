@@ -1,5 +1,5 @@
-import type {AdminListOptions, AdminWithUser, MemberListOptions, MemberWithUser} from '@/lib/domain/user';
-import type {CreateAdminInput, CreateMemberInput, UpdateAdminInput, UpdateMemberInput} from '@/lib/schema/user-schema';
+import type {AdminListOptions, AdminWithUser, MemberListOptions, MemberWithUser, MemberWithUserAndTempPassword} from '@/lib/domain/user';
+import type {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput, UpdateAdminInput, UpdateMemberInput} from '@/lib/schema/user-schema';
 import type {PageResult} from '@/lib/domain/pagination';
 
 /**
@@ -15,6 +15,16 @@ export interface UserServiceInterface {
      * @throws {TransactionError} If the atomic write fails.
      */
     createMember(data: CreateMemberInput): Promise<MemberWithUser>;
+
+    /**
+     * Registers a new gym member with an auto-generated temporary password.
+     *
+     * @param data - Validated member creation input excluding the password field.
+     * @returns The newly created member record with the parent user included.
+     * @throws {ConflictError} If the email address is already registered.
+     * @throws {TransactionError} If the atomic write fails.
+     */
+    createMemberWithTempPassword(data: CreateMemberWithTempPasswordInput): Promise<MemberWithUserAndTempPassword>;
 
     /**
      * Registers a new administrator account.

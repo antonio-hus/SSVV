@@ -14,6 +14,9 @@ export type MemberWithUser = Member & {user: User};
 /** Admin record with the parent user included. */
 export type AdminWithUser = Admin & {user: User};
 
+/** Member record with the parent user and the one-time temporary password included. */
+export type MemberWithUserAndTempPassword = MemberWithUser & {tempPassword: string};
+
 /** Options for filtering and paginating the member list. */
 export type MemberListOptions = {
     search?: string;

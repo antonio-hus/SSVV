@@ -84,6 +84,17 @@ export const createMemberSchema = createUserSchema.extend({
 });
 
 /**
+ * Schema for creating a new member with an auto-generated temporary password.
+ */
+export const createMemberWithTempPasswordSchema = createMemberSchema.omit({password: true});
+
+/**
+ * Schema for creating a new admin.
+ */
+export const createAdminSchema = createUserSchema;
+
+
+/**
  * Schema for updating an existing member.
  */
 export const updateMemberSchema = updateUserSchema.extend({
@@ -93,11 +104,6 @@ export const updateMemberSchema = updateUserSchema.extend({
         .optional()
         .describe('Updated membership start date in YYYY-MM-DD format'),
 });
-
-/**
- * Schema for creating a new admin.
- */
-export const createAdminSchema = createUserSchema;
 
 /**
  * Schema for updating an existing admin.
@@ -115,6 +121,9 @@ export type LoginUserInput = z.infer<typeof loginUserSchema>;
 
 /** Input type for creating a member. */
 export type CreateMemberInput = z.infer<typeof createMemberSchema>;
+
+/** Input type for creating a member with an auto-generated temporary password. */
+export type CreateMemberWithTempPasswordInput = z.infer<typeof createMemberWithTempPasswordSchema>;
 
 /** Input type for updating a member. */
 export type UpdateMemberInput = z.infer<typeof updateMemberSchema>;
