@@ -113,7 +113,7 @@ export const CreateMemberForm = () => {
                     {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="phone">Phone (E.164)</Label>
+                    <Label htmlFor="phone">Phone</Label>
                     <Input
                         id="phone"
                         name="phone"

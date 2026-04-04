@@ -1,10 +1,7 @@
 import {z} from 'zod';
 import {e164PhoneRegex, emailRegex, isoDateRegex} from "@/lib/schema/utils";
 
-/**
- * Schema for creating a new user.
- */
-export const createUserSchema = z.object({
+const userFields = {
     email: z
         .string()
         .regex(emailRegex, 'Invalid email address')
@@ -16,53 +13,37 @@ export const createUserSchema = z.object({
         .describe('Full name of the user'),
     phone: z
         .string()
-        .regex(e164PhoneRegex, 'Phone number must be in E.164 format')
+        .regex(e164PhoneRegex, 'Phone number format is incorrect')
         .describe('Phone number'),
     dateOfBirth: z
         .string()
         .regex(isoDateRegex, 'Date of birth must be in YYYY-MM-DD format')
+        .refine((val) => new Date(val) < new Date(), 'Date of birth must be in the past')
         .describe('Date of birth in YYYY-MM-DD format'),
     password: z
         .string()
         .min(8, 'Password must be at least 8 characters')
         .describe('User password'),
-});
+};
 
-/**
- * Schema for updating an existing user.
- */
+const membershipStartField = z
+    .string()
+    .regex(isoDateRegex, 'Membership start date must be in YYYY-MM-DD format')
+    .describe('Membership start date in YYYY-MM-DD format');
+
+/** Schema for creating a new user. */
+export const createUserSchema = z.object(userFields);
+
+/** Schema for updating an existing user. All fields are optional. */
 export const updateUserSchema = z.object({
-    email: z
-        .string()
-        .regex(emailRegex, 'Invalid email address')
-        .optional()
-        .describe('Updated user email address'),
-    fullName: z
-        .string()
-        .min(8, 'Full name must be at least 8 characters')
-        .max(64, 'Full name must be at most 64 characters')
-        .optional()
-        .describe('Updated full name of the user'),
-    phone: z
-        .string()
-        .regex(e164PhoneRegex, 'Phone number must be in E.164 format')
-        .optional()
-        .describe('Updated phone number'),
-    dateOfBirth: z
-        .string()
-        .regex(isoDateRegex, 'Date of birth must be in YYYY-MM-DD format')
-        .optional()
-        .describe('Updated date of birth in YYYY-MM-DD format'),
-    password: z
-        .string()
-        .min(8, 'Password must be at least 8 characters')
-        .optional()
-        .describe('Updated user password'),
+    email: userFields.email.optional(),
+    fullName: userFields.fullName.optional(),
+    phone: userFields.phone.optional(),
+    dateOfBirth: userFields.dateOfBirth.optional(),
+    password: userFields.password.optional(),
 });
 
-/**
- * Schema for user login.
- */
+/** Schema for user login. */
 export const loginUserSchema = z.object({
     email: z
         .string()
@@ -72,43 +53,42 @@ export const loginUserSchema = z.object({
         .min(1, 'Password is required'),
 });
 
-/**
- * Schema for creating a new member.
- * Extends user fields with membership start date.
- */
-export const createMemberSchema = createUserSchema.extend({
-    membershipStart: z
-        .string()
-        .regex(isoDateRegex, 'Membership start date must be in YYYY-MM-DD format')
-        .describe('Membership start date in YYYY-MM-DD format'),
+/** Schema for creating a new member. */
+export const createMemberSchema = z.object({
+    ...userFields,
+    membershipStart: membershipStartField,
 });
 
-/**
- * Schema for creating a new member with an auto-generated temporary password.
- */
-export const createMemberWithTempPasswordSchema = createMemberSchema.omit({password: true});
-
-/**
- * Schema for creating a new admin.
- */
-export const createAdminSchema = createUserSchema;
-
-
-/**
- * Schema for updating an existing member.
- */
-export const updateMemberSchema = updateUserSchema.extend({
-    membershipStart: z
-        .string()
-        .regex(isoDateRegex, 'Membership start date must be in YYYY-MM-DD format')
-        .optional()
-        .describe('Updated membership start date in YYYY-MM-DD format'),
+/** Schema for creating a new member with an auto-generated temporary password. */
+export const createMemberWithTempPasswordSchema = z.object({
+    email: userFields.email,
+    fullName: userFields.fullName,
+    phone: userFields.phone,
+    dateOfBirth: userFields.dateOfBirth,
+    membershipStart: membershipStartField,
 });
 
-/**
- * Schema for updating an existing admin.
- */
-export const updateAdminSchema = updateUserSchema;
+/** Schema for creating a new admin. */
+export const createAdminSchema = z.object(userFields);
+
+/** Schema for updating an existing member. All fields are optional. */
+export const updateMemberSchema = z.object({
+    email: userFields.email.optional(),
+    fullName: userFields.fullName.optional(),
+    phone: userFields.phone.optional(),
+    dateOfBirth: userFields.dateOfBirth.optional(),
+    password: userFields.password.optional(),
+    membershipStart: membershipStartField.optional(),
+});
+
+/** Schema for updating an existing admin. All fields are optional. */
+export const updateAdminSchema = z.object({
+    email: userFields.email.optional(),
+    fullName: userFields.fullName.optional(),
+    phone: userFields.phone.optional(),
+    dateOfBirth: userFields.dateOfBirth.optional(),
+    password: userFields.password.optional(),
+});
 
 /** Input type for creating a user. */
 export type CreateUserInput = z.infer<typeof createUserSchema>;

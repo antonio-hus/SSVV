@@ -105,6 +105,11 @@ export class ExerciseRepository implements ExerciseRepositoryInterface {
             throw new NotFoundError(`Exercise not found: ${id}`);
         }
 
+        const usageCount = await this.database.workoutSessionExercise.count({where: {exerciseId: id}});
+        if (usageCount > 0) {
+            throw new ConflictError(`Exercise is used in existing workout sessions and cannot be deleted`);
+        }
+
         await this.database.exercise.delete({where: {id}});
     }
 }

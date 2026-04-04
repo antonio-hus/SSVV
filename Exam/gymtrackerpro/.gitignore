@@ -44,3 +44,6 @@ AGENTS.md
 CLAUDE.md
 
 /app/generated/prisma
+
+.agents
+.claude

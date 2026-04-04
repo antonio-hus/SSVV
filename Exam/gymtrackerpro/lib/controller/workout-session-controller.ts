@@ -5,7 +5,7 @@ import {ActionResult} from '@/lib/domain/action-result';
 import {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import {PageResult} from '@/lib/domain/pagination';
 import {z} from 'zod';
-import {CreateWorkoutSessionInput, createWorkoutSessionSchema, UpdateWorkoutSessionInput, updateWorkoutSessionSchema, WorkoutSessionExerciseInput, workoutSessionExercisesSchema} from '@/lib/schema/workout-session-schema';
+import {CreateWorkoutSessionInput, createWorkoutSessionSchema, UpdateWorkoutSessionInput, updateWorkoutSessionSchema, WorkoutSessionExerciseInput, workoutSessionExercisesSchema, WorkoutSessionExerciseUpdateInput, workoutSessionExercisesUpdateSchema} from '@/lib/schema/workout-session-schema';
 import {AppError} from '@/lib/domain/errors';
 
 /**
@@ -94,6 +94,41 @@ export async function updateWorkoutSession(
     }
     try {
         return {success: true, data: await workoutSessionService.updateWorkoutSession(workoutSessionId, result.data)};
+    } catch (error) {
+        if (error instanceof AppError) {
+            return {success: false, message: error.message};
+        }
+        return {success: false, message: 'An unexpected error occurred'};
+    }
+}
+
+/**
+ * Validates the inputs and updates a workout session's metadata and exercises atomically.
+ *
+ * @param workoutSessionId - The workout session ID.
+ * @param data - Fields to update (date, duration, notes — all optional).
+ * @param exercises - The new full list of exercises (replaces existing ones).
+ * @returns The updated session with all exercises, or a validation/not-found error.
+ */
+export async function updateWorkoutSessionWithExercises(
+    workoutSessionId: string,
+    data: UpdateWorkoutSessionInput,
+    exercises: WorkoutSessionExerciseUpdateInput[],
+): Promise<ActionResult<WorkoutSessionWithExercises>> {
+    const sessionResult = updateWorkoutSessionSchema.safeParse(data);
+    if (!sessionResult.success) {
+        return {success: false, message: 'Validation failed', errors: z.flattenError(sessionResult.error).fieldErrors};
+    }
+
+    const exercisesResult = workoutSessionExercisesUpdateSchema.safeParse(exercises);
+    if (!exercisesResult.success) {
+        const flat = z.flattenError(exercisesResult.error);
+        const message = flat.formErrors.length > 0 ? flat.formErrors[0] : 'Invalid exercises';
+        return {success: false, message};
+    }
+
+    try {
+        return {success: true, data: await workoutSessionService.updateWorkoutSessionWithExercises(workoutSessionId, sessionResult.data, exercisesResult.data)};
     } catch (error) {
         if (error instanceof AppError) {
             return {success: false, message: error.message};

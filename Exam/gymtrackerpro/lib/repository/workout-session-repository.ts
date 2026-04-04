@@ -1,8 +1,8 @@
 import {PrismaClient} from '@/prisma/generated/prisma/client';
 import {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
-import {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput,} from '@/lib/schema/workout-session-schema';
+import {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput, WorkoutSessionExerciseUpdateInput} from '@/lib/schema/workout-session-schema';
 import {PageResult} from '@/lib/domain/pagination';
-import {NotFoundError, SessionRequiresExercisesError, TransactionError} from '@/lib/domain/errors';
+import {NotFoundError, WorkoutSessionRequiresExercisesError, TransactionError} from '@/lib/domain/errors';
 import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
 
 /**
@@ -34,7 +34,7 @@ export class WorkoutSessionRepository implements WorkoutSessionRepositoryInterfa
         exercises: WorkoutSessionExerciseInput[],
     ): Promise<WorkoutSessionWithExercises> {
         if (exercises.length === 0) {
-            throw new SessionRequiresExercisesError(
+            throw new WorkoutSessionRequiresExercisesError(
                 'A workout session must include at least one exercise.',
             );
         }
@@ -111,9 +111,7 @@ export class WorkoutSessionRepository implements WorkoutSessionRepositoryInterfa
 
     /** @inheritdoc */
     async update(id: string, data: UpdateWorkoutSessionInput): Promise<WorkoutSession> {
-        const session = await this.database.workoutSession.findUnique({
-            where: {id}
-        });
+        const session = await this.database.workoutSession.findUnique({where: {id}});
         if (!session) {
             throw new NotFoundError(`Workout session not found: ${id}`);
         }
@@ -129,10 +127,68 @@ export class WorkoutSessionRepository implements WorkoutSessionRepositoryInterfa
     }
 
     /** @inheritdoc */
+    async updateWithExercises(id: string, data: UpdateWorkoutSessionInput, exercises: WorkoutSessionExerciseUpdateInput[]): Promise<WorkoutSessionWithExercises> {
+        if (exercises.length === 0) {
+            throw new WorkoutSessionRequiresExercisesError('A workout session must include at least one exercise.');
+        }
+
+        const session = await this.database.workoutSession.findUnique({where: {id}});
+        if (!session) {
+            throw new NotFoundError(`Workout session not found: ${id}`);
+        }
+
+        try {
+            return await this.database.$transaction(async (tx) => {
+                const existingIds = (await tx.workoutSessionExercise.findMany({
+                    where: {workoutSessionId: id},
+                    select: {id: true},
+                })).map((e) => e.id);
+
+                const keptIds = exercises.filter((e) => e.id).map((e) => e.id!);
+                const toDeleteIds = existingIds.filter((eid) => !keptIds.includes(eid));
+
+                if (toDeleteIds.length > 0) {
+                    await tx.workoutSessionExercise.deleteMany({where: {id: {in: toDeleteIds}}});
+                }
+
+                for (const e of exercises.filter((e) => e.id)) {
+                    await tx.workoutSessionExercise.update({
+                        where: {id: e.id},
+                        data: {exerciseId: e.exerciseId, sets: e.sets, reps: e.reps, weight: e.weight},
+                    });
+                }
+
+                const newExercises = exercises.filter((e) => !e.id);
+                if (newExercises.length > 0) {
+                    await tx.workoutSessionExercise.createMany({
+                        data: newExercises.map((e) => ({
+                            workoutSessionId: id,
+                            exerciseId: e.exerciseId,
+                            sets: e.sets,
+                            reps: e.reps,
+                            weight: e.weight,
+                        })),
+                    });
+                }
+
+                return tx.workoutSession.update({
+                    where: {id},
+                    data: {
+                        ...(data.date ? {date: new Date(data.date)} : {}),
+                        ...(data.duration !== undefined ? {duration: data.duration} : {}),
+                        ...(data.notes !== undefined ? {notes: data.notes} : {}),
+                    },
+                    include: {exercises: {include: {exercise: true}}},
+                });
+            });
+        } catch (error) {
+            throw new TransactionError(`Failed to update workout session: ${(error as Error).message}`);
+        }
+    }
+
+    /** @inheritdoc */
     async delete(id: string): Promise<void> {
-        const session = await this.database.workoutSession.findUnique({
-            where: {id}
-        });
+        const session = await this.database.workoutSession.findUnique({where: {id}});
         if (!session) {
             throw new NotFoundError(`Workout session not found: ${id}`);
         }

@@ -1,5 +1,5 @@
 import {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
-import {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput} from '@/lib/schema/workout-session-schema';
+import {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput, WorkoutSessionExerciseUpdateInput} from '@/lib/schema/workout-session-schema';
 import {PageResult} from '@/lib/domain/pagination';
 import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
 import {WorkoutSessionServiceInterface} from '@/lib/service/workout-session-service-interface';
@@ -54,6 +54,15 @@ export class WorkoutSessionService implements WorkoutSessionServiceInterface {
         data: UpdateWorkoutSessionInput,
     ): Promise<WorkoutSession> {
         return this.workoutSessionRepository.update(workoutSessionId, data);
+    }
+
+    /** @inheritdoc */
+    async updateWorkoutSessionWithExercises(
+        workoutSessionId: string,
+        data: UpdateWorkoutSessionInput,
+        exercises: WorkoutSessionExerciseUpdateInput[],
+    ): Promise<WorkoutSessionWithExercises> {
+        return this.workoutSessionRepository.updateWithExercises(workoutSessionId, data, exercises);
     }
 
     /** @inheritdoc */

@@ -89,8 +89,13 @@ export const EditMemberForm = ({member, memberId}: EditMemberFormProps) => {
 
     const handleDelete = useCallback(() => {
         startTransition(async () => {
-            await deleteMember(memberId);
-            router.push('/admin/members');
+            const res = await deleteMember(memberId);
+            if (res.success) {
+                router.refresh();
+                router.push('/admin/members');
+            } else {
+                setResult(res);
+            }
         });
     }, [memberId, router]);
 
@@ -129,7 +134,7 @@ export const EditMemberForm = ({member, memberId}: EditMemberFormProps) => {
                         {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="phone">Phone (E.164)</Label>
+                        <Label htmlFor="phone">Phone</Label>
                         <Input
                             id="phone"
                             name="phone"

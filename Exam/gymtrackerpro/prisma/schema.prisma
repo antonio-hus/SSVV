@@ -84,7 +84,7 @@ model WorkoutSession {
   duration Int
   notes    String?
 
-  member    Member                   @relation(fields: [memberId], references: [id])
+  member    Member                   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   exercises WorkoutSessionExercise[]
 
   @@map("workout_sessions")
@@ -96,7 +96,7 @@ model WorkoutSessionExercise {
   exerciseId       String
   sets             Int
   reps             Int
-  weight           Decimal
+  weight           Float
 
   session  WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
   exercise Exercise       @relation(fields: [exerciseId], references: [id])

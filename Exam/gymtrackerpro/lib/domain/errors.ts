@@ -29,7 +29,7 @@ export class AuthorizationError extends AppError {
 /**
  * Thrown when a session requires exercises but none are provided.
  */
-export class SessionRequiresExercisesError extends AppError {
+export class WorkoutSessionRequiresExercisesError extends AppError {
 }
 
 /**

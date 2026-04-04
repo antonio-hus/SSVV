@@ -13,9 +13,11 @@ import {createWorkoutSessionSchema, CreateWorkoutSessionInput, WorkoutSessionExe
 import type {ActionResult} from '@/lib/domain/action-result';
 import type {WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import type {Exercise} from '@/lib/domain/exercise';
+import type {MemberWithUser} from '@/lib/domain/user';
 
 type CreateWorkoutSessionFormProps = {
     exercises: Exercise[];
+    members: MemberWithUser[];
     defaultMemberId?: string;
 }
 
@@ -28,7 +30,7 @@ type CreateWorkoutSessionFormProps = {
  * @param defaultMemberId - Optional member ID to pre-fill the member field.
  * @returns A controlled form with session details and a dynamic exercise row list.
  */
-export const CreateWorkoutSessionForm = ({exercises, defaultMemberId}: CreateWorkoutSessionFormProps) => {
+export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: CreateWorkoutSessionFormProps) => {
     const router = useRouter();
     const [inputs, setInputs] = useState<CreateWorkoutSessionInput>({
         memberId: defaultMemberId ?? '',
@@ -99,14 +101,22 @@ export const CreateWorkoutSessionForm = ({exercises, defaultMemberId}: CreateWor
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 space-y-2">
-                    <Label htmlFor="memberId">Member ID</Label>
-                    <Input
+                    <Label htmlFor="memberId">Member</Label>
+                    <select
                         id="memberId"
                         name="memberId"
                         value={inputs.memberId}
-                        onChange={handleChange}
+                        onChange={(e) => setInputs(prev => ({...prev, memberId: e.target.value}))}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         required
-                    />
+                    >
+                        <option value="">Select a member...</option>
+                        {members.map((member) => (
+                            <option key={member.id} value={member.id}>
+                                {member.user.fullName} ({member.user.email})
+                            </option>
+                        ))}
+                    </select>
                     {memberIdError && <p className="text-sm text-destructive">{memberIdError}</p>}
                 </div>
                 <div className="space-y-2">

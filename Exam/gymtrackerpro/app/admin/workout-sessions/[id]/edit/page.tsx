@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {getWorkoutSession} from '@/lib/controller/workout-session-controller';
+import {listExercises} from '@/lib/controller/exercise-controller';
 import {PageHeader} from '@/components/page-header';
 import {EditWorkoutSessionForm} from './_components/edit-workout-session-form';
 
@@ -20,10 +21,20 @@ type EditWorkoutSessionPageProps = {
 export default async function EditWorkoutSessionPage({params}: EditWorkoutSessionPageProps) {
     const {id} = await params;
 
-    const result = await getWorkoutSession(id);
+    const [result, exercisesResult] = await Promise.all([
+        getWorkoutSession(id),
+        listExercises({pageSize: 200}),
+    ]);
+
     if (!result.success) {
         notFound();
     }
+
+    const session = {
+        ...result.data,
+        exercises: result.data.exercises.map((e) => ({...e, weight: Number(e.weight)})),
+    } as typeof result.data;
+    const exercises = exercisesResult.success ? exercisesResult.data.items : [];
 
     return (
         <div>
@@ -35,7 +46,7 @@ export default async function EditWorkoutSessionPage({params}: EditWorkoutSessio
                     Back to Member
                 </Button>
             </PageHeader>
-            <EditWorkoutSessionForm session={result.data} sessionId={id}/>
+            <EditWorkoutSessionForm session={session} exercises={exercises} sessionId={id}/>
         </div>
     );
 }

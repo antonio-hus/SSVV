@@ -1,5 +1,5 @@
 import type {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
-import type {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput} from '@/lib/schema/workout-session-schema';
+import type {CreateWorkoutSessionInput, UpdateWorkoutSessionInput, WorkoutSessionExerciseInput, WorkoutSessionExerciseUpdateInput} from '@/lib/schema/workout-session-schema';
 import type {PageResult} from '@/lib/domain/pagination';
 
 /**
@@ -12,7 +12,7 @@ export interface WorkoutSessionServiceInterface {
      * @param data - Validated session input (member, date, duration, notes).
      * @param exercises - At least one exercise entry (sets, reps, weight).
      * @returns The newly created workout session record with all exercises included.
-     * @throws {SessionRequiresExercisesError} If the exercises array is empty.
+     * @throws {WorkoutSessionRequiresExercisesError} If the exercises array is empty.
      * @throws {NotFoundError} If the referenced member does not exist.
      * @throws {TransactionError} If the atomic write fails.
      */
@@ -52,6 +52,19 @@ export interface WorkoutSessionServiceInterface {
      * @throws {NotFoundError} If no workout session with the given ID exists.
      */
     updateWorkoutSession(workoutSessionId: string, data: UpdateWorkoutSessionInput): Promise<WorkoutSession>;
+
+    /**
+     * Updates workout session metadata and replaces all exercise entries atomically.
+     *
+     * @param workoutSessionId - The workout session ID.
+     * @param data - Validated fields to update (all optional).
+     * @param exercises - The new full list of exercises (replaces existing ones).
+     * @returns The updated session with all exercises included.
+     * @throws {NotFoundError} If no workout session with the given ID exists.
+     * @throws {WorkoutSessionRequiresExercisesError} If the exercises array is empty.
+     * @throws {TransactionError} If the atomic write fails.
+     */
+    updateWorkoutSessionWithExercises(workoutSessionId: string, data: UpdateWorkoutSessionInput, exercises: WorkoutSessionExerciseUpdateInput[]): Promise<WorkoutSessionWithExercises>;
 
     /**
      * Permanently removes a workout session and all its exercises (cascade delete).
