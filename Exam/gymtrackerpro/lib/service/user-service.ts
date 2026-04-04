@@ -3,6 +3,7 @@ import {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput, 
 import {PageResult} from '@/lib/domain/pagination';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {UserServiceInterface} from '@/lib/service/user-service-interface';
+import {AppError} from "@/lib/domain/errors";
 
 /**
  * Implementation of {@link UserServiceInterface} providing member and admin management.
@@ -28,14 +29,40 @@ export class UserService implements UserServiceInterface {
     }
 
     /**
-     * Generates a random temporary password of the given length.
-     * Uses alphanumeric characters (upper, lower, digits).
+     * Generates a random 16-character temporary password.
+     * Guarantees at least one uppercase letter, one digit, and one special character.
      */
-    private generateTempPassword(length = 12): string {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const bytes = new Uint8Array(length);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes, b => chars[b % chars.length]).join('');
+    private generateTempPassword(): string {
+        const LENGTH = 16;
+        const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lower = 'abcdefghijklmnopqrstuvwxyz';
+        const digits = '0123456789';
+        const special = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+        const all = upper + lower + digits + special;
+
+        const randomChar = (pool: string) => {
+            const bytes = new Uint8Array(1);
+            crypto.getRandomValues(bytes);
+            return pool[bytes[0] % pool.length];
+        };
+
+        const required = [
+            randomChar(upper),
+            randomChar(digits),
+            randomChar(special),
+        ];
+
+        const remaining = Array.from({length: LENGTH - required.length}, () => randomChar(all));
+
+        const combined = [...required, ...remaining];
+        for (let i = combined.length - 1; i > 0; i--) {
+            const bytes = new Uint8Array(1);
+            crypto.getRandomValues(bytes);
+            const j = bytes[0] % (i + 1);
+            [combined[i], combined[j]] = [combined[j], combined[i]];
+        }
+
+        return combined.join('');
     }
 
     /** @inheritdoc */
