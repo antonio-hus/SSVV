@@ -5,6 +5,7 @@ import {CreateAdminInput, CreateMemberInput, UpdateAdminInput, UpdateMemberInput
 import {PageResult} from '@/lib/domain/pagination';
 import {ConflictError, NotFoundError, TransactionError} from '@/lib/domain/errors';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
+import {escapeLike} from '@/lib/utils';
 
 /**
  * Prisma-backed implementation of {@link UserRepositoryInterface}.
@@ -146,12 +147,13 @@ export class UserRepository implements UserRepositoryInterface {
     async findMembers(options: MemberListOptions = {}): Promise<PageResult<MemberWithUser>> {
         const {search, page = 1, pageSize = 10} = options;
 
-        const where = search
+        const safeSearch = search ? escapeLike(search) : undefined;
+        const where = safeSearch
             ? {
                 user: {
                     OR: [
-                        {fullName: {contains: search, mode: 'insensitive' as const}},
-                        {email: {contains: search, mode: 'insensitive' as const}},
+                        {fullName: {contains: safeSearch, mode: 'insensitive' as const}},
+                        {email: {contains: safeSearch, mode: 'insensitive' as const}},
                     ],
                 },
             }
@@ -175,12 +177,13 @@ export class UserRepository implements UserRepositoryInterface {
     async findAdmins(options: AdminListOptions = {}): Promise<PageResult<AdminWithUser>> {
         const {search, page = 1, pageSize = 10} = options;
 
-        const where = search
+        const safeSearch = search ? escapeLike(search) : undefined;
+        const where = safeSearch
             ? {
                 user: {
                     OR: [
-                        {fullName: {contains: search, mode: 'insensitive' as const}},
-                        {email: {contains: search, mode: 'insensitive' as const}},
+                        {fullName: {contains: safeSearch, mode: 'insensitive' as const}},
+                        {email: {contains: safeSearch, mode: 'insensitive' as const}},
                     ],
                 },
             }
@@ -311,24 +314,13 @@ export class UserRepository implements UserRepositoryInterface {
 
     /** @inheritdoc */
     async delete(id: string): Promise<void> {
-        const member = await this.database.member.findUnique({where: {id}});
-        if (member) {
-            await this.database.$transaction([
-                this.database.member.delete({where: {id}}),
-                this.database.user.delete({where: {id: member.userId}}),
-            ]);
-            return;
+        const profile = await this.database.member.findUnique({where: {id}})
+            ?? await this.database.admin.findUnique({where: {id}});
+
+        if (!profile) {
+            throw new NotFoundError(`Member or admin not found: ${id}`);
         }
 
-        const admin = await this.database.admin.findUnique({where: {id}});
-        if (admin) {
-            await this.database.$transaction([
-                this.database.admin.delete({where: {id}}),
-                this.database.user.delete({where: {id: admin.userId}}),
-            ]);
-            return;
-        }
-
-        throw new NotFoundError(`Member or admin not found: ${id}`);
+        await this.database.user.delete({where: {id: profile.userId}});
     }
 }

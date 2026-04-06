@@ -3,7 +3,6 @@ import {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput, 
 import {PageResult} from '@/lib/domain/pagination';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {UserServiceInterface} from '@/lib/service/user-service-interface';
-import {AppError} from "@/lib/domain/errors";
 
 /**
  * Implementation of {@link UserServiceInterface} providing member and admin management.

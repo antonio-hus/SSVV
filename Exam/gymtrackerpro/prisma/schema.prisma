@@ -49,7 +49,7 @@ model Member {
   membershipStart DateTime
   isActive        Boolean  @default(true)
 
-  user     User             @relation(fields: [userId], references: [id])
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions WorkoutSession[]
 
   @@map("members")
@@ -59,7 +59,7 @@ model Admin {
   id     String @id @default(uuid())
   userId String @unique
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("admins")
 }
@@ -91,7 +91,7 @@ model WorkoutSession {
 }
 
 model WorkoutSessionExercise {
-  id               String  @id @default(uuid())
+  id               String @id @default(uuid())
   workoutSessionId String
   exerciseId       String
   sets             Int

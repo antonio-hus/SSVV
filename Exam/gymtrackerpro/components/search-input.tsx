@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useCallback, useTransition} from 'react';
+import React, {useCallback, useEffect, useState, useTransition} from 'react';
 import {useRouter, usePathname, useSearchParams} from 'next/navigation';
 import {Input} from '@/components/ui/input';
 
@@ -21,12 +21,17 @@ const SearchInput = ({placeholder = 'Search...', paramName = 'search'}: SearchIn
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
+    const [value, setValue] = useState(searchParams.get(paramName) ?? '');
+
+    useEffect(() => {
+        setValue(searchParams.get(paramName) ?? '');
+    }, [searchParams, paramName]);
 
     const buildQueryString = useCallback(
-        (value: string) => {
+        (val: string) => {
             const params = new URLSearchParams(searchParams.toString());
-            if (value) {
-                params.set(paramName, value);
+            if (val) {
+                params.set(paramName, val);
             } else {
                 params.delete(paramName);
             }
@@ -38,6 +43,7 @@ const SearchInput = ({placeholder = 'Search...', paramName = 'search'}: SearchIn
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
+            setValue(e.target.value);
             startTransition(() => {
                 router.push(`${pathname}?${buildQueryString(e.target.value)}`);
             });
@@ -48,7 +54,7 @@ const SearchInput = ({placeholder = 'Search...', paramName = 'search'}: SearchIn
     return (
         <Input
             placeholder={placeholder}
-            defaultValue={searchParams.get(paramName) ?? ''}
+            value={value}
             onChange={handleChange}
             className={isPending ? 'opacity-50' : ''}
         />

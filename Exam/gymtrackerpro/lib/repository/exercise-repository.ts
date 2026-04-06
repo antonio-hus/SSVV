@@ -4,6 +4,7 @@ import {CreateExerciseInput, UpdateExerciseInput} from '@/lib/schema/exercise-sc
 import {PageResult} from '@/lib/domain/pagination';
 import {ConflictError, NotFoundError} from '@/lib/domain/errors';
 import {ExerciseRepositoryInterface} from '@/lib/repository/exercise-repository-interface';
+import {escapeLike} from '@/lib/utils';
 
 /**
  * Prisma-backed implementation of {@link ExerciseRepositoryInterface}.
@@ -52,10 +53,11 @@ export class ExerciseRepository implements ExerciseRepositoryInterface {
     async findAll(options: ExerciseListOptions = {}): Promise<PageResult<Exercise>> {
         const {search, muscleGroup, includeInactive = false, page = 1, pageSize = 10} = options;
 
+        const safeSearch = search ? escapeLike(search) : undefined;
         const where = {
             ...(includeInactive ? {} : {isActive: true}),
             ...(muscleGroup ? {muscleGroup} : {}),
-            ...(search ? {name: {contains: search, mode: 'insensitive' as const}} : {}),
+            ...(safeSearch ? {name: {contains: safeSearch, mode: 'insensitive' as const}} : {}),
         };
 
         const [items, total] = await this.database.$transaction([

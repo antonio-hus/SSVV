@@ -15,6 +15,13 @@ import type {WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import type {Exercise} from '@/lib/domain/exercise';
 import type {MemberWithUser} from '@/lib/domain/user';
 
+type EditableRow = {
+    exerciseId: string;
+    sets: string;
+    reps: string;
+    weight: string;
+}
+
 type CreateWorkoutSessionFormProps = {
     exercises: Exercise[];
     members: MemberWithUser[];
@@ -38,8 +45,8 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
         duration: 60,
         notes: '',
     });
-    const [rows, setRows] = useState<WorkoutSessionExerciseInput[]>([
-        {exerciseId: '', sets: 3, reps: 10, weight: 0},
+    const [rows, setRows] = useState<EditableRow[]>([
+        {exerciseId: '', sets: '3', reps: '10', weight: '0'},
     ]);
     const [result, setResult] = useState<ActionResult<WorkoutSessionWithExercises> | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -59,14 +66,14 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
     const durationError = getFieldError('duration');
 
     const addRow = useCallback(() => {
-        setRows(prev => [...prev, {exerciseId: '', sets: 3, reps: 10, weight: 0}]);
+        setRows(prev => [...prev, {exerciseId: '', sets: '3', reps: '10', weight: '0'}]);
     }, []);
 
     const removeRow = useCallback((index: number) => {
         setRows(prev => prev.filter((_, rowIndex) => rowIndex !== index));
     }, []);
 
-    const updateRow = useCallback((index: number, field: keyof WorkoutSessionExerciseInput, value: string | number) => {
+    const updateRow = useCallback((index: number, field: keyof EditableRow, value: string) => {
         setRows(prev => prev.map((row, rowIndex) => rowIndex === index ? {...row, [field]: value} : row));
     }, []);
 
@@ -83,8 +90,15 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
             return;
         }
 
+        const parsedRows: WorkoutSessionExerciseInput[] = rows.map((r) => ({
+            exerciseId: r.exerciseId,
+            sets: Number(r.sets),
+            reps: Number(r.reps),
+            weight: Number(r.weight),
+        }));
+
         startTransition(async () => {
-            const res = await createWorkoutSession(validation.data, rows);
+            const res = await createWorkoutSession(validation.data, parsedRows);
             if (res.success) {
                 router.push(`/admin/members/${inputs.memberId}`);
             } else {
@@ -136,9 +150,8 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
                     <Input
                         id="duration"
                         name="duration"
-                        type="number"
-                        min={0}
-                        max={180}
+                        type="text"
+                        inputMode="numeric"
                         value={inputs.duration}
                         onChange={handleChange}
                         required
@@ -184,32 +197,28 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
                             <div className="col-span-2 space-y-1">
                                 <Label className="text-xs">Sets</Label>
                                 <Input
-                                    type="number"
-                                    min={0}
-                                    max={6}
+                                    type="text"
+                                    inputMode="numeric"
                                     value={row.sets}
-                                    onChange={(e) => updateRow(index, 'sets', Number(e.target.value))}
+                                    onChange={(e) => updateRow(index, 'sets', e.target.value)}
                                 />
                             </div>
                             <div className="col-span-2 space-y-1">
                                 <Label className="text-xs">Reps</Label>
                                 <Input
-                                    type="number"
-                                    min={0}
-                                    max={30}
+                                    type="text"
+                                    inputMode="numeric"
                                     value={row.reps}
-                                    onChange={(e) => updateRow(index, 'reps', Number(e.target.value))}
+                                    onChange={(e) => updateRow(index, 'reps', e.target.value)}
                                 />
                             </div>
                             <div className="col-span-2 space-y-1">
                                 <Label className="text-xs">Weight (kg)</Label>
                                 <Input
-                                    type="number"
-                                    min={0}
-                                    max={500}
-                                    step={0.5}
+                                    type="text"
+                                    inputMode="decimal"
                                     value={row.weight}
-                                    onChange={(e) => updateRow(index, 'weight', Number(e.target.value))}
+                                    onChange={(e) => updateRow(index, 'weight', e.target.value)}
                                 />
                             </div>
                             <div className="col-span-2 flex justify-end">

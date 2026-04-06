@@ -14,6 +14,14 @@ import type {ActionResult} from '@/lib/domain/action-result';
 import type {WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import type {Exercise} from '@/lib/domain/exercise';
 
+type EditableRow = {
+    id?: string;
+    exerciseId: string;
+    sets: string;
+    reps: string;
+    weight: string;
+}
+
 type EditWorkoutSessionFormProps = {
     session: WorkoutSessionWithExercises;
     exercises: Exercise[];
@@ -27,13 +35,13 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
         duration: session.duration,
         notes: session.notes ?? '',
     });
-    const [rows, setRows] = useState<WorkoutSessionExerciseUpdateInput[]>(
+    const [rows, setRows] = useState<EditableRow[]>(
         session.exercises.map((e) => ({
             id: e.id,
             exerciseId: e.exerciseId,
-            sets: e.sets,
-            reps: e.reps,
-            weight: Number(e.weight),
+            sets: String(e.sets),
+            reps: String(e.reps),
+            weight: String(Number(e.weight)),
         }))
     );
     const [result, setResult] = useState<ActionResult<WorkoutSessionWithExercises> | null>(null);
@@ -45,14 +53,14 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
     }, []);
 
     const addRow = useCallback(() => {
-        setRows(prev => [...prev, {exerciseId: '', sets: 3, reps: 10, weight: 0}]);
+        setRows(prev => [...prev, {exerciseId: '', sets: '3', reps: '10', weight: '0'}]);
     }, []);
 
     const removeRow = useCallback((index: number) => {
         setRows(prev => prev.filter((_, i) => i !== index));
     }, []);
 
-    const updateRow = useCallback((index: number, field: keyof WorkoutSessionExerciseUpdateInput, value: string | number) => {
+    const updateRow = useCallback((index: number, field: keyof EditableRow, value: string) => {
         setRows(prev => prev.map((row, i) => i === index ? {...row, [field]: value} : row));
     }, []);
 
@@ -69,8 +77,16 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
             return;
         }
 
+        const parsedRows: WorkoutSessionExerciseUpdateInput[] = rows.map((r) => ({
+            id: r.id,
+            exerciseId: r.exerciseId,
+            sets: Number(r.sets),
+            reps: Number(r.reps),
+            weight: Number(r.weight),
+        }));
+
         startTransition(async () => {
-            const res = await updateWorkoutSessionWithExercises(sessionId, validation.data, rows);
+            const res = await updateWorkoutSessionWithExercises(sessionId, validation.data, parsedRows);
             setResult(res);
             if (res.success) router.refresh();
         });
@@ -121,9 +137,8 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                         <Input
                             id="duration"
                             name="duration"
-                            type="number"
-                            min={0}
-                            max={180}
+                            type="text"
+                            inputMode="numeric"
                             value={inputs.duration ?? ''}
                             onChange={handleChange}
                             required
@@ -169,32 +184,28 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Sets</Label>
                                     <Input
-                                        type="number"
-                                        min={0}
-                                        max={6}
+                                        type="text"
+                                        inputMode="numeric"
                                         value={row.sets}
-                                        onChange={(e) => updateRow(index, 'sets', Number(e.target.value))}
+                                        onChange={(e) => updateRow(index, 'sets', e.target.value)}
                                     />
                                 </div>
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Reps</Label>
                                     <Input
-                                        type="number"
-                                        min={0}
-                                        max={30}
+                                        type="text"
+                                        inputMode="numeric"
                                         value={row.reps}
-                                        onChange={(e) => updateRow(index, 'reps', Number(e.target.value))}
+                                        onChange={(e) => updateRow(index, 'reps', e.target.value)}
                                     />
                                 </div>
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Weight (kg)</Label>
                                     <Input
-                                        type="number"
-                                        min={0}
-                                        max={500}
-                                        step={0.5}
+                                        type="text"
+                                        inputMode="decimal"
                                         value={row.weight}
-                                        onChange={(e) => updateRow(index, 'weight', Number(e.target.value))}
+                                        onChange={(e) => updateRow(index, 'weight', e.target.value)}
                                     />
                                 </div>
                                 <div className="col-span-2 flex justify-end">
