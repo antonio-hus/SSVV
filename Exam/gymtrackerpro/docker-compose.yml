@@ -1,0 +1,64 @@
+services:
+
+  # PostgreSQL 18
+  # Persists data in a named Docker volume so it survives container restarts.
+  # POSTGRES_PASSWORD is read from .env (see .env.example for details).
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       gymtrackerpro
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:         ["CMD-SHELL", "pg_isready -U postgres -d gymtrackerpro"]
+      interval:     5s
+      timeout:      5s
+      retries:      10
+      start_period: 10s
+
+  # Migrations + seed (one-shot service)
+  # Runs Prisma migrations then the seed script, then exits.
+  # The app service will not start until this exits with code 0.
+  # Re-running `docker compose up` is safe - the seed skips existing emails.
+  #
+  # DATABASE_URL points to the `db` service using its compose hostname.
+  # Note: this is different from the DATABASE_URL in .env, which points to
+  # localhost for local development outside Docker.
+  #
+  # SEED_ADMINS is a JSON array - see .env.example for the exact format.
+  migrate:
+    build: .
+    command: >
+      sh -c "npx prisma migrate deploy && npx prisma db seed"
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/gymtrackerpro
+      SEED_ADMINS:  ${SEED_ADMINS:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  # Next.js application
+  # Exposed on APP_PORT (default 3000). Only starts after migrations are done.
+  #
+  # DATABASE_URL uses the `db` hostname, same as migrate above.
+  # IRON_SESSION_SECRET is required - compose will refuse to start without it.
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL:        postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/gymtrackerpro
+      IRON_SESSION_SECRET: ${IRON_SESSION_SECRET:?IRON_SESSION_SECRET is required - set it in .env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  # Postgres data is persisted here across container restarts and rebuilds.
+  # To wipe the database and start fresh: docker compose down -v
+  postgres_data:

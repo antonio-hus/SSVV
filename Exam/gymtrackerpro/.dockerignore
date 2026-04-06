@@ -1,0 +1,22 @@
+# Build artifacts
+.next/
+out/
+
+# Dependencies (reinstalled inside Docker)
+node_modules/
+
+# Prisma generated client (regenerated inside Docker)
+prisma/generated/
+
+# Git
+.git/
+.gitignore
+
+# Environment files — secrets must not be baked into the image
+.env
+.env.*
+!.env.example
+
+# Dev tooling
+*.log
+.eslintcache

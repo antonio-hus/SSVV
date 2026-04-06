@@ -8,56 +8,86 @@ dotenv.config();
 const adapter = new PrismaPg({connectionString: process.env.DATABASE_URL!});
 const prisma = new PrismaClient({adapter});
 
+type AdminSeed = {
+    email: string;
+    password: string;
+    name: string;
+    phone: string;
+    dob: string;
+};
+
+const DEFAULT_ADMINS: AdminSeed[] = [
+    {
+        email: 'admin@gymtrackerpro.com',
+        password: 'admin',
+        name: 'Gym Administrator',
+        phone: '+1234567890',
+        dob: '1990-01-01',
+    },
+];
+
 /**
- * Seeds the database with an initial admin user.
+ * Parses the SEED_ADMINS environment variable.
+ * Expected format: JSON array of admin objects, e.g.
+ *   [{"email":"a@b.com","password":"secret","name":"Alice","phone":"+1","dob":"1990-01-01"}]
  *
- * - Checks if an admin user already exists to avoid duplicates.
- * - Hashes the admin password securely using bcrypt.
- * - Creates the admin User and its linked Admin record in a single transaction.
- *   - Email: admin@gymtrackerpro.com
- *   - Password: admin
- *
- * @async
+ * Falls back to DEFAULT_ADMINS when the variable is absent or invalid.
+ */
+const parseAdmins = (): AdminSeed[] => {
+    const raw = process.env.SEED_ADMINS;
+    if (!raw) return DEFAULT_ADMINS;
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            console.warn('SEED_ADMINS is not a non-empty array — using defaults.');
+            return DEFAULT_ADMINS;
+        }
+        return parsed as AdminSeed[];
+    } catch {
+        console.warn('SEED_ADMINS is not valid JSON — using defaults.');
+        return DEFAULT_ADMINS;
+    }
+};
+
+/**
+ * Seeds the database with one or more admin users defined in SEED_ADMINS.
+ * Already-existing emails are skipped so re-running is always safe.
  */
 const main = async () => {
     console.log('Seeding database...');
 
-    const existingAdmin = await prisma.user.findUnique({
-        where: {email: 'admin@gymtrackerpro.com'},
-    });
+    const admins = parseAdmins();
+    console.log(`Provisioning ${admins.length} admin(s)...`);
 
-    if (existingAdmin) {
-        console.log('Admin user already exists, skipping seed.');
-        return;
+    for (const admin of admins) {
+        const exists = await prisma.user.findUnique({where: {email: admin.email}});
+
+        if (exists) {
+            console.log(`  skip  ${admin.email} (already exists)`);
+            continue;
+        }
+
+        const passwordHash = await bcrypt.hash(admin.password, 12);
+
+        await prisma.user.create({
+            data: {
+                email: admin.email,
+                fullName: admin.name,
+                phone: admin.phone,
+                dateOfBirth: new Date(admin.dob),
+                passwordHash,
+                role: 'ADMIN',
+                admin: {create: {}},
+            },
+        });
+
+        console.log(`  created ${admin.email}`);
     }
 
-    const passwordHash = await bcrypt.hash('admin', 12);
-
-    // Create the User and its Admin profile atomically
-    await prisma.user.create({
-        data: {
-            email: 'admin@gymtrackerpro.com',
-            fullName: 'Gym Administrator',
-            phone: '+1234567890',
-            dateOfBirth: new Date('1990-01-01'),
-            passwordHash,
-            role: 'ADMIN',
-            admin: {
-                create: {},
-            },
-        },
-    });
-
-    console.log('Admin user created: admin@gymtrackerpro.com / admin');
-    console.log('Seed completed!');
+    console.log('Seed completed.');
 };
 
-/**
- * Execute the main seeding function.
- *
- * Catches and logs errors, exits the process if an error occurs,
- * and ensures the Prisma client disconnects at the end.
- */
 main()
     .catch((e) => {
         console.error('Seed failed:', e);

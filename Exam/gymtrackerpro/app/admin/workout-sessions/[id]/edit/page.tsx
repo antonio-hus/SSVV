@@ -30,10 +30,7 @@ export default async function EditWorkoutSessionPage({params}: EditWorkoutSessio
         notFound();
     }
 
-    const session = {
-        ...result.data,
-        exercises: result.data.exercises.map((e) => ({...e, weight: Number(e.weight)})),
-    } as typeof result.data;
+    const session = result.data;
     const exercises = exercisesResult.success ? exercisesResult.data.items : [];
 
     return (
