@@ -17,7 +17,7 @@ type MembersTableProps = {
  * @returns A bordered table of members, each with view and edit links.
  */
 export const MembersTable = ({members}: MembersTableProps) => (
-    <div className="rounded-md border">
+    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
         <Table>
             <TableHeader>
                 <TableRow>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {CreateExerciseForm} from './_components/create-exercise-form';
 
 /**

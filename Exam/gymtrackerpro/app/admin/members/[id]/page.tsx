@@ -2,7 +2,7 @@ import {notFound} from 'next/navigation';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Separator} from '@/components/ui/separator';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {MemberDetailInformation} from './_components/member-detail-information';
 import {MemberRecentWorkoutSessions} from './_components/member-recent-workout-sessions';
 import {getMember} from '@/lib/controller/user-controller';

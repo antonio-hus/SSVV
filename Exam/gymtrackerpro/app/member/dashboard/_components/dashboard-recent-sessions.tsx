@@ -24,7 +24,7 @@ export const DashboardRecentSessions = ({workoutSessions}: DashboardRecentSessio
                     View All
                 </Button>
             </div>
-            <div className="rounded-md border">
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                 <Table>
                     <TableHeader>
                         <TableRow>

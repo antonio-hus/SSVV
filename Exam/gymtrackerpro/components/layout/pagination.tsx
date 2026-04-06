@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
+import {ChevronLeft, ChevronRight} from 'lucide-react';
 
 type PaginationProps = {
     page: number;
@@ -9,14 +10,6 @@ type PaginationProps = {
     searchParams?: Record<string, string>;
 }
 
-/**
- * Builds a paginated URL by merging existing search params with the target page number.
- *
- * @param baseUrl - Base URL to append query params to.
- * @param searchParams - Existing query params to preserve.
- * @param p - Target page number.
- * @returns Full URL string with updated page query param.
- */
 const buildUrl = (baseUrl: string, searchParams: Record<string, string>, p: number) => {
     const params = new URLSearchParams({...searchParams, page: String(p)});
     return `${baseUrl}?${params.toString()}`;
@@ -41,17 +34,22 @@ export const Pagination = ({page, pageSize, total, baseUrl, searchParams = {}}: 
     return (
         <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-muted-foreground">
-                Page {page} of {totalPages} ({total} total)
+                Page {page} of {totalPages}
+                <span className="hidden sm:inline"> ({total} total)</span>
             </p>
             <div className="flex gap-2">
                 {page > 1 && (
-                    <Button render={<Link href={buildUrl(baseUrl, searchParams, page - 1)} />} nativeButton={false} variant="outline" size="sm">
-                        Previous
+                    <Button render={<Link href={buildUrl(baseUrl, searchParams, page - 1)}/>} nativeButton={false}
+                            variant="outline" size="sm" className="gap-1">
+                        <ChevronLeft className="h-3.5 w-3.5"/>
+                        <span className="hidden sm:inline">Previous</span>
                     </Button>
                 )}
                 {page < totalPages && (
-                    <Button render={<Link href={buildUrl(baseUrl, searchParams, page + 1)} />} nativeButton={false} variant="outline" size="sm">
-                        Next
+                    <Button render={<Link href={buildUrl(baseUrl, searchParams, page + 1)}/>} nativeButton={false}
+                            variant="outline" size="sm" className="gap-1">
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-3.5 w-3.5"/>
                     </Button>
                 )}
             </div>

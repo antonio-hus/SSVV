@@ -1,5 +1,5 @@
-import {PageHeader} from '@/components/page-header';
-import {StatCard} from '@/components/stat-card';
+import {PageHeader} from '@/components/layout/page-header';
+import {StatCard} from '@/components/data/stat-card';
 import {DashboardRecentSessions} from './_components/dashboard-recent-sessions';
 import {getSession} from '@/lib/session';
 import {listMemberWorkoutSessions} from '@/lib/controller/workout-session-controller';

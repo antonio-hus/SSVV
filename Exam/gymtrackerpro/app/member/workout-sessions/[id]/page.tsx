@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {WorkoutSessionStats} from './_components/workout-session-stats';
 import {WorkoutSessionExercisesTable} from './_components/workout-session-exercises-table';
 import {getSession} from '@/lib/session';

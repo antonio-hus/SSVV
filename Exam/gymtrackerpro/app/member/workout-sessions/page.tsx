@@ -1,5 +1,5 @@
-import {PageHeader} from '@/components/page-header';
-import {Pagination} from '@/components/pagination';
+import {PageHeader} from '@/components/layout/page-header';
+import {Pagination} from '@/components/layout/pagination';
 import {WorkoutSessionsTable} from './_components/workout-sessions-table';
 import {getSession} from '@/lib/session';
 import {listMemberWorkoutSessions} from '@/lib/controller/workout-session-controller';

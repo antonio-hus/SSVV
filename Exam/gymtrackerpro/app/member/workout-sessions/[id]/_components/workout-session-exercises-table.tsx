@@ -16,7 +16,7 @@ export const WorkoutSessionExercisesTable = ({exercises}: SessionExercisesTableP
     return (
         <div>
             <h2 className="text-lg font-semibold mb-3">Exercises</h2>
-            <div className="rounded-md border">
+            <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
                 <Table>
                     <TableHeader>
                         <TableRow>

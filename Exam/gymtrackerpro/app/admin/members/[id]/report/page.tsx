@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {getMember} from '@/lib/controller/user-controller';
 import {getMemberProgressReport} from '@/lib/controller/report-controller';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {ReportStats} from '@/components/report/report-stats';
 import {ReportExerciseBreakdown} from '@/components/report/report-exercise-breakdown';

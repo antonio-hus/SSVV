@@ -16,12 +16,12 @@ type PageHeaderProps = {
  */
 export const PageHeader = ({title, description, children}: PageHeaderProps) => {
     return (
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-8 gap-4">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-                {description && <p className="text-muted-foreground mt-1 text-sm">{description}</p>}
+                <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                {description && <p className="text-[15px] text-muted-foreground mt-1 leading-snug">{description}</p>}
             </div>
-            {children && <div className="flex items-center gap-2">{children}</div>}
+            {children && <div className="flex items-center gap-2 shrink-0">{children}</div>}
         </div>
     );
 }

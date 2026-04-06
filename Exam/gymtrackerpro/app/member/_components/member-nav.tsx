@@ -1,58 +1,20 @@
 'use client';
 
-import React, {useMemo} from 'react';
-import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import {cn} from '@/lib/utils';
+import {LayoutDashboard, Dumbbell, TrendingUp, UserCircle} from 'lucide-react';
+import {SidebarNav} from '@/components/layout/sidebar-nav';
+import type {NavItem} from '@/components/layout/sidebar-nav';
+
+const NAV_ITEMS: NavItem[] = [
+    {label: 'Dashboard', href: '/member/dashboard', icon: LayoutDashboard},
+    {label: 'My Workout Sessions', href: '/member/workout-sessions', icon: Dumbbell},
+    {label: 'My Report', href: '/member/report', icon: TrendingUp},
+    {label: 'Profile', href: '/member/profile', icon: UserCircle},
+];
 
 /**
- * List of navigation items for the member sidebar.
- * `href` should match the route exactly or as a prefix for active highlighting.
- */
-const NAV_ITEMS = [
-    {label: 'Dashboard', href: '/member/dashboard'},
-    {label: 'My Workout Sessions', href: '/member/workout-sessions'},
-    {label: 'My Report', href: '/member/report'},
-    {label: 'Profile', href: '/member/profile'},
-] as const;
-
-/**
- * Sidebar navigation component for the member section.
- * Highlights the active route based on the current pathname.
+ * Sidebar navigation for the member section.
+ * Delegates rendering to the shared SidebarNav component.
  *
- * @returns JSX element containing the sidebar navigation.
+ * @returns Member sidebar navigation.
  */
-export const MemberNav = () => {
-    const pathname = usePathname();
-
-    const activeMap = useMemo(() => {
-        const map: Record<string, boolean> = {};
-        NAV_ITEMS.forEach(({href}) => {
-            map[href] = pathname.startsWith(href);
-        });
-
-        return map;
-    }, [pathname]);
-
-    return (
-        <nav aria-label="Member Navigation">
-            <ul className="space-y-1">
-                {NAV_ITEMS.map(({label, href}) => (
-                    <li key={href}>
-                        <Link
-                            href={href}
-                            className={cn(
-                                'block px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                                activeMap[href]
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                            )}
-                        >
-                            {label}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </nav>
-    );
-};
+export const MemberNav = () => <SidebarNav items={NAV_ITEMS} ariaLabel="Member Navigation"/>;

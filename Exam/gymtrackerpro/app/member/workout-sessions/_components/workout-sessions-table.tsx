@@ -16,7 +16,7 @@ type WorkoutSessionsTableProps = {
  */
 export const WorkoutSessionsTable = ({sessions}: WorkoutSessionsTableProps) => {
     return (
-        <div className="rounded-md border">
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
             <Table>
                 <TableHeader>
                     <TableRow>

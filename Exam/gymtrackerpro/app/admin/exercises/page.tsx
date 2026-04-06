@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {listExercises} from '@/lib/controller/exercise-controller';
-import {PageHeader} from '@/components/page-header';
-import {Pagination} from '@/components/pagination';
-import {SearchInput} from '@/components/search-input';
+import {PageHeader} from '@/components/layout/page-header';
+import {Pagination} from '@/components/layout/pagination';
+import {SearchInput} from '@/components/data/search-input';
 import {ExercisesTable} from './_components/exercises-table';
 
 const PAGE_SIZE = 10;

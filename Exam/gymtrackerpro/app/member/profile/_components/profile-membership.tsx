@@ -1,4 +1,5 @@
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Card, CardContent} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
 
 type ProfileMembershipProps = {
     membershipStart: string | Date;
@@ -10,25 +11,29 @@ type ProfileMembershipProps = {
  *
  * @param membershipStart - The date the membership began.
  * @param isActive - Whether the membership is currently active.
- * @returns A card with membership start date and a colour-coded status indicator.
+ * @returns A card with membership start date and status.
  */
 export const ProfileMembership = ({membershipStart, isActive}: ProfileMembershipProps) => {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-base">Membership</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-                <p>
-                    <span className="text-muted-foreground">Member since: </span>
-                    {new Date(membershipStart).toLocaleDateString()}
-                </p>
-                <p>
-                    <span className="text-muted-foreground">Status: </span>
-                    <span className={isActive ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                    {isActive ? 'Active' : 'Suspended'}
-                </span>
-                </p>
+        <Card className="overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-border bg-muted/40">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Membership</p>
+            </div>
+            <CardContent className="p-0">
+                <dl className="divide-y divide-border">
+                    <div className="flex items-center justify-between px-4 py-3 gap-4">
+                        <dt className="text-sm text-muted-foreground shrink-0">Member since</dt>
+                        <dd className="text-sm font-medium text-right">{new Date(membershipStart).toLocaleDateString()}</dd>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3 gap-4">
+                        <dt className="text-sm text-muted-foreground shrink-0">Status</dt>
+                        <dd>
+                            <Badge variant={isActive ? 'default' : 'secondary'}>
+                                {isActive ? 'Active' : 'Suspended'}
+                            </Badge>
+                        </dd>
+                    </div>
+                </dl>
             </CardContent>
         </Card>
     );

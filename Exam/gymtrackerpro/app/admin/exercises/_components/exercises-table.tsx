@@ -17,7 +17,7 @@ type ExercisesTableProps = {
  */
 export const ExercisesTable = ({exercises}: ExercisesTableProps) => {
     return (
-        <div className="rounded-md border">
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
             <Table>
                 <TableHeader>
                     <TableRow>

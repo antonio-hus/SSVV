@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {getWorkoutSession} from '@/lib/controller/workout-session-controller';
 import {listExercises} from '@/lib/controller/exercise-controller';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {EditWorkoutSessionForm} from './_components/edit-workout-session-form';
 
 type EditWorkoutSessionPageProps = {

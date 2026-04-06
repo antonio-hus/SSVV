@@ -1,4 +1,4 @@
-import {StatCard} from '@/components/stat-card';
+import {StatCard} from '@/components/data/stat-card';
 import type {Report} from '@/lib/domain/report';
 
 type ReportStatsProps = {

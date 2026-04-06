@@ -2,7 +2,7 @@ import {notFound} from 'next/navigation';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {getMember} from '@/lib/controller/user-controller';
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {EditMemberForm} from './_components/edit-member-form';
 
 type EditMemberPageProps = {
