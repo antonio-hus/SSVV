@@ -1,11 +1,23 @@
 import React from "react";
 import {Dumbbell} from 'lucide-react';
 import {getSession} from '@/lib/session';
+import {getMember} from '@/lib/controller/user-controller';
 import {LogoutButton} from '@/components/auth/logout-button';
 import {MemberNav} from './_components/member-nav';
+import {Role} from "@/prisma/generated/prisma/enums";
+import {redirect} from "next/navigation";
 
 export default async function MemberLayout({children}: { children: React.ReactNode }) {
     const session = await getSession();
+
+    if (!session.userId || session.role !== Role.MEMBER) {
+        redirect('/login');
+    }
+
+    const memberResult = await getMember(session.memberId!);
+    if (!memberResult.success || !memberResult.data.isActive) {
+        redirect('/unauthorized');
+    }
 
     return (
         <div className="flex min-h-screen">

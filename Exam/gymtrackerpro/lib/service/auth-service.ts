@@ -47,6 +47,7 @@ export class AuthService implements AuthServiceInterface {
             role: user.role,
             memberId: user.member?.id,
             adminId: user.admin?.id,
+            isActive: user.member?.isActive,
         };
     }
 }

@@ -41,6 +41,9 @@ export const proxy = async (request: NextRequest): Promise<NextResponse> => {
         if (role !== Role.MEMBER) {
             return NextResponse.redirect(new URL('/unauthorized', request.url));
         }
+        if (session.isActive === false) {
+            return NextResponse.redirect(new URL('/unauthorized', request.url));
+        }
     }
 
     return response;

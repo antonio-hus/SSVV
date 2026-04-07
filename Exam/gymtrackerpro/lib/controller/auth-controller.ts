@@ -30,6 +30,7 @@ export async function login(data: LoginUserInput): Promise<ActionResult<SessionD
         session.role = sessionData.role;
         session.memberId = sessionData.memberId;
         session.adminId = sessionData.adminId;
+        session.isActive = sessionData.isActive;
         await session.save();
         return {success: true, data: sessionData};
     } catch (error) {
