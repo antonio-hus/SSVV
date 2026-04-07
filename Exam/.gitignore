@@ -29,3 +29,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Others ###
+./documentation/GymTrackerPro_Demo.mov
