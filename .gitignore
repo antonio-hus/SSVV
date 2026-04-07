@@ -29,3 +29,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Video files ###
+*.mov
+*.mp4
+*.avi
+*.mkv
