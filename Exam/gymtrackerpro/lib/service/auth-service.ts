@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import {LoginUserInput} from '@/lib/schema/user-schema';
 import {SessionData} from '@/lib/domain/session';
-import {AuthorizationError, NotFoundError} from '@/lib/domain/errors';
+import {AuthorizationError} from '@/lib/domain/errors';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {AuthServiceInterface} from '@/lib/service/auth-service-interface';
 
@@ -32,7 +32,7 @@ export class AuthService implements AuthServiceInterface {
     async login(data: LoginUserInput): Promise<SessionData> {
         const user = await this.userRepository.findByEmail(data.email);
         if (!user) {
-            throw new NotFoundError('Invalid email or password');
+            throw new AuthorizationError('Invalid email or password');
         }
 
         const passwordMatch = await bcrypt.compare(data.password, user.passwordHash);
@@ -47,7 +47,6 @@ export class AuthService implements AuthServiceInterface {
             role: user.role,
             memberId: user.member?.id,
             adminId: user.admin?.id,
-            isActive: user.member?.isActive,
         };
     }
 }

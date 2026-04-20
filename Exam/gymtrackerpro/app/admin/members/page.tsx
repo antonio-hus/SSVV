@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
-import {PageHeader} from '@/components/layout/page-header';
-import {Pagination} from '@/components/layout/pagination';
-import {SearchInput} from '@/components/data/search-input';
+import {PageHeader} from '@/components/page-header';
+import {Pagination} from '@/components/pagination';
+import {SearchInput} from '@/components/search-input';
 import {MembersTable} from './_components/members-table';
 import {listMembers} from '@/lib/controller/user-controller';
 

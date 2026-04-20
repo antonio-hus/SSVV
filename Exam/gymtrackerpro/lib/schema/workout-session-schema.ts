@@ -22,7 +22,6 @@ const sessionFields = {
 const exerciseFields = {
     exerciseId: z
         .string()
-        .trim()
         .min(1, 'Exercise is required')
         .describe('ID of the exercise'),
     sets: z
@@ -49,7 +48,6 @@ const exerciseFields = {
 export const createWorkoutSessionSchema = z.object({
     memberId: z
         .string()
-        .trim()
         .min(1, 'Member is required')
         .describe('ID of the member'),
     ...sessionFields,

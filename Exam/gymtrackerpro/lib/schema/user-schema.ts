@@ -4,36 +4,25 @@ import {e164PhoneRegex, emailRegex, isoDateRegex} from "@/lib/schema/utils";
 const userFields = {
     email: z
         .string()
-        .trim()
         .regex(emailRegex, 'Invalid email address')
         .describe('User email address'),
     fullName: z
         .string()
-        .trim()
         .min(8, 'Full name must be at least 8 characters')
         .max(64, 'Full name must be at most 64 characters')
         .describe('Full name of the user'),
     phone: z
         .string()
-        .trim()
         .regex(e164PhoneRegex, 'Phone number format is incorrect')
         .describe('Phone number'),
     dateOfBirth: z
         .string()
-        .trim()
         .regex(isoDateRegex, 'Date of birth must be in YYYY-MM-DD format')
-        .refine((val) => {
-            const today = new Date().toISOString().slice(0, 10);
-            return val < today;
-        }, 'Date of birth must be in the past')
+        .refine((val) => new Date(val) < new Date(), 'Date of birth must be in the past')
         .describe('Date of birth in YYYY-MM-DD format'),
     password: z
         .string()
         .min(8, 'Password must be at least 8 characters')
-        .max(64, 'Password must be at most 64 characters')
-        .regex(/[A-Z]/, 'Password must contain at least one uppercase character')
-        .regex(/[0-9]/, 'Password must contain at least one number')
-        .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
         .describe('User password'),
 };
 

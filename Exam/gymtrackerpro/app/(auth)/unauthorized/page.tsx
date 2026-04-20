@@ -1,29 +1,32 @@
 import Link from 'next/link';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 
 /**
- * Renders the unauthorized access page.
+ * Renders a friendly Unauthorized page when a user tries to access a page
+ * they are not allowed to view.
  *
  * @returns A React component with a message and navigation options.
  */
 export default function UnauthorizedPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-8">
-            <div className="max-w-xs w-full">
-                <p className="text-xs font-semibold text-destructive uppercase tracking-widest mb-3">Access Denied</p>
-                <h1 className="text-2xl font-semibold tracking-tight mb-2">You don&apos;t have permission here.</h1>
-                <p className="text-[15px] text-muted-foreground leading-relaxed mb-8">
-                    This page isn&apos;t available with your current account.
-                </p>
-                <div className="flex flex-col gap-3">
+        <div className="min-h-screen flex items-center justify-center bg-muted/40">
+            <Card className="w-full max-w-sm text-center">
+                <CardHeader>
+                    <CardTitle className="text-2xl">Access Denied</CardTitle>
+                    <CardDescription>
+                        You do not have permission to view this page.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
                     <Link href="/">
                         <Button className="w-full">Go to Home</Button>
                     </Link>
                     <Link href="/login">
                         <Button variant="outline" className="w-full">Sign in with another account</Button>
                     </Link>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

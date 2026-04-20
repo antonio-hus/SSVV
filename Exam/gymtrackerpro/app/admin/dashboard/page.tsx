@@ -1,7 +1,7 @@
 import {getSession} from '@/lib/session';
 import {listMembers} from '@/lib/controller/user-controller';
-import {PageHeader} from '@/components/layout/page-header';
-import {StatCard} from '@/components/data/stat-card';
+import {PageHeader} from '@/components/page-header';
+import {StatCard} from '@/components/stat-card';
 
 /**
  * Admin dashboard page.

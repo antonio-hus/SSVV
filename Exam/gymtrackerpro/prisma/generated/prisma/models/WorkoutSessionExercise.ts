@@ -29,13 +29,13 @@ export type AggregateWorkoutSessionExercise = {
 export type WorkoutSessionExerciseAvgAggregateOutputType = {
   sets: number | null
   reps: number | null
-  weight: number | null
+  weight: runtime.Decimal | null
 }
 
 export type WorkoutSessionExerciseSumAggregateOutputType = {
   sets: number | null
   reps: number | null
-  weight: number | null
+  weight: runtime.Decimal | null
 }
 
 export type WorkoutSessionExerciseMinAggregateOutputType = {
@@ -44,7 +44,7 @@ export type WorkoutSessionExerciseMinAggregateOutputType = {
   exerciseId: string | null
   sets: number | null
   reps: number | null
-  weight: number | null
+  weight: runtime.Decimal | null
 }
 
 export type WorkoutSessionExerciseMaxAggregateOutputType = {
@@ -53,7 +53,7 @@ export type WorkoutSessionExerciseMaxAggregateOutputType = {
   exerciseId: string | null
   sets: number | null
   reps: number | null
-  weight: number | null
+  weight: runtime.Decimal | null
 }
 
 export type WorkoutSessionExerciseCountAggregateOutputType = {
@@ -199,7 +199,7 @@ export type WorkoutSessionExerciseGroupByOutputType = {
   exerciseId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal
   _count: WorkoutSessionExerciseCountAggregateOutputType | null
   _avg: WorkoutSessionExerciseAvgAggregateOutputType | null
   _sum: WorkoutSessionExerciseSumAggregateOutputType | null
@@ -231,7 +231,7 @@ export type WorkoutSessionExerciseWhereInput = {
   exerciseId?: Prisma.StringFilter<"WorkoutSessionExercise"> | string
   sets?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
   reps?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
-  weight?: Prisma.FloatFilter<"WorkoutSessionExercise"> | number
+  weight?: Prisma.DecimalFilter<"WorkoutSessionExercise"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   session?: Prisma.XOR<Prisma.WorkoutSessionScalarRelationFilter, Prisma.WorkoutSessionWhereInput>
   exercise?: Prisma.XOR<Prisma.ExerciseScalarRelationFilter, Prisma.ExerciseWhereInput>
 }
@@ -256,7 +256,7 @@ export type WorkoutSessionExerciseWhereUniqueInput = Prisma.AtLeast<{
   exerciseId?: Prisma.StringFilter<"WorkoutSessionExercise"> | string
   sets?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
   reps?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
-  weight?: Prisma.FloatFilter<"WorkoutSessionExercise"> | number
+  weight?: Prisma.DecimalFilter<"WorkoutSessionExercise"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   session?: Prisma.XOR<Prisma.WorkoutSessionScalarRelationFilter, Prisma.WorkoutSessionWhereInput>
   exercise?: Prisma.XOR<Prisma.ExerciseScalarRelationFilter, Prisma.ExerciseWhereInput>
 }, "id">
@@ -284,14 +284,14 @@ export type WorkoutSessionExerciseScalarWhereWithAggregatesInput = {
   exerciseId?: Prisma.StringWithAggregatesFilter<"WorkoutSessionExercise"> | string
   sets?: Prisma.IntWithAggregatesFilter<"WorkoutSessionExercise"> | number
   reps?: Prisma.IntWithAggregatesFilter<"WorkoutSessionExercise"> | number
-  weight?: Prisma.FloatWithAggregatesFilter<"WorkoutSessionExercise"> | number
+  weight?: Prisma.DecimalWithAggregatesFilter<"WorkoutSessionExercise"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateInput = {
   id?: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
   session: Prisma.WorkoutSessionCreateNestedOneWithoutExercisesInput
   exercise: Prisma.ExerciseCreateNestedOneWithoutSessionExercisesInput
 }
@@ -302,14 +302,14 @@ export type WorkoutSessionExerciseUncheckedCreateInput = {
   exerciseId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   session?: Prisma.WorkoutSessionUpdateOneRequiredWithoutExercisesNestedInput
   exercise?: Prisma.ExerciseUpdateOneRequiredWithoutSessionExercisesNestedInput
 }
@@ -320,7 +320,7 @@ export type WorkoutSessionExerciseUncheckedUpdateInput = {
   exerciseId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateManyInput = {
@@ -329,14 +329,14 @@ export type WorkoutSessionExerciseCreateManyInput = {
   exerciseId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUncheckedUpdateManyInput = {
@@ -345,7 +345,7 @@ export type WorkoutSessionExerciseUncheckedUpdateManyInput = {
   exerciseId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseListRelationFilter = {
@@ -481,19 +481,19 @@ export type WorkoutSessionExerciseUncheckedUpdateManyWithoutSessionNestedInput =
   deleteMany?: Prisma.WorkoutSessionExerciseScalarWhereInput | Prisma.WorkoutSessionExerciseScalarWhereInput[]
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type DecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateWithoutExerciseInput = {
   id?: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
   session: Prisma.WorkoutSessionCreateNestedOneWithoutExercisesInput
 }
 
@@ -502,7 +502,7 @@ export type WorkoutSessionExerciseUncheckedCreateWithoutExerciseInput = {
   workoutSessionId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateOrConnectWithoutExerciseInput = {
@@ -540,14 +540,14 @@ export type WorkoutSessionExerciseScalarWhereInput = {
   exerciseId?: Prisma.StringFilter<"WorkoutSessionExercise"> | string
   sets?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
   reps?: Prisma.IntFilter<"WorkoutSessionExercise"> | number
-  weight?: Prisma.FloatFilter<"WorkoutSessionExercise"> | number
+  weight?: Prisma.DecimalFilter<"WorkoutSessionExercise"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateWithoutSessionInput = {
   id?: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
   exercise: Prisma.ExerciseCreateNestedOneWithoutSessionExercisesInput
 }
 
@@ -556,7 +556,7 @@ export type WorkoutSessionExerciseUncheckedCreateWithoutSessionInput = {
   exerciseId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateOrConnectWithoutSessionInput = {
@@ -590,14 +590,14 @@ export type WorkoutSessionExerciseCreateManyExerciseInput = {
   workoutSessionId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUpdateWithoutExerciseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   session?: Prisma.WorkoutSessionUpdateOneRequiredWithoutExercisesNestedInput
 }
 
@@ -606,7 +606,7 @@ export type WorkoutSessionExerciseUncheckedUpdateWithoutExerciseInput = {
   workoutSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUncheckedUpdateManyWithoutExerciseInput = {
@@ -614,7 +614,7 @@ export type WorkoutSessionExerciseUncheckedUpdateManyWithoutExerciseInput = {
   workoutSessionId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseCreateManySessionInput = {
@@ -622,14 +622,14 @@ export type WorkoutSessionExerciseCreateManySessionInput = {
   exerciseId: string
   sets: number
   reps: number
-  weight: number
+  weight: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUpdateWithoutSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   exercise?: Prisma.ExerciseUpdateOneRequiredWithoutSessionExercisesNestedInput
 }
 
@@ -638,7 +638,7 @@ export type WorkoutSessionExerciseUncheckedUpdateWithoutSessionInput = {
   exerciseId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type WorkoutSessionExerciseUncheckedUpdateManyWithoutSessionInput = {
@@ -646,7 +646,7 @@ export type WorkoutSessionExerciseUncheckedUpdateManyWithoutSessionInput = {
   exerciseId?: Prisma.StringFieldUpdateOperationsInput | string
   sets?: Prisma.IntFieldUpdateOperationsInput | number
   reps?: Prisma.IntFieldUpdateOperationsInput | number
-  weight?: Prisma.FloatFieldUpdateOperationsInput | number
+  weight?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 
@@ -719,7 +719,7 @@ export type $WorkoutSessionExercisePayload<ExtArgs extends runtime.Types.Extensi
     exerciseId: string
     sets: number
     reps: number
-    weight: number
+    weight: runtime.Decimal
   }, ExtArgs["result"]["workoutSessionExercise"]>
   composites: {}
 }
@@ -1150,7 +1150,7 @@ export interface WorkoutSessionExerciseFieldRefs {
   readonly exerciseId: Prisma.FieldRef<"WorkoutSessionExercise", 'String'>
   readonly sets: Prisma.FieldRef<"WorkoutSessionExercise", 'Int'>
   readonly reps: Prisma.FieldRef<"WorkoutSessionExercise", 'Int'>
-  readonly weight: Prisma.FieldRef<"WorkoutSessionExercise", 'Float'>
+  readonly weight: Prisma.FieldRef<"WorkoutSessionExercise", 'Decimal'>
 }
     
 
