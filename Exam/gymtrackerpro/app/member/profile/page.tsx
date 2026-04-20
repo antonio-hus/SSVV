@@ -1,4 +1,4 @@
-import {PageHeader} from '@/components/page-header';
+import {PageHeader} from '@/components/layout/page-header';
 import {Separator} from '@/components/ui/separator';
 import {ProfilePersonalInformation} from './_components/profile-personal-information';
 import {ProfileMembership} from './_components/profile-membership';

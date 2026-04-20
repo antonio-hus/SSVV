@@ -10,4 +10,5 @@ export type SessionData = {
     role: Role;
     memberId?: string;
     adminId?: string;
+    isActive?: boolean;
 };
