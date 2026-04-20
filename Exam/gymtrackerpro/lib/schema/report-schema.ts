@@ -7,6 +7,7 @@ import {isoDateRegex} from '@/lib/schema/utils';
 export const memberProgressReportSchema = z.object({
     memberId: z
         .string()
+        .trim()
         .min(1, 'Member ID is required')
         .describe('ID of the member'),
     startDate: z
