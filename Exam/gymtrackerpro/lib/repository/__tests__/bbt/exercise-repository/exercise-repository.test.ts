@@ -123,6 +123,17 @@ describe('findById', () => {
 
             await expect(act).rejects.toThrow(NotFoundError);
         });
+
+        it('findById_BVA_existingOneCharId_returnsExercise', async () => {
+            const repo = ExerciseRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const expectedReturn = {...MOCK_EXERCISE, id: 'a'};
+            prismaMock.exercise.findUnique.mockResolvedValue(expectedReturn);
+
+            const result = await repo.findById(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
@@ -534,6 +545,21 @@ describe('update', () => {
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
+        it('update_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const repo = ExerciseRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const inputData: UpdateExerciseInput = {description: 'Updated description'};
+            const existing = {...MOCK_EXERCISE, id: 'a'};
+            const updated = {...existing, description: 'Updated description'};
+            prismaMock.exercise.findUnique.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+            prismaMock.exercise.update.mockResolvedValue(updated);
+
+            const result = await repo.update(inputId, inputData);
+
+            expect(result.id).toBe('a');
+            expect(result.description).toBe('Updated description');
+        });
+
         it('update_BVA_nameUndefined_updatesSuccessfully', async () => {
             const repo = ExerciseRepository.getInstance(prismaMock);
             const inputId: string = EXERCISE_ID;
@@ -833,6 +859,21 @@ describe('setActive', () => {
 
             await expect(act).rejects.toThrow(NotFoundError);
         });
+
+        it('setActive_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const repo = ExerciseRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const inputIsActive = false;
+            const existing = {...MOCK_EXERCISE, id: 'a', isActive: true};
+            const updated = {...existing, isActive: false};
+            prismaMock.exercise.findUnique.mockResolvedValue(existing);
+            prismaMock.exercise.update.mockResolvedValue(updated);
+
+            const result = await repo.setActive(inputId, inputIsActive);
+
+            expect(result.id).toBe('a');
+            expect(result.isActive).toBe(false);
+        });
     });
 });
 
@@ -912,6 +953,18 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('delete_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            const repo = ExerciseRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const existing = {...MOCK_EXERCISE, id: 'a'};
+            prismaMock.exercise.findUnique.mockResolvedValue(existing);
+            prismaMock.workoutSessionExercise.count.mockResolvedValue(0);
+
+            const act = repo.delete(inputId);
+
+            await expect(act).resolves.toBeUndefined();
         });
     });
 });

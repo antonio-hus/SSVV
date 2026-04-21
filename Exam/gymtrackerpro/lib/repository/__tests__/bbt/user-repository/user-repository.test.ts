@@ -205,6 +205,16 @@ describe('findById', () => {
 
             await expect(act).rejects.toThrow(NotFoundError);
         });
+
+        it('findById_BVA_existingOneCharId_returnsUserWithProfile', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            prismaMock.user.findUnique.mockResolvedValue({...MOCK_USER_WITH_PROFILE, id: 'a'});
+
+            const result = await repo.findById(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
@@ -252,6 +262,16 @@ describe('findMemberById', () => {
 
             await expect(act).rejects.toThrow(NotFoundError);
         });
+
+        it('findMemberById_BVA_existingOneCharId_returnsMemberWithUser', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            prismaMock.member.findUnique.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+
+            const result = await repo.findMemberById(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
@@ -298,6 +318,16 @@ describe('findAdminById', () => {
             const act = repo.findAdminById(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('findAdminById_BVA_existingOneCharId_returnsAdminWithUser', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            prismaMock.admin.findUnique.mockResolvedValue({...MOCK_ADMIN_WITH_USER, id: 'a'});
+
+            const result = await repo.findAdminById(inputId);
+
+            expect(result.id).toBe('a');
         });
     });
 });
@@ -815,6 +845,19 @@ describe('updateMember', () => {
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
+        it('updateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const inputData: UpdateMemberInput = {fullName: 'New Name'};
+            const existing = {...MOCK_MEMBER_WITH_USER, id: 'a'};
+            prismaMock.member.findUnique.mockResolvedValue(existing);
+            prismaMock.member.update.mockResolvedValue({...existing, user: {...MOCK_USER, fullName: 'New Name'}} as never);
+
+            const result = await repo.updateMember(inputId, inputData);
+
+            expect(result.id).toBe('a');
+        });
+
         it('updateMember_BVA_emailUndefined_updatesSuccessfully', async () => {
             const repo = UserRepository.getInstance(prismaMock);
             const inputId: string = MEMBER_ID;
@@ -1093,6 +1136,18 @@ describe('setMemberActive', () => {
 
             await expect(act).rejects.toThrow(NotFoundError);
         });
+
+        it('setMemberActive_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const existing = {...MOCK_MEMBER_WITH_USER, id: 'a'};
+            prismaMock.member.findUnique.mockResolvedValue(existing);
+            prismaMock.member.update.mockResolvedValue({...existing, isActive: true});
+
+            const result = await repo.setMemberActive(inputId, true);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
@@ -1194,6 +1249,19 @@ describe('updateAdmin', () => {
             const act = repo.updateAdmin(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('updateAdmin_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            const inputData: UpdateAdminInput = {fullName: 'New Name'};
+            const existing = {...MOCK_ADMIN_WITH_USER, id: 'a'};
+            prismaMock.admin.findUnique.mockResolvedValue(existing);
+            prismaMock.admin.update.mockResolvedValue({...existing, user: {...MOCK_USER, fullName: 'New Name'}} as never);
+
+            const result = await repo.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe('a');
         });
 
         it('updateAdmin_BVA_emailUndefined_updatesSuccessfully', async () => {
@@ -1439,6 +1507,18 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('delete_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            const repo = UserRepository.getInstance(prismaMock);
+            const inputId = 'a';
+            prismaMock.member.findUnique.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+            prismaMock.admin.findUnique.mockResolvedValue(null);
+            prismaMock.user.delete.mockResolvedValue(MOCK_USER);
+
+            const act = repo.delete(inputId);
+
+            await expect(act).resolves.toBeUndefined();
         });
     });
 });

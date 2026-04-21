@@ -1,70 +1,56 @@
 import {mock, mockReset} from 'jest-mock-extended';
-import {AdminWithUser, MemberWithUser, Role} from '@/lib/domain/user';
-import {ConflictError, NotFoundError} from '@/lib/domain/errors';
+import {AdminWithUser, MemberListOptions, MemberWithUser, Role, UserWithProfile, AdminListOptions} from '@/lib/domain/user';
+import {ConflictError, NotFoundError, TransactionError} from '@/lib/domain/errors';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {UserService} from '@/lib/service/user-service';
-import {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput} from "@/lib/schema/user-schema";
+import {CreateAdminInput, CreateMemberInput, CreateMemberWithTempPasswordInput, UpdateAdminInput, UpdateMemberInput} from "@/lib/schema/user-schema";
 
 const mockUserRepo = mock<UserRepositoryInterface>();
 
-const USER_ID: string = 'user-001';
-const MEMBER_ID: string = 'member-001';
-const ADMIN_ID: string = 'admin-001';
+const MEMBER_ID: string = 'member-uuid-001';
+const ADMIN_ID: string = 'admin-uuid-001';
+const USER_ID: string = 'user-uuid-001';
 const NONEXISTENT_ID: string = 'nonexistent-id';
+
+const MOCK_USER = {
+    id: USER_ID,
+    email: 'john@example.com',
+    fullName: 'John Doe',
+    phone: '+40712345678',
+    dateOfBirth: new Date('1990-01-15'),
+    passwordHash: 'hashed_password',
+    role: Role.MEMBER,
+};
 
 const MOCK_MEMBER_WITH_USER: MemberWithUser = {
     id: MEMBER_ID,
     userId: USER_ID,
     membershipStart: new Date('2024-01-01'),
     isActive: true,
-    user: {
-        id: USER_ID,
-        email: 'john@example.com',
-        fullName: 'John Michael Doe',
-        phone: '+40712345678',
-        dateOfBirth: new Date('1990-01-15'),
-        passwordHash: 'hashed',
-        role: Role.MEMBER,
-    },
+    user: {...MOCK_USER},
 };
 
 const MOCK_ADMIN_WITH_USER: AdminWithUser = {
     id: ADMIN_ID,
     userId: USER_ID,
-    user: {
-        id: USER_ID,
-        email: 'admin@gymtrackerpro.com',
-        fullName: 'Admin Manager User',
-        phone: '+40712345678',
-        dateOfBirth: new Date('1985-06-20'),
-        passwordHash: 'hashed',
-        role: Role.ADMIN,
-    },
+    user: {...MOCK_USER, role: Role.ADMIN},
 };
 
 const CREATE_MEMBER_INPUT: CreateMemberInput = {
     email: 'john@example.com',
-    fullName: 'John Michael Doe',
+    fullName: 'John Doe',
     phone: '+40712345678',
     dateOfBirth: '1990-01-15',
-    password: 'SecurePass1!',
-    membershipStart: '2024-01-01',
-};
-
-const CREATE_MEMBER_NO_PWD_INPUT: CreateMemberWithTempPasswordInput = {
-    email: 'john@example.com',
-    fullName: 'John Michael Doe',
-    phone: '+40712345678',
-    dateOfBirth: '1990-01-15',
+    password: 'SecureP@ss1',
     membershipStart: '2024-01-01',
 };
 
 const CREATE_ADMIN_INPUT: CreateAdminInput = {
-    email: 'admin@gymtrackerpro.com',
-    fullName: 'Admin Manager User',
+    email: 'admin@example.com',
+    fullName: 'Admin User Test',
     phone: '+40712345678',
     dateOfBirth: '1985-06-20',
-    password: 'AdminPass1!',
+    password: 'AdminP@ss1',
 };
 
 beforeEach(() => {
@@ -73,428 +59,1348 @@ beforeEach(() => {
 });
 
 describe('createMember', () => {
-    it('createMember_uniqueEmail_returnsMemberWithUser', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_INPUT;
+    describe('Equivalence Classes', () => {
+        it('createMember_EC_emailNotRegistered_returnsMemberWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
+            mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.createMember(inputData);
+            const result = await service.createMember(inputMember);
 
-        expect(result.id).toBe(MEMBER_ID);
-        expect(result.user.email).toBe('john@example.com');
-        expect(mockUserRepo.createMember).toHaveBeenCalledWith(inputData);
-    });
+            expect(result.id).toBe(MEMBER_ID);
+        });
 
-    it('createMember_duplicateEmail_throwsConflictError', async () => {
-        mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email already registered'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_INPUT;
+        it('createMember_EC_emailAlreadyRegistered_throwsConflictError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
+            mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email already registered'));
 
-        const act = service.createMember(inputData);
+            const act = service.createMember(inputMember);
 
-        await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow(ConflictError);
+        });
+
+        it('createMember_EC_databaseWriteFails_throwsTransactionError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
+            mockUserRepo.createMember.mockRejectedValue(new TransactionError('DB failure'));
+
+            const act = service.createMember(inputMember);
+
+            await expect(act).rejects.toThrow(TransactionError);
+        });
     });
 });
 
 describe('createMemberWithTempPassword', () => {
-    it('createMemberWithTempPassword_validData_tempPasswordIsExactly16Chars', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
+    describe('Equivalence Classes', () => {
+        it('createMemberWithTempPassword_EC_validData_returnsMemberWithTempPassword', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputData: CreateMemberWithTempPasswordInput = {
+                email: 'john@example.com',
+                fullName: 'John Doe',
+                phone: '+40712345678',
+                dateOfBirth: '1990-01-15',
+                membershipStart: '2024-01-01',
+            };
+            mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.createMemberWithTempPassword(inputData);
+            const result = await service.createMemberWithTempPassword(inputData);
 
-        expect(result.tempPassword).toHaveLength(16);
+            expect(result.id).toBe(MEMBER_ID);
+            expect(result.tempPassword).toHaveLength(16);
+        });
+
+        it('createMemberWithTempPassword_EC_duplicateEmail_throwsConflictError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputData: CreateMemberWithTempPasswordInput = {
+                email: 'taken@example.com',
+                fullName: 'John Doe',
+                phone: '+40712345678',
+                dateOfBirth: '1990-01-15',
+                membershipStart: '2024-01-01',
+            };
+            mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email taken'));
+
+            const act = service.createMemberWithTempPassword(inputData);
+
+            await expect(act).rejects.toThrow(ConflictError);
+        });
     });
 
-    it('createMemberWithTempPassword_validData_tempPasswordContainsUppercaseLetter', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
+    describe('Boundary Value Analysis', () => {
+        it('createMemberWithTempPassword_BVA_tempPasswordLength16', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputData: CreateMemberWithTempPasswordInput = {
+                email: 'john@example.com',
+                fullName: 'John Doe',
+                phone: '+40712345678',
+                dateOfBirth: '1990-01-15',
+                membershipStart: '2024-01-01',
+            };
+            mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.createMemberWithTempPassword(inputData);
+            const result = await service.createMemberWithTempPassword(inputData);
 
-        expect(/[A-Z]/.test(result.tempPassword)).toBe(true);
-    });
+            expect(result.tempPassword).toHaveLength(16);
+        });
 
-    it('createMemberWithTempPassword_validData_tempPasswordContainsDigit', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
+        it('createMemberWithTempPassword_BVA_tempPasswordStrength_containsRequiredCharacters', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputData: CreateMemberWithTempPasswordInput = {
+                email: 'john@example.com',
+                fullName: 'John Doe',
+                phone: '+40712345678',
+                dateOfBirth: '1990-01-15',
+                membershipStart: '2024-01-01',
+            };
+            mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.createMemberWithTempPassword(inputData);
+            const result = await service.createMemberWithTempPassword(inputData);
 
-        expect(/[0-9]/.test(result.tempPassword)).toBe(true);
-    });
-
-    it('createMemberWithTempPassword_validData_tempPasswordContainsSpecialChar', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
-
-        const result = await service.createMemberWithTempPassword(inputData);
-
-        expect(/[^A-Za-z0-9]/.test(result.tempPassword)).toBe(true);
-    });
-
-    it('createMemberWithTempPassword_validData_returnsMemberWithTempPassword', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
-
-        const result = await service.createMemberWithTempPassword(inputData);
-
-        expect(result.id).toBe(MEMBER_ID);
-        expect(result.user).toBeDefined();
-        expect(typeof result.tempPassword).toBe('string');
-    });
-
-    it('createMemberWithTempPassword_duplicateEmail_throwsConflictError', async () => {
-        mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email already registered'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
-
-        const act = service.createMemberWithTempPassword(inputData);
-
-        await expect(act).rejects.toThrow(ConflictError);
-    });
-
-    it('createMemberWithTempPassword_validData_callsCreateMemberWithGeneratedPassword', async () => {
-        mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_MEMBER_NO_PWD_INPUT;
-
-        const result = await service.createMemberWithTempPassword(inputData);
-
-        const calledWith = (mockUserRepo.createMember.mock.calls[0][0] as typeof CREATE_MEMBER_INPUT);
-        expect(calledWith.password).toBe(result.tempPassword);
-        expect(calledWith.email).toBe(inputData.email);
+            expect(/[A-Z]/.test(result.tempPassword)).toBe(true);
+            expect(/[0-9]/.test(result.tempPassword)).toBe(true);
+            expect(/[^A-Za-z0-9]/.test(result.tempPassword)).toBe(true);
+        });
     });
 });
 
 describe('createAdmin', () => {
-    it('createAdmin_uniqueEmail_returnsAdminWithUser', async () => {
-        mockUserRepo.createAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_ADMIN_INPUT;
+    describe('Equivalence Classes', () => {
+        it('createAdmin_EC_emailNotRegistered_returnsAdminWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
+            mockUserRepo.createAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
-        const result = await service.createAdmin(inputData);
+            const result = await service.createAdmin(inputAdmin);
 
-        expect(result.id).toBe(ADMIN_ID);
-        expect(mockUserRepo.createAdmin).toHaveBeenCalledWith(inputData);
-    });
+            expect(result.id).toBe(ADMIN_ID);
+        });
 
-    it('createAdmin_duplicateEmail_throwsConflictError', async () => {
-        mockUserRepo.createAdmin.mockRejectedValue(new ConflictError('Email already registered'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputData = CREATE_ADMIN_INPUT;
+        it('createAdmin_EC_emailAlreadyRegistered_throwsConflictError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
+            mockUserRepo.createAdmin.mockRejectedValue(new ConflictError('Email already registered'));
 
-        const act = service.createAdmin(inputData);
+            const act = service.createAdmin(inputAdmin);
 
-        await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow(ConflictError);
+        });
+
+        it('createAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
+            mockUserRepo.createAdmin.mockRejectedValue(new TransactionError('DB failure'));
+
+            const act = service.createAdmin(inputAdmin);
+
+            await expect(act).rejects.toThrow(TransactionError);
+        });
     });
 });
 
 describe('getMember', () => {
-    it('getMember_existingMemberId_returnsMemberWithUser', async () => {
-        mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Equivalence Classes', () => {
+        it('getMember_EC_existingMemberId_returnsMemberWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.getMember(inputId);
+            const result = await service.getMember(inputId);
 
-        expect(result.id).toBe(MEMBER_ID);
-        expect(mockUserRepo.findMemberById).toHaveBeenCalledWith(inputId);
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('getMember_EC_nonExistentMemberId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const act = service.getMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('getMember_nonExistentMemberId_throwsNotFoundError', async () => {
-        mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+    describe('Boundary Value Analysis', () => {
+        it('getMember_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const act = service.getMember(inputId);
+            const act = service.getMember(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('getMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const act = service.getMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('getMember_BVA_existingOneCharId_returnsMemberWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const expectedReturn: MemberWithUser = {...MOCK_MEMBER_WITH_USER, id: 'a'};
+            mockUserRepo.findMemberById.mockResolvedValue(expectedReturn);
+
+            const result = await service.getMember(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
 describe('getAdmin', () => {
-    it('getAdmin_existingAdminId_returnsAdminWithUser', async () => {
-        mockUserRepo.findAdminById.mockResolvedValue(MOCK_ADMIN_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = ADMIN_ID;
+    describe('Equivalence Classes', () => {
+        it('getAdmin_EC_existingAdminId_returnsAdminWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            mockUserRepo.findAdminById.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
-        const result = await service.getAdmin(inputId);
+            const result = await service.getAdmin(inputId);
 
-        expect(result.id).toBe(ADMIN_ID);
-        expect(mockUserRepo.findAdminById).toHaveBeenCalledWith(inputId);
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('getAdmin_EC_nonExistentAdminId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
+
+            const act = service.getAdmin(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('getAdmin_nonExistentAdminId_throwsNotFoundError', async () => {
-        mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+    describe('Boundary Value Analysis', () => {
+        it('getAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
 
-        const act = service.getAdmin(inputId);
+            const act = service.getAdmin(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('getAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
+
+            const act = service.getAdmin(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('getAdmin_BVA_existingOneCharId_returnsAdminWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const expectedReturn: AdminWithUser = {...MOCK_ADMIN_WITH_USER, id: 'a'};
+            mockUserRepo.findAdminById.mockResolvedValue(expectedReturn);
+
+            const result = await service.getAdmin(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
 describe('listMembers', () => {
-    it('listMembers_noOptions_returnsPageResult', async () => {
-        mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
-        const service = UserService.getInstance(mockUserRepo);
+    describe('Equivalence Classes', () => {
+        it('listMembers_EC_noOptions_returnsDefaultPageWithTotal', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
-        const result = await service.listMembers();
+            const result = await service.listMembers();
 
-        expect(result.items).toHaveLength(1);
-        expect(result.total).toBe(1);
-        expect(mockUserRepo.findMembers).toHaveBeenCalledWith(undefined);
+            expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
+        });
+
+        it('listMembers_EC_withSearchTerm_returnsMatchingItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {search: 'John'};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_EC_multipleMembers_returnsMembersOrderedByFullNameAscending', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const memberAlice = {...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Alice'}};
+            mockUserRepo.findMembers.mockResolvedValue({items: [memberAlice, MOCK_MEMBER_WITH_USER], total: 2});
+
+            const result = await service.listMembers();
+
+            expect(result.items[0].user.fullName).toBe('Alice');
+            expect(result.items[1].user.fullName).toBe('John Doe');
+        });
+
+        it('listMembers_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            mockUserRepo.findMembers.mockResolvedValue({items: [], total: 0});
+
+            const result = await service.listMembers();
+
+            expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
+        });
     });
 
-    it('listMembers_withSearchOptions_passesOptionsToRepository', async () => {
-        mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
-        const service = UserService.getInstance(mockUserRepo);
-        const inputOptions = {search: 'John', page: 1, pageSize: 10};
+    describe('Boundary Value Analysis', () => {
+        it('listMembers_BVA_searchUndefined_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {search: undefined};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
-        await service.listMembers(inputOptions);
+            const result = await service.listMembers(inputOptions);
 
-        expect(mockUserRepo.findMembers).toHaveBeenCalledWith(inputOptions);
-    });
+            expect(result.items).toHaveLength(1);
+        });
 
-    it('listMembers_emptyRepository_returnsEmptyPageResult', async () => {
-        mockUserRepo.findMembers.mockResolvedValue({items: [], total: 0});
-        const service = UserService.getInstance(mockUserRepo);
+        it('listMembers_BVA_searchEmpty_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {search: ''};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
-        const result = await service.listMembers();
+            const result = await service.listMembers(inputOptions);
 
-        expect(result.items).toHaveLength(0);
-        expect(result.total).toBe(0);
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_searchOneChar_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {search: 'a'};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_pageUndefined_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {page: undefined};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_page0_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {page: 0};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_page1_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {page: 1};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_page2_returnsSecondPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {page: 2};
+            mockUserRepo.findMembers.mockResolvedValue({items: [], total: 15});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.total).toBe(15);
+            expect(result.items).toHaveLength(0);
+        });
+
+        it('listMembers_BVA_pageSizeUndefined_returnsDefaultPageSize', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {pageSize: undefined};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listMembers_BVA_pageSize0_returnsNoItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {pageSize: 0};
+            mockUserRepo.findMembers.mockResolvedValue({items: [], total: 5});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(5);
+        });
+
+        it('listMembers_BVA_pageSize1_returnsOneItem', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: MemberListOptions = {pageSize: 1};
+            mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 5});
+
+            const result = await service.listMembers(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
     });
 });
 
 describe('listAdmins', () => {
-    it('listAdmins_noOptions_returnsPageResult', async () => {
-        mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
-        const service = UserService.getInstance(mockUserRepo);
+    describe('Equivalence Classes', () => {
+        it('listAdmins_EC_noOptions_returnsDefaultPageWithTotal', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
-        const result = await service.listAdmins();
+            const result = await service.listAdmins();
 
-        expect(result.items).toHaveLength(1);
-        expect(mockUserRepo.findAdmins).toHaveBeenCalledWith(undefined);
+            expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
+        });
+
+        it('listAdmins_EC_withSearchTerm_returnsMatchingItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {search: 'Admin'};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_EC_multipleAdmins_returnsAdminsOrderedByFullNameAscending', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const adminAlice = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Alice'}};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [adminAlice, MOCK_ADMIN_WITH_USER], total: 2});
+
+            const result = await service.listAdmins();
+
+            expect(result.items[0].user.fullName).toBe('Alice');
+        });
+
+        it('listAdmins_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 0});
+
+            const result = await service.listAdmins();
+
+            expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
+        });
     });
 
-    it('listAdmins_withSearchOptions_passesOptionsToRepository', async () => {
-        mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
-        const service = UserService.getInstance(mockUserRepo);
-        const inputOptions = {search: 'Admin', page: 1, pageSize: 10};
+    describe('Boundary Value Analysis', () => {
+        it('listAdmins_BVA_searchUndefined_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {search: undefined};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
-        await service.listAdmins(inputOptions);
+            const result = await service.listAdmins(inputOptions);
 
-        expect(mockUserRepo.findAdmins).toHaveBeenCalledWith(inputOptions);
-    });
+            expect(result.items).toHaveLength(1);
+        });
 
-    it('listAdmins_emptyRepository_returnsEmptyPageResult', async () => {
-        mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 0});
-        const service = UserService.getInstance(mockUserRepo);
+        it('listAdmins_BVA_searchEmpty_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {search: ''};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
-        const result = await service.listAdmins();
+            const result = await service.listAdmins(inputOptions);
 
-        expect(result.items).toHaveLength(0);
-        expect(result.total).toBe(0);
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_searchOneChar_returnsItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {search: 'a'};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_pageUndefined_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {page: undefined};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_page0_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {page: 0};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_page1_returnsFirstPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {page: 1};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_page2_returnsSecondPage', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {page: 2};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 15});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(0);
+        });
+
+        it('listAdmins_BVA_pageSizeUndefined_returnsDefaultPageSize', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {pageSize: undefined};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
+
+        it('listAdmins_BVA_pageSize0_returnsNoItems', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {pageSize: 0};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 5});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(0);
+        });
+
+        it('listAdmins_BVA_pageSize1_returnsOneItem', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputOptions: AdminListOptions = {pageSize: 1};
+            mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 5});
+
+            const result = await service.listAdmins(inputOptions);
+
+            expect(result.items).toHaveLength(1);
+        });
     });
 });
 
 describe('updateMember', () => {
-    it('updateMember_existingMemberWithValidData_returnsUpdatedMember', async () => {
-        const updated = {
-            ...MOCK_MEMBER_WITH_USER,
-            user: {...MOCK_MEMBER_WITH_USER.user, fullName: 'John Updated Name'}
-        };
-        mockUserRepo.updateMember.mockResolvedValue(updated);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
-        const inputData = {fullName: 'John Updated Name'};
+    describe('Equivalence Classes', () => {
+        it('updateMember_EC_existingMemberValidData_returnsMemberWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {fullName: 'Updated Name'};
+            mockUserRepo.updateMember.mockResolvedValue({...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Updated Name'}});
 
-        const result = await service.updateMember(inputId, inputData);
+            const result = await service.updateMember(inputId, inputData);
 
-        expect(result.user.fullName).toBe('John Updated Name');
-        expect(mockUserRepo.updateMember).toHaveBeenCalledWith(inputId, inputData);
+            expect(result.user.fullName).toBe('Updated Name');
+        });
+
+        it('updateMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            const inputData: UpdateMemberInput = {fullName: 'New'};
+            mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const act = service.updateMember(inputId, inputData);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('updateMember_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {email: 'taken@example.com'};
+            mockUserRepo.updateMember.mockRejectedValue(new ConflictError('Email taken'));
+
+            const act = service.updateMember(inputId, inputData);
+
+            await expect(act).rejects.toThrow(ConflictError);
+        });
+
+        it('updateMember_EC_sameEmailAsCurrentUser_returnsUpdatedMember', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {email: MOCK_USER.email};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_EC_withNewPassword_returnsUpdatedMember', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {password: 'New1!'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_EC_databaseWriteFails_throwsTransactionError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {fullName: 'New'};
+            mockUserRepo.updateMember.mockRejectedValue(new TransactionError('DB Error'));
+
+            const act = service.updateMember(inputId, inputData);
+
+            await expect(act).rejects.toThrow(TransactionError);
+        });
     });
 
-    it('updateMember_nonExistentMemberId_throwsNotFoundError', async () => {
-        mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
-        const inputData = {fullName: 'New Name Here'};
+    describe('Boundary Value Analysis', () => {
+        it('updateMember_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            const inputData: UpdateMemberInput = {fullName: 'New'};
+            mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const act = service.updateMember(inputId, inputData);
+            const act = service.updateMember(inputId, inputData);
 
-        await expect(act).rejects.toThrow(NotFoundError);
-    });
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
 
-    it('updateMember_duplicateEmail_throwsConflictError', async () => {
-        mockUserRepo.updateMember.mockRejectedValue(new ConflictError('Email already in use'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
-        const inputData = {email: 'other@example.com'};
+        it('updateMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const inputData: UpdateMemberInput = {fullName: 'New'};
+            mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const act = service.updateMember(inputId, inputData);
+            const act = service.updateMember(inputId, inputData);
 
-        await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('updateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const inputData: UpdateMemberInput = {fullName: 'New'};
+            mockUserRepo.updateMember.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe('a');
+        });
+
+        it('updateMember_BVA_emailUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {email: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_emailEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {email: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_emailOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {email: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_fullNameUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {fullName: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_fullNameEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {fullName: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_fullNameOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {fullName: 'A'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_phoneUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {phone: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_phoneEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {phone: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_phoneOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {phone: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {dateOfBirth: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {dateOfBirth: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {dateOfBirth: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_passwordUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {password: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_passwordEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {password: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_passwordOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {password: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_membershipStartUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {membershipStart: undefined};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_membershipStartEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {membershipStart: ''};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
+
+        it('updateMember_BVA_membershipStartOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            const inputData: UpdateMemberInput = {membershipStart: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
+
+            const result = await service.updateMember(inputId, inputData);
+
+            expect(result.id).toBe(MEMBER_ID);
+        });
     });
 });
 
 describe('updateAdmin', () => {
-    it('updateAdmin_existingAdminWithValidData_returnsUpdatedAdmin', async () => {
-        const updated = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_ADMIN_WITH_USER.user, fullName: 'Updated Admin Name'}};
-        mockUserRepo.updateAdmin.mockResolvedValue(updated);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = ADMIN_ID;
-        const inputData = {fullName: 'Updated Admin Name'};
+    describe('Equivalence Classes', () => {
+        it('updateAdmin_EC_existingAdminValidData_returnsAdminWithUser', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {fullName: 'Updated Admin'};
+            mockUserRepo.updateAdmin.mockResolvedValue({...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Updated Admin'}});
 
-        const result = await service.updateAdmin(inputId, inputData);
+            const result = await service.updateAdmin(inputId, inputData);
 
-        expect(result.user.fullName).toBe('Updated Admin Name');
-        expect(mockUserRepo.updateAdmin).toHaveBeenCalledWith(inputId, inputData);
+            expect(result.user.fullName).toBe('Updated Admin');
+        });
+
+        it('updateAdmin_EC_nonExistentAdmin_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            const inputData: UpdateAdminInput = {fullName: 'Name'};
+            mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
+
+            const act = service.updateAdmin(inputId, inputData);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('updateAdmin_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {email: 'taken@example.com'};
+            mockUserRepo.updateAdmin.mockRejectedValue(new ConflictError('Email taken'));
+
+            const act = service.updateAdmin(inputId, inputData);
+
+            await expect(act).rejects.toThrow(ConflictError);
+        });
+
+        it('updateAdmin_EC_sameEmailAsCurrentUser_returnsUpdatedAdmin', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {email: MOCK_ADMIN_WITH_USER.user.email};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_EC_withNewPassword_returnsUpdatedAdmin', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {password: 'New1!'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {fullName: 'New'};
+            mockUserRepo.updateAdmin.mockRejectedValue(new TransactionError('DB Error'));
+
+            const act = service.updateAdmin(inputId, inputData);
+
+            await expect(act).rejects.toThrow(TransactionError);
+        });
     });
 
-    it('updateAdmin_nonExistentAdminId_throwsNotFoundError', async () => {
-        mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
-        const inputData = {};
+    describe('Boundary Value Analysis', () => {
+        it('updateAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            const inputData: UpdateAdminInput = {fullName: 'New'};
+            mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
 
-        const act = service.updateAdmin(inputId, inputData);
+            const act = service.updateAdmin(inputId, inputData);
 
-        await expect(act).rejects.toThrow(NotFoundError);
-    });
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
 
-    it('updateAdmin_duplicateEmail_throwsConflictError', async () => {
-        mockUserRepo.updateAdmin.mockRejectedValue(new ConflictError('Email already in use'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = ADMIN_ID;
-        const inputData = {email: 'other@example.com'};
+        it('updateAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const inputData: UpdateAdminInput = {fullName: 'New'};
+            mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
 
-        const act = service.updateAdmin(inputId, inputData);
+            const act = service.updateAdmin(inputId, inputData);
 
-        await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('updateAdmin_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            const inputData: UpdateAdminInput = {fullName: 'New'};
+            mockUserRepo.updateAdmin.mockResolvedValue({...MOCK_ADMIN_WITH_USER, id: 'a'});
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe('a');
+        });
+
+        it('updateAdmin_BVA_emailUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {email: undefined};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_emailEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {email: ''};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_emailOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {email: 'a'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_fullNameUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {fullName: undefined};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_fullNameEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {fullName: ''};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_fullNameOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {fullName: 'A'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_phoneUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {phone: undefined};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_phoneEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {phone: ''};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_phoneOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {phone: 'a'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {dateOfBirth: undefined};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {dateOfBirth: ''};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {dateOfBirth: 'a'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_passwordUndefined_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {password: undefined};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_passwordEmpty_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {password: ''};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
+
+        it('updateAdmin_BVA_passwordOneChar_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            const inputData: UpdateAdminInput = {password: 'a'};
+            mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+
+            const result = await service.updateAdmin(inputId, inputData);
+
+            expect(result.id).toBe(ADMIN_ID);
+        });
     });
 });
 
 describe('suspendMember', () => {
-    it('suspendMember_activeMember_callsSetMemberActiveWithFalse', async () => {
-        const suspended = {...MOCK_MEMBER_WITH_USER, isActive: false};
-        mockUserRepo.setMemberActive.mockResolvedValue(suspended);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Equivalence Classes', () => {
+        it('suspendMember_EC_existingMember_suspendsMember', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, isActive: false});
 
-        const result = await service.suspendMember(inputId);
+            const result = await service.suspendMember(inputId);
 
-        expect(result.isActive).toBe(false);
-        expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, false);
+            expect(result.isActive).toBe(false);
+        });
+
+        it('suspendMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const act = service.suspendMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('suspendMember_alreadySuspendedMember_callsSetMemberActiveWithFalse', async () => {
-        const alreadySuspended = {...MOCK_MEMBER_WITH_USER, isActive: false};
-        mockUserRepo.setMemberActive.mockResolvedValue(alreadySuspended);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Boundary Value Analysis', () => {
+        it('suspendMember_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const result = await service.suspendMember(inputId);
+            const act = service.suspendMember(inputId);
 
-        expect(result.isActive).toBe(false);
-        expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, false);
-    });
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
 
-    it('suspendMember_nonExistentMemberId_throwsNotFoundError', async () => {
-        mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+        it('suspendMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const act = service.suspendMember(inputId);
+            const act = service.suspendMember(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('suspendMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a', isActive: false});
+
+            const result = await service.suspendMember(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
 describe('activateMember', () => {
-    it('activateMember_suspendedMember_callsSetMemberActiveWithTrue', async () => {
-        mockUserRepo.setMemberActive.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Equivalence Classes', () => {
+        it('activateMember_EC_existingMember_activatesMember', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            mockUserRepo.setMemberActive.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
-        const result = await service.activateMember(inputId);
+            const result = await service.activateMember(inputId);
 
-        expect(result.isActive).toBe(true);
-        expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, true);
+            expect(result.isActive).toBe(true);
+        });
+
+        it('activateMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const act = service.activateMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('activateMember_alreadyActiveMember_callsSetMemberActiveWithTrue', async () => {
-        mockUserRepo.setMemberActive.mockResolvedValue(MOCK_MEMBER_WITH_USER);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Boundary Value Analysis', () => {
+        it('activateMember_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const result = await service.activateMember(inputId);
+            const act = service.activateMember(inputId);
 
-        expect(result.isActive).toBe(true);
-        expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, true);
-    });
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
 
-    it('activateMember_nonExistentMemberId_throwsNotFoundError', async () => {
-        mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+        it('activateMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
-        const act = service.activateMember(inputId);
+            const act = service.activateMember(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('activateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+
+            const result = await service.activateMember(inputId);
+
+            expect(result.id).toBe('a');
+        });
     });
 });
 
 describe('deleteMember', () => {
-    it('deleteMember_existingMemberId_callsRepositoryDelete', async () => {
-        mockUserRepo.delete.mockResolvedValue(undefined);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = MEMBER_ID;
+    describe('Equivalence Classes', () => {
+        it('deleteMember_EC_existingMemberId_resolvesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = MEMBER_ID;
+            mockUserRepo.delete.mockResolvedValue(undefined);
 
-        const act = service.deleteMember(inputId);
+            const act = service.deleteMember(inputId);
 
-        await expect(act).resolves.toBeUndefined();
-        expect(mockUserRepo.delete).toHaveBeenCalledWith(inputId);
+            await expect(act).resolves.toBeUndefined();
+        });
+
+        it('deleteMember_EC_nonExistentId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
+
+            const act = service.deleteMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('deleteMember_nonExistentMemberId_throwsNotFoundError', async () => {
-        mockUserRepo.delete.mockRejectedValue(new NotFoundError('Member not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+    describe('Boundary Value Analysis', () => {
+        it('deleteMember_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
-        const act = service.deleteMember(inputId);
+            const act = service.deleteMember(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('deleteMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
+
+            const act = service.deleteMember(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('deleteMember_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.delete.mockResolvedValue(undefined);
+
+            const act = service.deleteMember(inputId);
+
+            await expect(act).resolves.toBeUndefined();
+        });
     });
 });
 
 describe('deleteAdmin', () => {
-    it('deleteAdmin_existingAdminId_callsRepositoryDelete', async () => {
-        mockUserRepo.delete.mockResolvedValue(undefined);
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = ADMIN_ID;
+    describe('Equivalence Classes', () => {
+        it('deleteAdmin_EC_existingAdminId_resolvesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = ADMIN_ID;
+            mockUserRepo.delete.mockResolvedValue(undefined);
 
-        const act = service.deleteAdmin(inputId);
+            const act = service.deleteAdmin(inputId);
 
-        await expect(act).resolves.toBeUndefined();
-        expect(mockUserRepo.delete).toHaveBeenCalledWith(inputId);
+            await expect(act).resolves.toBeUndefined();
+        });
+
+        it('deleteAdmin_EC_nonExistentId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = NONEXISTENT_ID;
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
+
+            const act = service.deleteAdmin(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
     });
 
-    it('deleteAdmin_nonExistentAdminId_throwsNotFoundError', async () => {
-        mockUserRepo.delete.mockRejectedValue(new NotFoundError('Admin not found'));
-        const service = UserService.getInstance(mockUserRepo);
-        const inputId = NONEXISTENT_ID;
+    describe('Boundary Value Analysis', () => {
+        it('deleteAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = '';
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
-        const act = service.deleteAdmin(inputId);
+            const act = service.deleteAdmin(inputId);
 
-        await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('deleteAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
+
+            const act = service.deleteAdmin(inputId);
+
+            await expect(act).rejects.toThrow(NotFoundError);
+        });
+
+        it('deleteAdmin_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            const service = UserService.getInstance(mockUserRepo);
+            const inputId: string = 'a';
+            mockUserRepo.delete.mockResolvedValue(undefined);
+
+            const act = service.deleteAdmin(inputId);
+
+            await expect(act).resolves.toBeUndefined();
+        });
     });
 });
