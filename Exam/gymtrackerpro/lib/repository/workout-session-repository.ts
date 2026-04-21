@@ -87,7 +87,8 @@ export class WorkoutSessionRepository implements WorkoutSessionRepositoryInterfa
     /** @inheritdoc */
     async findAll(options: WorkoutSessionListOptions = {}): Promise<PageResult<WorkoutSessionWithExercises>> {
         const {memberId, startDate, endDate, page, pageSize} = options;
-        const paginated = page !== undefined && pageSize !== undefined;
+        const safePage = page !== undefined ? Math.max(1, page) : page;
+        const paginated = safePage !== undefined && pageSize !== undefined;
 
         const where = {
             ...(memberId ? {memberId} : {}),
@@ -100,7 +101,7 @@ export class WorkoutSessionRepository implements WorkoutSessionRepositoryInterfa
             this.database.workoutSession.findMany({
                 where,
                 include: {exercises: {include: {exercise: true}}},
-                ...(paginated ? {skip: (page - 1) * pageSize, take: pageSize} : {}),
+                ...(paginated ? {skip: (safePage! - 1) * pageSize!, take: pageSize} : {}),
                 orderBy: {date: paginated ? 'desc' : 'asc'},
             }),
             this.database.workoutSession.count({where}),

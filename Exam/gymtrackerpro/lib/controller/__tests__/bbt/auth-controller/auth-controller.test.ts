@@ -136,6 +136,17 @@ describe('login', () => {
         expect(authServiceMock.login).toHaveBeenCalled();
     });
 
+    it('login_passwordExactly2Chars_passesPasswordValidation', async () => {
+        const mockSession = makeMockSession();
+        authServiceMock.login.mockResolvedValue(MOCK_SESSION_DATA);
+        getSessionMock.mockResolvedValue(mockSession);
+        const inputPassword2 = {email: 'admin@gymtrackerpro.com', password: 'xy'};
+
+        const result = await login(inputPassword2);
+
+        expect(authServiceMock.login).toHaveBeenCalled();
+    });
+
     it('login_passwordBelowLowerBoundary0Chars_returnsValidationFailureWithFieldErrors', async () => {
         const inputEmptyPassword = {email: 'admin@gymtrackerpro.com', password: ''};
 

@@ -29,14 +29,17 @@ export interface WorkoutSessionRepositoryInterface {
     findById(id: string): Promise<WorkoutSessionWithExercises>;
 
     /**
-     * Returns a filtered, paginated list of workout sessions.
+     * Returns a filtered list of workout sessions, optionally paginated.
      *
-     * When `page` and `pageSize` are omitted all matching records are returned.
-     * Results are ordered newest-first when paginating, oldest-first otherwise
-     * (chronological order is required for report aggregation).
+     * Pagination is applied **only if both `page` and `pageSize` are provided**.
+     * If either is `undefined`, the result is **unpaginated** and all matching records are returned.
+     *
+     * Ordering:
+     * - Paginated results - newest first (descending by date)
+     * - Unpaginated results - oldest first (ascending by date), required for report aggregation
      *
      * @param options - Filters (member, date range) and optional pagination parameters.
-     * @returns A page of session records (each with exercises) and the total matching count.
+     * @returns A list of session records (each with exercises) and the total matching count.
      */
     findAll(options?: WorkoutSessionListOptions): Promise<PageResult<WorkoutSessionWithExercises>>;
 

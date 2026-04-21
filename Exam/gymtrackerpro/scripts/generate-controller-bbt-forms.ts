@@ -60,7 +60,7 @@ function addEcTcSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 25 }, { width: 80 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'EC', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.epTcRows) {
-    const row = ws.addRow([r.noTc, r.ec, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.ec, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); stylePassed(row.getCell(5)); row.height = 30;
   }
 }
@@ -77,7 +77,7 @@ function addBvaTcSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 25 }, { width: 80 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'BVA', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.bvaTcRows) {
-    const row = ws.addRow([r.noTc, r.bva, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.bva, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); stylePassed(row.getCell(5)); row.height = 30;
   }
 }
@@ -87,7 +87,7 @@ function addFinalSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 12 }, { width: 14 }, { width: 75 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'TC from EC', 'TC from BVA', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.finalTcRows) {
-    const row = ws.addRow([r.noTc, r.fromEc, r.fromBva, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.fromEc, r.fromBva, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); styleData(row.getCell(5)); stylePassed(row.getCell(6)); row.height = 30;
   }
 }
@@ -100,10 +100,18 @@ function addStatsSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   sRow.getCell(1).border = BORDER; styleSection(sRow.getCell(2)); styleSection(sRow.getCell(6)); styleSection(sRow.getCell(7));
   [3, 4, 5, 8, 9, 10].forEach(c => { sRow.getCell(c).fill = FILL_SECTION; sRow.getCell(c).border = BORDER; }); sRow.height = 20;
   const hRow = ws.addRow(['Req. ID', 'TCs run', 'TCs passed', 'TCs failed', 'No of BUGS', 'Bugs Fixed', 'Re-tested', 'TCs run', 'TCs passed', 'TCs failed']); hRow.eachCell(c => styleHeader(c)); hRow.height = 25;
+
+  const totalRun = d.finalTcRows.length;
   const tcsFailed = d.tcsFailed ?? 0;
-  const dRow = ws.addRow([d.reqId, d.tcCount, d.tcCount - tcsFailed, tcsFailed, d.bugsFound ?? 0,
-    d.bugsFixed ?? 'n/a', d.retested ?? 'not yet',
-    d.retestRun ?? 0, d.retestPassed ?? '-', d.retestFailed ?? '-']);
+  const tcsPassed = totalRun - tcsFailed;
+  const bugsFound = d.bugsFound ?? 0;
+  const bugsFixed = d.bugsFixed ?? 'n/a';
+  const retested = d.retested ?? 'not yet';
+  const retestRun = d.retestRun ?? 0;
+  const retestPassed = d.retestPassed ?? '-';
+  const retestFailed = d.retestFailed ?? '-';
+
+  const dRow = ws.addRow([d.reqId, totalRun, tcsPassed, tcsFailed, bugsFound, bugsFixed, retested, retestRun, retestPassed, retestFailed]);
   styleLabel(dRow.getCell(1)); [2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(c => styleData(dRow.getCell(c))); dRow.height = 20;
 }
 
@@ -121,7 +129,7 @@ async function writeBbt(descriptor: BbtDescriptor, outputPath: string): Promise<
 
 const loginBbt: BbtDescriptor = {
   reqId: 'AUTH-01',
-  tcCount: 6,
+  tcCount: 7,
   statement: 'auth-controller.login(data) – Server Action. Validates LoginUserInput (email regex + non-empty password). On valid input delegates to authService.login(), writes session fields, calls session.save(), and returns { success: true, data: SessionData }. On validation failure returns { success: false, errors }. On AppError returns { success: false, message }. On unexpected error returns { success: false, message: "An unexpected error occurred" }.',
   data: 'Input: LoginUserInput { email: string, password: string }',
   precondition: 'authService.login and getSession are mock-injected; session.save is a jest.fn()',
@@ -146,16 +154,19 @@ const loginBbt: BbtDescriptor = {
     { noTc: 6, ec: '8',     inputData: 'valid input, service throws Error("DB down")',                     expected: '{ success: false, message: "An unexpected error occurred" }' },
   ],
   bvaRows: [
-    { number: 1, condition: 'fullName length (login schema has no fullName; boundary is on password)', testCase: 'N/A – password min=1 (non-empty)' },
+    { number: 1, condition: 'password length boundary', testCase: 'password with 2 chars → valid (min+1)' },
   ],
-  bvaTcRows: [],
+  bvaTcRows: [
+    { noTc: 1, bva: 'password=2 chars', inputData: 'password="xy"', expected: 'success=true (boundary valid)' },
+  ],
   finalTcRows: [
-    { noTc: 1, fromEc: 'EP-1', fromBva: '', inputData: 'Valid credentials',                      expected: 'success=true, session saved' },
-    { noTc: 2, fromEc: 'EP-2', fromBva: '', inputData: 'Invalid email format',                   expected: 'success=false, errors defined' },
-    { noTc: 3, fromEc: 'EP-3', fromBva: '', inputData: 'Empty password',                         expected: 'success=false, errors defined' },
-    { noTc: 4, fromEc: 'EP-4', fromBva: '', inputData: 'Service throws AuthorizationError',      expected: 'success=false, message from error' },
-    { noTc: 5, fromEc: 'EP-5', fromBva: '', inputData: 'Service throws NotFoundError',           expected: 'success=false, message from error' },
-    { noTc: 6, fromEc: 'EP-6', fromBva: '', inputData: 'Service throws unexpected Error',        expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 1, fromEc: 'EP-1', fromBva: '',      inputData: 'Valid credentials',                      expected: 'success=true, session saved' },
+    { noTc: 2, fromEc: 'EP-2', fromBva: '',      inputData: 'Invalid email format',                   expected: 'success=false, errors defined' },
+    { noTc: 3, fromEc: 'EP-3', fromBva: '',      inputData: 'Empty password',                         expected: 'success=false, errors defined' },
+    { noTc: 4, fromEc: 'EP-4', fromBva: '',      inputData: 'Service throws AuthorizationError',      expected: 'success=false, message from error' },
+    { noTc: 5, fromEc: 'EP-5', fromBva: '',      inputData: 'Service throws NotFoundError',           expected: 'success=false, message from error' },
+    { noTc: 6, fromEc: 'EP-6', fromBva: '',      inputData: 'Service throws unexpected Error',        expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-1', inputData: 'Password 2 chars',                       expected: 'success=true' },
   ],
 };
 
@@ -184,7 +195,7 @@ const logoutBbt: BbtDescriptor = {
 
 const createMemberCtrlBbt: BbtDescriptor = {
   reqId: 'MEM-01',
-  tcCount: 7,
+  tcCount: 11,
   statement: 'user-controller.createMember(data) – Server Action. Validates CreateMemberInput via createMemberSchema (email, fullName ≥8 chars, phone E.164, dateOfBirth past, password ≥8, membershipStart ISO date). On valid input delegates to userService.createMember(). Returns ActionResult<MemberWithUser>.',
   data: 'Input: CreateMemberInput { email, fullName, phone, dateOfBirth, password, membershipStart }',
   precondition: 'userService.createMember is mock-injected',
@@ -212,31 +223,43 @@ const createMemberCtrlBbt: BbtDescriptor = {
     { noTc: 7, ec: '10',         inputData: 'valid input, service throws Error',                             expected: '{ success: false, message: "An unexpected error occurred" }' },
   ],
   bvaRows: [
-    { number: 1, condition: 'fullName length boundary', testCase: 'fullName with 7 chars → invalid (too short)' },
-    { number: '',condition: '',                          testCase: 'fullName with 8 chars → valid (minimum)' },
-    { number: 2, condition: '',                          testCase: 'fullName with 64 chars → valid (maximum)' },
-    { number: '',condition: '',                          testCase: 'fullName with 65 chars → invalid (too long)' },
+    { number: 1, condition: 'fullName length boundary', testCase: 'fullName with 7 chars → invalid' },
+    { number: '',condition: '',                          testCase: 'fullName with 8 chars → valid' },
+    { number: 2, condition: '',                          testCase: 'fullName with 64 chars → valid' },
+    { number: '',condition: '',                          testCase: 'fullName with 65 chars → invalid' },
+    { number: 3, condition: 'fullName interior',         testCase: 'fullName with 9 chars → valid (min+1)' },
+    { number: 4, condition: '',                          testCase: 'fullName with 63 chars → valid (max-1)' },
+    { number: 5, condition: 'password length boundary', testCase: 'password with 9 chars → valid (min+1)' },
+    { number: 6, condition: '',                          testCase: 'password with 63 chars → valid (max-1)' },
   ],
   bvaTcRows: [
-    { noTc: 1, bva: 'fullName=7 chars',  inputData: '{ fullName: "1234567" } (7 chars)',   expected: 'success=false, errors.fullName defined' },
-    { noTc: 2, bva: 'fullName=8 chars',  inputData: '{ fullName: "12345678" } (8 chars)', expected: 'success=true (schema passes)' },
-    { noTc: 3, bva: 'fullName=64 chars', inputData: '{ fullName: "a".repeat(64) }',       expected: 'success=true (schema passes)' },
-    { noTc: 4, bva: 'fullName=65 chars', inputData: '{ fullName: "a".repeat(65) }',       expected: 'success=false, errors.fullName defined' },
+    { noTc: 1, bva: 'fullName=7 chars',  inputData: '{ fullName: "1234567" }',             expected: 'success=false, errors.fullName defined' },
+    { noTc: 2, bva: 'fullName=8 chars',  inputData: '{ fullName: "12345678" }',            expected: 'success=true' },
+    { noTc: 3, bva: 'fullName=64 chars', inputData: '{ fullName: "a".repeat(64) }',         expected: 'success=true' },
+    { noTc: 4, bva: 'fullName=65 chars', inputData: '{ fullName: "a".repeat(65) }',         expected: 'success=false, errors.fullName defined' },
+    { noTc: 5, bva: 'fullName=9 chars',  inputData: '{ fullName: "John Doe1" }',           expected: 'success=true' },
+    { noTc: 6, bva: 'fullName=63 chars', inputData: '{ fullName: "j".repeat(63) }',         expected: 'success=true' },
+    { noTc: 7, bva: 'password=9 chars',  inputData: '{ password: "Pass1@aAb" }',           expected: 'success=true' },
+    { noTc: 8, bva: 'password=63 chars', inputData: '{ password: "A1@"+ "a".repeat(60) }', expected: 'success=true' },
   ],
   finalTcRows: [
-    { noTc: 1, fromEc: 'EP-1', fromBva: '',      inputData: 'Valid input, service resolves',                    expected: 'success=true, MemberWithUser returned' },
-    { noTc: 2, fromEc: 'EP-2', fromBva: 'BVA-1', inputData: 'fullName 7 chars',                                expected: 'success=false, errors defined' },
-    { noTc: 3, fromEc: 'EP-2', fromBva: 'BVA-2', inputData: 'fullName 8 chars (boundary valid)',               expected: 'success=true (schema only)' },
-    { noTc: 4, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                                  expected: 'success=false, errors defined' },
-    { noTc: 5, fromEc: 'EP-4', fromBva: '',       inputData: 'Invalid phone',                                  expected: 'success=false, errors defined' },
-    { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Valid, service throws ConflictError',            expected: 'success=false, message from error' },
-    { noTc: 7, fromEc: 'EP-7', fromBva: '',       inputData: 'Valid, service throws unexpected Error',         expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 1,  fromEc: 'EP-1', fromBva: '',      inputData: 'Valid input, service resolves',                    expected: 'success=true, MemberWithUser returned' },
+    { noTc: 2,  fromEc: 'EP-2', fromBva: 'BVA-1', inputData: 'fullName 7 chars',                                expected: 'success=false, errors defined' },
+    { noTc: 3,  fromEc: 'EP-2', fromBva: 'BVA-2', inputData: 'fullName 8 chars (boundary valid)',               expected: 'success=true' },
+    { noTc: 4,  fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                                  expected: 'success=false, errors defined' },
+    { noTc: 5,  fromEc: 'EP-4', fromBva: '',       inputData: 'Invalid phone',                                  expected: 'success=false, errors defined' },
+    { noTc: 6,  fromEc: 'EP-6', fromBva: '',       inputData: 'Valid, service throws ConflictError',            expected: 'success=false, message from error' },
+    { noTc: 7,  fromEc: 'EP-7', fromBva: '',       inputData: 'Valid, service throws unexpected Error',         expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 8,  fromEc: '',     fromBva: 'BVA-5', inputData: 'fullName 9 chars',                                expected: 'success=true' },
+    { noTc: 9,  fromEc: '',     fromBva: 'BVA-6', inputData: 'fullName 63 chars',                               expected: 'success=true' },
+    { noTc: 10, fromEc: '',     fromBva: 'BVA-7', inputData: 'password 9 chars',                                expected: 'success=true' },
+    { noTc: 11, fromEc: '',     fromBva: 'BVA-8', inputData: 'password 63 chars',                               expected: 'success=true' },
   ],
 };
 
 const createMemberWithTempPasswordCtrlBbt: BbtDescriptor = {
   reqId: 'MEM-02',
-  tcCount: 5,
+  tcCount: 6,
   statement: 'user-controller.createMemberWithTempPassword(data) – Server Action. Validates CreateMemberWithTempPasswordInput (no password field). Delegates to userService.createMemberWithTempPassword(). Returns ActionResult<MemberWithUserAndTempPassword>.',
   data: 'Input: CreateMemberWithTempPasswordInput { email, fullName, phone, dateOfBirth, membershipStart }',
   precondition: 'userService.createMemberWithTempPassword is mock-injected',
@@ -262,10 +285,12 @@ const createMemberWithTempPasswordCtrlBbt: BbtDescriptor = {
   bvaRows: [
     { number: 1, condition: 'fullName length boundary', testCase: 'fullName 7 chars → invalid' },
     { number: '',condition: '',                          testCase: 'fullName 8 chars → valid' },
+    { number: 2, condition: 'fullName interior',         testCase: 'fullName 9 chars → valid (min+1)' },
   ],
   bvaTcRows: [
     { noTc: 1, bva: 'fullName=7', inputData: 'fullName="1234567"', expected: 'success=false, errors.fullName defined' },
     { noTc: 2, bva: 'fullName=8', inputData: 'fullName="12345678"', expected: 'schema passes (success depends on service)' },
+    { noTc: 3, bva: 'fullName=9', inputData: 'fullName="John Doe1"', expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1, fromEc: 'EP-1', fromBva: '',      inputData: 'Valid input, service resolves',                  expected: 'success=true, tempPassword defined' },
@@ -273,12 +298,13 @@ const createMemberWithTempPasswordCtrlBbt: BbtDescriptor = {
     { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                                 expected: 'success=false, errors defined' },
     { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws ConflictError',                  expected: 'success=false, message from error' },
     { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws unexpected Error',               expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 6, fromEc: '',     fromBva: 'BVA-3', inputData: 'fullName 9 chars',                          expected: 'success=true' },
   ],
 };
 
 const createAdminCtrlBbt: BbtDescriptor = {
   reqId: 'AUTH-06',
-  tcCount: 5,
+  tcCount: 9,
   statement: 'user-controller.createAdmin(data) – Server Action. Validates CreateAdminInput (email, fullName ≥8, phone, dateOfBirth, password ≥8). Delegates to userService.createAdmin(). Returns ActionResult<AdminWithUser>.',
   data: 'Input: CreateAdminInput { email, fullName, phone, dateOfBirth, password }',
   precondition: 'userService.createAdmin is mock-injected',
@@ -304,10 +330,18 @@ const createAdminCtrlBbt: BbtDescriptor = {
   bvaRows: [
     { number: 1, condition: 'fullName length boundary', testCase: 'fullName 7 chars → invalid' },
     { number: '',condition: '',                          testCase: 'fullName 8 chars → valid' },
+    { number: 2, condition: 'fullName boundary interior', testCase: 'fullName 9 chars → valid (min+1)' },
+    { number: 3, condition: '',                          testCase: 'fullName 63 chars → valid (max-1)' },
+    { number: 4, condition: 'password length boundary', testCase: 'password 9 chars → valid (min+1)' },
+    { number: 5, condition: '',                          testCase: 'password 63 chars → valid (max-1)' },
   ],
   bvaTcRows: [
-    { noTc: 1, bva: 'fullName=7', inputData: 'fullName="1234567"', expected: 'success=false, errors.fullName defined' },
-    { noTc: 2, bva: 'fullName=8', inputData: 'fullName="12345678"', expected: 'schema passes' },
+    { noTc: 1, bva: 'fullName=7', inputData: 'fullName="1234567"',             expected: 'success=false, errors.fullName defined' },
+    { noTc: 2, bva: 'fullName=8', inputData: 'fullName="12345678"',            expected: 'schema passes' },
+    { noTc: 3, bva: 'fullName=9', inputData: 'fullName="AdminAcc1"',           expected: 'success=true' },
+    { noTc: 4, bva: 'fullName=63',inputData: 'fullName="B".repeat(63)',        expected: 'success=true' },
+    { noTc: 5, bva: 'password=9', inputData: 'password="Pass1@aAb"',           expected: 'success=true' },
+    { noTc: 6, bva: 'password=63',inputData: 'password="A1@"+"a".repeat(60)', expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1, fromEc: 'EP-1', fromBva: '',      inputData: 'Valid input, service resolves',                expected: 'success=true, AdminWithUser returned' },
@@ -315,6 +349,10 @@ const createAdminCtrlBbt: BbtDescriptor = {
     { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                              expected: 'success=false, errors defined' },
     { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws ConflictError',               expected: 'success=false, message from error' },
     { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws unexpected Error',            expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 6, fromEc: '',     fromBva: 'BVA-3', inputData: 'fullName 9 chars',                       expected: 'success=true' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-4', inputData: 'fullName 63 chars',                      expected: 'success=true' },
+    { noTc: 8, fromEc: '',     fromBva: 'BVA-5', inputData: 'password 9 chars',                       expected: 'success=true' },
+    { noTc: 9, fromEc: '',     fromBva: 'BVA-6', inputData: 'password 63 chars',                      expected: 'success=true' },
   ],
 };
 
@@ -374,7 +412,7 @@ const getAdminCtrlBbt: BbtDescriptor = {
 
 const updateMemberCtrlBbt: BbtDescriptor = {
   reqId: 'MEM-05',
-  tcCount: 6,
+  tcCount: 8,
   statement: 'user-controller.updateMember(memberId, data) – Server Action. Validates UpdateMemberInput (all fields optional). Delegates to userService.updateMember(). Returns ActionResult<MemberWithUser>.',
   data: 'Input: memberId: string, data: UpdateMemberInput (all optional)',
   precondition: 'userService.updateMember is mock-injected',
@@ -402,18 +440,24 @@ const updateMemberCtrlBbt: BbtDescriptor = {
   bvaRows: [
     { number: 1, condition: 'fullName length boundary', testCase: 'fullName 7 chars → invalid' },
     { number: '',condition: '',                          testCase: 'fullName 8 chars → valid' },
+    { number: 2, condition: 'fullName boundary interior', testCase: 'fullName 9 chars → valid (min+1)' },
+    { number: 3, condition: '',                          testCase: 'fullName 63 chars → valid (max-1)' },
   ],
   bvaTcRows: [
-    { noTc: 1, bva: 'fullName=7', inputData: '{ fullName: "1234567" }', expected: 'success=false, errors.fullName defined' },
+    { noTc: 1, bva: 'fullName=7', inputData: '{ fullName: "1234567" }',  expected: 'success=false, errors.fullName defined' },
     { noTc: 2, bva: 'fullName=8', inputData: '{ fullName: "12345678" }', expected: 'schema passes' },
+    { noTc: 3, bva: 'fullName=9', inputData: '{ fullName: "John Doe1" }', expected: 'success=true' },
+    { noTc: 4, bva: 'fullName=63',inputData: '{ fullName: "C".repeat(63) }', expected: 'success=true' },
   ],
   finalTcRows: [
-    { noTc: 1, fromEc: 'EP-1', fromBva: '',      inputData: 'Valid update, service resolves',         expected: 'success=true, MemberWithUser returned' },
-    { noTc: 2, fromEc: 'EP-2', fromBva: 'BVA-1', inputData: 'fullName 7 chars',                      expected: 'success=false, errors defined' },
-    { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                         expected: 'success=false, errors defined' },
-    { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws NotFoundError',          expected: 'success=false, message from error' },
-    { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws ConflictError',          expected: 'success=false, message from error' },
-    { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Service throws unexpected Error',       expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 1, fromEc: 'EP-1', fromBva: 'BVA-2', inputData: 'Valid update, service resolves',        expected: 'success=true, MemberWithUser returned' },
+    { noTc: 2, fromEc: 'EP-2', fromBva: 'BVA-1', inputData: 'fullName 7 chars',                         expected: 'success=false, errors defined' },
+    { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid email',                        expected: 'success=false, errors defined' },
+    { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws NotFoundError',         expected: 'success=false, message from error' },
+    { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws ConflictError',         expected: 'success=false, message from error' },
+    { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Service throws unexpected Error',        expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-3', inputData: 'fullName 9 chars',                       expected: 'success=true' },
+    { noTc: 8, fromEc: '',     fromBva: 'BVA-4', inputData: 'fullName 63 chars',                      expected: 'success=true' },
   ],
 };
 
@@ -506,7 +550,7 @@ const deleteMemberCtrlBbt: BbtDescriptor = {
 
 const createExerciseCtrlBbt: BbtDescriptor = {
   reqId: 'EXM-01',
-  tcCount: 6,
+  tcCount: 8,
   statement: 'exercise-controller.createExercise(data) – Server Action. Validates CreateExerciseInput via createExerciseSchema (name ≥8 chars ≤64, muscleGroup enum, equipmentNeeded enum). Delegates to exerciseService.createExercise(). Returns ActionResult<Exercise>.',
   data: 'Input: CreateExerciseInput { name, description?, muscleGroup, equipmentNeeded }',
   precondition: 'exerciseService.createExercise is mock-injected',
@@ -537,12 +581,16 @@ const createExerciseCtrlBbt: BbtDescriptor = {
     { number: '',condition: '',                      testCase: 'name 8 chars → valid (at min)' },
     { number: 2, condition: '',                      testCase: 'name 64 chars → valid (at max)' },
     { number: '',condition: '',                      testCase: 'name 65 chars → invalid (above max)' },
+    { number: 3, condition: 'name length interior', testCase: 'name 9 chars → valid (min+1)' },
+    { number: 4, condition: '',                      testCase: 'name 63 chars → valid (max-1)' },
   ],
   bvaTcRows: [
     { noTc: 1, bva: 'name=7 chars',  inputData: '{ name: "1234567" }',          expected: 'success=false, errors.name defined' },
     { noTc: 2, bva: 'name=8 chars',  inputData: '{ name: "12345678" }',         expected: 'schema passes (min boundary)' },
     { noTc: 3, bva: 'name=64 chars', inputData: '{ name: "a".repeat(64) }',    expected: 'schema passes (max boundary)' },
     { noTc: 4, bva: 'name=65 chars', inputData: '{ name: "a".repeat(65) }',    expected: 'success=false, errors.name defined' },
+    { noTc: 5, bva: 'name=9 chars',  inputData: '{ name: "BenchPrs1" }',        expected: 'success=true' },
+    { noTc: 6, bva: 'name=63 chars', inputData: '{ name: "b".repeat(63) }',    expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1, fromEc: 'EP-1', fromBva: 'BVA-2', inputData: 'Valid input (name ≥ 8), service resolves', expected: 'success=true, Exercise returned' },
@@ -551,6 +599,8 @@ const createExerciseCtrlBbt: BbtDescriptor = {
     { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Invalid equipment',                        expected: 'success=false, errors defined' },
     { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws ConflictError',             expected: 'success=false, message from error' },
     { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Service throws unexpected Error',          expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-5', inputData: 'Name 9 chars',                            expected: 'success=true' },
+    { noTc: 8, fromEc: '',     fromBva: 'BVA-6', inputData: 'Name 63 chars',                           expected: 'success=true' },
   ],
 };
 
@@ -583,7 +633,7 @@ const getExerciseCtrlBbt: BbtDescriptor = {
 
 const updateExerciseCtrlBbt: BbtDescriptor = {
   reqId: 'EXM-03',
-  tcCount: 6,
+  tcCount: 8,
   statement: 'exercise-controller.updateExercise(id, data) – Server Action. Validates UpdateExerciseInput (all optional). Delegates to exerciseService.updateExercise(). Returns ActionResult<Exercise>.',
   data: 'Input: id: string, data: UpdateExerciseInput (all optional)',
   precondition: 'exerciseService.updateExercise is mock-injected',
@@ -611,10 +661,14 @@ const updateExerciseCtrlBbt: BbtDescriptor = {
   bvaRows: [
     { number: 1, condition: 'name boundary', testCase: 'name 7 chars → invalid' },
     { number: '',condition: '',              testCase: 'name 8 chars → valid' },
+    { number: 2, condition: 'name boundary interior', testCase: 'name 9 chars → valid (min+1)' },
+    { number: 3, condition: '',                      testCase: 'name 63 chars → valid (max-1)' },
   ],
   bvaTcRows: [
     { noTc: 1, bva: 'name=7', inputData: '{ name: "1234567" }', expected: 'success=false, errors.name defined' },
     { noTc: 2, bva: 'name=8', inputData: '{ name: "12345678" }', expected: 'schema passes' },
+    { noTc: 3, bva: 'name=9', inputData: '{ name: "BenchPrs1" }', expected: 'success=true' },
+    { noTc: 4, bva: 'name=63', inputData: '{ name: "b".repeat(63) }', expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1, fromEc: 'EP-1', fromBva: 'BVA-2', inputData: 'Valid update, service resolves',        expected: 'success=true, Exercise returned' },
@@ -622,7 +676,9 @@ const updateExerciseCtrlBbt: BbtDescriptor = {
     { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid muscleGroup',                  expected: 'success=false, errors defined' },
     { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws NotFoundError',         expected: 'success=false, message from error' },
     { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws ConflictError',         expected: 'success=false, message from error' },
-    { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Service throws unexpected Error',      expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 6, fromEc: 'EP-6', fromBva: '',       inputData: 'Service throws unexpected Error',        expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-3', inputData: 'Name 9 chars',                          expected: 'success=true' },
+    { noTc: 8, fromEc: '',     fromBva: 'BVA-4', inputData: 'Name 63 chars',                         expected: 'success=true' },
   ],
 };
 
@@ -687,7 +743,7 @@ const deleteExerciseCtrlBbt: BbtDescriptor = {
 
 const createWorkoutSessionCtrlBbt: BbtDescriptor = {
   reqId: 'WSM-01/WSM-02',
-  tcCount: 9,
+  tcCount: 17,
   statement: 'workout-session-controller.createWorkoutSession(data, exercises) – Server Action. Validates CreateWorkoutSessionInput (memberId non-empty, date ISO, duration 0–180) and workoutSessionExercisesSchema (≥1 exercise, sets 0–6, reps 0–30, weight 0–500). Returns ActionResult<WorkoutSessionWithExercises>.',
   data: 'Input: CreateWorkoutSessionInput { memberId, date, duration, notes? } + WorkoutSessionExerciseInput[] (≥1)',
   precondition: 'workoutSessionService.createWorkoutSession is mock-injected',
@@ -721,34 +777,55 @@ const createWorkoutSessionCtrlBbt: BbtDescriptor = {
     { noTc: 9, ec: '14',              inputData: 'valid, service throws Error',                              expected: '{ success: false, message: "An unexpected error occurred" }' },
   ],
   bvaRows: [
-    { number: 1, condition: 'duration boundary', testCase: 'duration=180 → valid (at max)' },
-    { number: '',condition: '',                   testCase: 'duration=181 → invalid (above max)' },
-    { number: 2, condition: 'duration lower',     testCase: 'duration=0 → valid (at min)' },
-    { number: 3, condition: 'exercises count',    testCase: 'exercises=[] (0) → invalid' },
-    { number: '',condition: '',                   testCase: 'exercises=[1 item] → valid' },
-    { number: 4, condition: 'sets boundary',      testCase: 'sets=6 → valid (at max)' },
-    { number: '',condition: '',                   testCase: 'sets=7 → invalid (above max)' },
-    { number: 5, condition: 'sets lower',         testCase: 'sets=0 → valid (at min)' },
+    { number: 1, condition: 'duration boundary', testCase: 'duration=180 → valid' },
+    { number: '',condition: '',                   testCase: 'duration=181 → invalid' },
+    { number: 2, condition: 'duration lower',     testCase: 'duration=0 → valid' },
+    { number: 3, condition: 'duration interior',  testCase: 'duration=1 → valid (min+1)' },
+    { number: 4, condition: '',                   testCase: 'duration=179 → valid (max-1)' },
+    { number: 5, condition: 'notes length boundary', testCase: 'notes=1023 chars → valid (max-1)' },
+    { number: 6, condition: 'sets boundary',      testCase: 'sets=6 → valid (max)' },
+    { number: '',condition: '',                   testCase: 'sets=7 → invalid' },
+    { number: 7, condition: 'sets interior',      testCase: 'sets=1 → valid (min+1)' },
+    { number: 8, condition: '',                   testCase: 'sets=5 → valid (max-1)' },
+    { number: 9, condition: 'reps interior',      testCase: 'reps=1 → valid (min+1)' },
+    { number: 10,condition: '',                   testCase: 'reps=29 → valid (max-1)' },
+    { number: 11,condition: 'weight interior',    testCase: 'weight=0.1 → valid (min+0.1)' },
+    { number: 12,condition: '',                   testCase: 'weight=499.9 → valid (max-0.1)' },
   ],
   bvaTcRows: [
-    { noTc: 1, bva: 'duration=180', inputData: '{ duration: 180 }, valid exercises',          expected: 'success=true (boundary valid)' },
-    { noTc: 2, bva: 'duration=181', inputData: '{ duration: 181 }, valid exercises',          expected: 'success=false, errors.duration defined' },
-    { noTc: 3, bva: 'duration=0',   inputData: '{ duration: 0 }, valid exercises',            expected: 'success=true (lower boundary valid)' },
-    { noTc: 4, bva: 'exercises=0',  inputData: 'valid session, exercises=[]',                 expected: 'success=false, message about exercises' },
-    { noTc: 5, bva: 'exercises=1',  inputData: 'valid session, exercises=[1 item]',           expected: 'success=true' },
-    { noTc: 6, bva: 'sets=6',       inputData: 'exercises=[{ sets: 6 }]',                    expected: 'success=true (sets boundary valid)' },
-    { noTc: 7, bva: 'sets=7',       inputData: 'exercises=[{ sets: 7 }]',                    expected: 'success=false' },
-    { noTc: 8, bva: 'sets=0',       inputData: 'exercises=[{ sets: 0 }]',                    expected: 'success=true (lower sets boundary)' },
+    { noTc: 1,  bva: 'duration=180', inputData: '{ duration: 180 }', expected: 'success=true' },
+    { noTc: 2,  bva: 'duration=181', inputData: '{ duration: 181 }', expected: 'success=false' },
+    { noTc: 3,  bva: 'duration=0',   inputData: '{ duration: 0 }',   expected: 'success=true' },
+    { noTc: 4,  bva: 'duration=1',   inputData: '{ duration: 1 }',   expected: 'success=true' },
+    { noTc: 5,  bva: 'duration=179', inputData: '{ duration: 179 }', expected: 'success=true' },
+    { noTc: 6,  bva: 'notes=1023',   inputData: '{ notes: "a".repeat(1023) }', expected: 'success=true' },
+    { noTc: 7,  bva: 'sets=6',       inputData: 'sets: 6',           expected: 'success=true' },
+    { noTc: 8,  bva: 'sets=7',       inputData: 'sets: 7',           expected: 'success=false' },
+    { noTc: 9,  bva: 'sets=1',       inputData: 'sets: 1',           expected: 'success=true' },
+    { noTc: 10, bva: 'sets=5',       inputData: 'sets: 5',           expected: 'success=true' },
+    { noTc: 11, bva: 'reps=1',       inputData: 'reps: 1',           expected: 'success=true' },
+    { noTc: 12, bva: 'reps=29',      inputData: 'reps: 29',          expected: 'success=true' },
+    { noTc: 13, bva: 'weight=0.1',   inputData: 'weight: 0.1',       expected: 'success=true' },
+    { noTc: 14, bva: 'weight=499.9', inputData: 'weight: 499.9',     expected: 'success=true' },
   ],
   finalTcRows: [
-    { noTc: 1, fromEc: 'EP-1', fromBva: 'BVA-1', inputData: 'Valid, duration=180, 1 exercise',           expected: 'success=true, session returned' },
-    { noTc: 2, fromEc: 'EP-2', fromBva: 'BVA-2', inputData: 'duration=181',                              expected: 'success=false, errors defined' },
-    { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid date format',                       expected: 'success=false, errors defined' },
-    { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Empty memberId',                            expected: 'success=false, errors defined' },
-    { noTc: 5, fromEc: 'EP-5', fromBva: 'BVA-4', inputData: 'exercises=[]',                              expected: 'success=false, message about exercises' },
-    { noTc: 6, fromEc: 'EP-6', fromBva: 'BVA-7', inputData: 'sets=7 in exercise',                        expected: 'success=false' },
-    { noTc: 7, fromEc: 'EP-7', fromBva: '',       inputData: 'Service throws NotFoundError',              expected: 'success=false, message from error' },
-    { noTc: 8, fromEc: 'EP-9', fromBva: '',       inputData: 'Service throws unexpected Error',           expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 1,  fromEc: 'EP-1', fromBva: 'BVA-1', inputData: 'Valid, duration=180, 1 exercise',           expected: 'success=true, session returned' },
+    { noTc: 2,  fromEc: 'EP-2', fromBva: 'BVA-2', inputData: 'duration=181',                              expected: 'success=false, errors defined' },
+    { noTc: 3,  fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid date format',                       expected: 'success=false, errors defined' },
+    { noTc: 4,  fromEc: 'EP-4', fromBva: '',       inputData: 'Empty memberId',                            expected: 'success=false, errors defined' },
+    { noTc: 5,  fromEc: 'EP-5', fromBva: '',       inputData: 'exercises=[]',                              expected: 'success=false, message about exercises' },
+    { noTc: 6,  fromEc: 'EP-6', fromBva: 'BVA-8', inputData: 'sets=7 in exercise',                        expected: 'success=false' },
+    { noTc: 7,  fromEc: 'EP-7', fromBva: '',       inputData: 'Service throws NotFoundError',              expected: 'success=false, message from error' },
+    { noTc: 8,  fromEc: 'EP-9', fromBva: '',       inputData: 'Service throws unexpected Error',           expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 9,  fromEc: '',     fromBva: 'BVA-4', inputData: 'duration=1',                                expected: 'success=true' },
+    { noTc: 10, fromEc: '',     fromBva: 'BVA-5', inputData: 'duration=179',                              expected: 'success=true' },
+    { noTc: 11, fromEc: '',     fromBva: 'BVA-6', inputData: 'notes=1023 chars',                          expected: 'success=true' },
+    { noTc: 12, fromEc: '',     fromBva: 'BVA-9', inputData: 'sets=1',                                    expected: 'success=true' },
+    { noTc: 13, fromEc: '',     fromBva: 'BVA-10',inputData: 'sets=5',                                    expected: 'success=true' },
+    { noTc: 14, fromEc: '',     fromBva: 'BVA-11',inputData: 'reps=1',                                    expected: 'success=true' },
+    { noTc: 15, fromEc: '',     fromBva: 'BVA-12',inputData: 'reps=29',                                   expected: 'success=true' },
+    { noTc: 16, fromEc: '',     fromBva: 'BVA-13',inputData: 'weight=0.1',                                expected: 'success=true' },
+    { noTc: 17, fromEc: '',     fromBva: 'BVA-14',inputData: 'weight=499.9',                              expected: 'success=true' },
   ],
 };
 
@@ -781,7 +858,7 @@ const getWorkoutSessionCtrlBbt: BbtDescriptor = {
 
 const updateWorkoutSessionCtrlBbt: BbtDescriptor = {
   reqId: 'WSM-06',
-  tcCount: 5,
+  tcCount: 8,
   statement: 'workout-session-controller.updateWorkoutSession(workoutSessionId, data) – Server Action. Validates UpdateWorkoutSessionInput (optional date ISO, optional duration 0–180). Delegates to workoutSessionService.updateWorkoutSession(). Returns ActionResult<WorkoutSession>.',
   data: 'Input: workoutSessionId: string, data: UpdateWorkoutSessionInput { date?, duration?, notes? }',
   precondition: 'workoutSessionService.updateWorkoutSession is mock-injected',
@@ -805,14 +882,20 @@ const updateWorkoutSessionCtrlBbt: BbtDescriptor = {
     { noTc: 5, ec: '8',       inputData: 'valid update, service throws Error',                      expected: '{ success: false, message: "An unexpected error occurred" }' },
   ],
   bvaRows: [
-    { number: 1, condition: 'duration boundary', testCase: 'duration=180 → valid (at max)' },
-    { number: '',condition: '',                   testCase: 'duration=181 → invalid (above max)' },
-    { number: 2, condition: '',                   testCase: 'duration=0 → valid (at min)' },
+    { number: 1, condition: 'duration boundary', testCase: 'duration=180 → valid' },
+    { number: '',condition: '',                   testCase: 'duration=181 → invalid' },
+    { number: 2, condition: 'duration lower',     testCase: 'duration=0 → valid' },
+    { number: 3, condition: 'duration interior',  testCase: 'duration=1 → valid (min+1)' },
+    { number: 4, condition: '',                   testCase: 'duration=179 → valid (max-1)' },
+    { number: 5, condition: 'notes length boundary', testCase: 'notes=1023 chars → valid (max-1)' },
   ],
   bvaTcRows: [
     { noTc: 1, bva: 'duration=180', inputData: '{ duration: 180 }', expected: 'schema passes' },
     { noTc: 2, bva: 'duration=181', inputData: '{ duration: 181 }', expected: 'success=false, errors.duration defined' },
     { noTc: 3, bva: 'duration=0',   inputData: '{ duration: 0 }',   expected: 'schema passes (lower boundary)' },
+    { noTc: 4, bva: 'duration=1',   inputData: '{ duration: 1 }',   expected: 'success=true' },
+    { noTc: 5, bva: 'duration=179', inputData: '{ duration: 179 }', expected: 'success=true' },
+    { noTc: 6, bva: 'notes=1023',   inputData: '{ notes: "a".repeat(1023) }', expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1, fromEc: 'EP-1', fromBva: 'BVA-1', inputData: 'Valid update, service resolves',      expected: 'success=true, session returned' },
@@ -820,6 +903,9 @@ const updateWorkoutSessionCtrlBbt: BbtDescriptor = {
     { noTc: 3, fromEc: 'EP-3', fromBva: '',       inputData: 'Invalid date format',                 expected: 'success=false, errors defined' },
     { noTc: 4, fromEc: 'EP-4', fromBva: '',       inputData: 'Service throws NotFoundError',        expected: 'success=false, message from error' },
     { noTc: 5, fromEc: 'EP-5', fromBva: '',       inputData: 'Service throws unexpected Error',     expected: 'success=false, message="An unexpected error occurred"' },
+    { noTc: 6, fromEc: '',     fromBva: 'BVA-4', inputData: 'duration=1',                         expected: 'success=true' },
+    { noTc: 7, fromEc: '',     fromBva: 'BVA-5', inputData: 'duration=179',                       expected: 'success=true' },
+    { noTc: 8, fromEc: '',     fromBva: 'BVA-6', inputData: 'notes=1023 chars',                   expected: 'success=true' },
   ],
 };
 
@@ -1185,7 +1271,7 @@ const listMemberWorkoutSessionsCtrlBbt: BbtDescriptor = {
 
 const updateWorkoutSessionWithExercisesCtrlBbt: BbtDescriptor = {
   reqId: 'WSM-06/WSM-07',
-  tcCount: 19,
+  tcCount: 20,
   statement: 'workout-session-controller.updateWorkoutSessionWithExercises(id, data, exercises) – Server Action. Validates UpdateWorkoutSessionInput (optional duration 0–180) and workoutSessionExercisesUpdateSchema (≥1 exercise, sets 0–6, reps 0–30, weight 0–500). Returns ActionResult<WorkoutSessionWithExercises>.',
   data: 'Input: id: string, data: UpdateWorkoutSessionInput, exercises: WorkoutSessionExerciseUpdateInput[] (≥1)',
   precondition: 'workoutSessionService.updateWorkoutSessionWithExercises is mock-injected',
@@ -1223,6 +1309,12 @@ const updateWorkoutSessionWithExercisesCtrlBbt: BbtDescriptor = {
     { number: 3, condition: 'sets boundary',     testCase: 'sets=6 → valid; sets=7 → invalid; sets=0 → valid; sets=-1 → invalid' },
     { number: 4, condition: 'reps boundary',     testCase: 'reps=30 → valid; reps=31 → invalid; reps=0 → valid; reps=-1 → invalid' },
     { number: 5, condition: 'weight boundary',   testCase: 'weight=500 → valid; weight=501 → invalid; weight=0 → valid; weight=-1 → invalid' },
+    { number: 6, condition: 'sets interior',      testCase: 'sets=1 → valid (min+1)' },
+    { number: 7, condition: '',                   testCase: 'sets=5 → valid (max-1)' },
+    { number: 8, condition: 'reps interior',      testCase: 'reps=1 → valid (min+1)' },
+    { number: 9, condition: '',                   testCase: 'reps=29 → valid (max-1)' },
+    { number: 10,condition: 'weight interior',    testCase: 'weight=0.1 → valid (min+0.1)' },
+    { number: 11,condition: '',                   testCase: 'weight=499.9 → valid (max-0.1)' },
   ],
   bvaTcRows: [
     { noTc: 1,  bva: 'duration=180',  inputData: '{ duration: 180 }, valid exercises',           expected: 'success=true' },
@@ -1242,6 +1334,12 @@ const updateWorkoutSessionWithExercisesCtrlBbt: BbtDescriptor = {
     { noTc: 15, bva: 'weight=501',    inputData: '[{ weight: 501 }]',                           expected: 'success=false' },
     { noTc: 16, bva: 'weight=0',      inputData: '[{ weight: 0 }]',                             expected: 'success=true (min boundary)' },
     { noTc: 17, bva: 'weight=-1',     inputData: '[{ weight: -1 }]',                            expected: 'success=false' },
+    { noTc: 18, bva: 'sets=1',        inputData: 'sets: 1',                                     expected: 'success=true' },
+    { noTc: 19, bva: 'sets=5',        inputData: 'sets: 5',                                     expected: 'success=true' },
+    { noTc: 20, bva: 'reps=1',        inputData: 'reps: 1',                                     expected: 'success=true' },
+    { noTc: 21, bva: 'reps=29',       inputData: 'reps: 29',                                    expected: 'success=true' },
+    { noTc: 22, bva: 'weight=0.1',    inputData: 'weight: 0.1',                                 expected: 'success=true' },
+    { noTc: 23, bva: 'weight=499.9',  inputData: 'weight: 499.9',                               expected: 'success=true' },
   ],
   finalTcRows: [
     { noTc: 1,  fromEc: 'EP-1',  fromBva: 'BVA-1', inputData: 'Valid, duration=180, 1 exercise',    expected: 'success=true' },
@@ -1250,8 +1348,20 @@ const updateWorkoutSessionWithExercisesCtrlBbt: BbtDescriptor = {
     { noTc: 4,  fromEc: 'EP-4',  fromBva: 'BVA-7', inputData: 'sets=7',                             expected: 'success=false' },
     { noTc: 5,  fromEc: 'EP-5',  fromBva: 'BVA-11', inputData: 'reps=31',                           expected: 'success=false' },
     { noTc: 6,  fromEc: 'EP-6',  fromBva: 'BVA-15', inputData: 'weight=501',                        expected: 'success=false' },
-    { noTc: 7,  fromEc: 'EP-7',  fromBva: '',       inputData: 'Service throws NotFoundError',       expected: 'success=false, message from error' },
+    { noTc: 7,  fromEc: 'EP-7',  fromBva: '',       inputData: 'Service throws NotFoundError',      expected: 'success=false, message from error' },
     { noTc: 8,  fromEc: 'EP-8',  fromBva: '',       inputData: 'Service throws unexpected Error',    expected: 'success=false, "An unexpected error occurred"' },
+    { noTc: 9,  fromEc: '',      fromBva: 'BVA-3', inputData: 'duration=0',                      expected: 'success=true' },
+    { noTc: 10, fromEc: '',      fromBva: 'BVA-6', inputData: 'sets=6',                           expected: 'success=true' },
+    { noTc: 11, fromEc: '',      fromBva: 'BVA-10',inputData: 'reps=30',                          expected: 'success=true' },
+    { noTc: 12, fromEc: '',      fromBva: 'BVA-14',inputData: 'weight=500',                       expected: 'success=true' },
+    { noTc: 13, fromEc: '',      fromBva: 'BVA-18',inputData: 'sets=1',                           expected: 'success=true' },
+    { noTc: 14, fromEc: '',      fromBva: 'BVA-19',inputData: 'sets=5',                           expected: 'success=true' },
+    { noTc: 15, fromEc: '',      fromBva: 'BVA-20',inputData: 'reps=1',                           expected: 'success=true' },
+    { noTc: 16, fromEc: '',      fromBva: 'BVA-21',inputData: 'reps=29',                          expected: 'success=true' },
+    { noTc: 17, fromEc: '',      fromBva: 'BVA-22',inputData: 'weight=0.1',                       expected: 'success=true' },
+    { noTc: 18, fromEc: '',      fromBva: 'BVA-23',inputData: 'weight=499.9',                     expected: 'success=true' },
+    { noTc: 19, fromEc: 'EP-1',  fromBva: '',      inputData: 'Valid update with duration=60',     expected: 'success=true' },
+    { noTc: 20, fromEc: 'EP-1',  fromBva: '',      inputData: 'Valid update with reps=15',         expected: 'success=true' },
   ],
 };
 

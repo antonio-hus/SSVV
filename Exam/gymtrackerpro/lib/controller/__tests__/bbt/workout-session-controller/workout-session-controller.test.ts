@@ -187,6 +187,16 @@ describe('createWorkoutSession', () => {
         expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
+    it('createWorkoutSession_durationExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT, duration: 1};
+        const inputExercises = [...VALID_EXERCISES];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
+    });
+
     it('createWorkoutSession_durationBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSession = {...VALID_SESSION_INPUT, duration: -1};
         const inputExercises = [...VALID_EXERCISES];
@@ -196,6 +206,16 @@ describe('createWorkoutSession', () => {
         expect(result.success).toBe(false);
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSession_durationExactly179_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT, duration: 179};
+        const inputExercises = [...VALID_EXERCISES];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
     it('createWorkoutSession_durationAtUpperBoundary180_passesValidation', async () => {
@@ -217,6 +237,16 @@ describe('createWorkoutSession', () => {
         expect(result.success).toBe(false);
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSession_notesExactly1023Chars_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT, notes: 'a'.repeat(1023)};
+        const inputExercises = [...VALID_EXERCISES];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
     it('createWorkoutSession_notesAtUpperBoundary1024Chars_passesValidation', async () => {
@@ -281,6 +311,16 @@ describe('createWorkoutSession', () => {
         expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
+    it('createWorkoutSession_setsExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 1, reps: 10, weight: 50}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
+    });
+
     it('createWorkoutSession_setsBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSession = {...VALID_SESSION_INPUT};
         const inputExercises = [{exerciseId: 'ex-001', sets: -1, reps: 10, weight: 50}];
@@ -289,6 +329,16 @@ describe('createWorkoutSession', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSession_setsExactly5_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 5, reps: 10, weight: 50}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
     it('createWorkoutSession_setsAtUpperBoundary6_passesValidation', async () => {
@@ -321,6 +371,16 @@ describe('createWorkoutSession', () => {
         expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
+    it('createWorkoutSession_repsExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 1, weight: 50}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
+    });
+
     it('createWorkoutSession_repsBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSession = {...VALID_SESSION_INPUT};
         const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: -1, weight: 50}];
@@ -329,6 +389,16 @@ describe('createWorkoutSession', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSession_repsExactly29_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 29, weight: 50}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
     it('createWorkoutSession_repsAtUpperBoundary30_passesValidation', async () => {
@@ -361,6 +431,16 @@ describe('createWorkoutSession', () => {
         expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
+    it('createWorkoutSession_weightExactly0point1_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 10, weight: 0.1}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
+    });
+
     it('createWorkoutSession_weightBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSession = {...VALID_SESSION_INPUT};
         const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 10, weight: -1}];
@@ -369,6 +449,16 @@ describe('createWorkoutSession', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSession_weightExactly499point9_passesValidation', async () => {
+        workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSession = {...VALID_SESSION_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 10, weight: 499.9}];
+
+        await createWorkoutSession(inputSession, inputExercises);
+
+        expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalled();
     });
 
     it('createWorkoutSession_weightAtUpperBoundary500_passesValidation', async () => {
@@ -552,6 +642,16 @@ describe('updateWorkoutSession', () => {
         expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalled();
     });
 
+    it('updateWorkoutSession_durationExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(MOCK_SESSION);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {duration: 1};
+
+        await updateWorkoutSession(inputSessionId, inputUpdateData);
+
+        expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalled();
+    });
+
     it('updateWorkoutSession_durationBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSessionId = SESSION_ID;
         const inputUpdateData = {duration: -1};
@@ -561,6 +661,16 @@ describe('updateWorkoutSession', () => {
         expect(result.success).toBe(false);
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(workoutSessionServiceMock.updateWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('updateWorkoutSession_durationExactly179_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(MOCK_SESSION);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {duration: 179};
+
+        await updateWorkoutSession(inputSessionId, inputUpdateData);
+
+        expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalled();
     });
 
     it('updateWorkoutSession_durationAtUpperBoundary180_passesValidation', async () => {
@@ -614,6 +724,16 @@ describe('updateWorkoutSession', () => {
         expect(result.success).toBe(false);
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(workoutSessionServiceMock.updateWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('updateWorkoutSession_notesExactly1023Chars_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(MOCK_SESSION);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {notes: 'a'.repeat(1023)};
+
+        await updateWorkoutSession(inputSessionId, inputUpdateData);
+
+        expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalled();
     });
 
     it('updateWorkoutSession_notesAtUpperBoundary1024Chars_passesValidation', async () => {
@@ -710,6 +830,17 @@ describe('updateWorkoutSessionWithExercises', () => {
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
+    it('updateWorkoutSessionWithExercises_setsExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 1, reps: 10, weight: 50}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
+    });
+
     it('updateWorkoutSessionWithExercises_setsBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSessionId = SESSION_ID;
         const inputUpdateData = {...VALID_UPDATE_INPUT};
@@ -719,6 +850,17 @@ describe('updateWorkoutSessionWithExercises', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).not.toHaveBeenCalled();
+    });
+
+    it('updateWorkoutSessionWithExercises_setsExactly5_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 5, reps: 10, weight: 50}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
     it('updateWorkoutSessionWithExercises_setsAtUpperBoundary6_passesValidation', async () => {
@@ -754,6 +896,17 @@ describe('updateWorkoutSessionWithExercises', () => {
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
+    it('updateWorkoutSessionWithExercises_repsExactly1_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 1, weight: 50}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
+    });
+
     it('updateWorkoutSessionWithExercises_repsBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSessionId = SESSION_ID;
         const inputUpdateData = {...VALID_UPDATE_INPUT};
@@ -763,6 +916,17 @@ describe('updateWorkoutSessionWithExercises', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).not.toHaveBeenCalled();
+    });
+
+    it('updateWorkoutSessionWithExercises_repsExactly29_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 29, weight: 50}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
     it('updateWorkoutSessionWithExercises_repsAtUpperBoundary30_passesValidation', async () => {
@@ -798,6 +962,17 @@ describe('updateWorkoutSessionWithExercises', () => {
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
+    it('updateWorkoutSessionWithExercises_weightExactly0point1_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 10, weight: 0.1}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
+    });
+
     it('updateWorkoutSessionWithExercises_weightBelowLowerBoundaryNegative1_returnsValidationError', async () => {
         const inputSessionId = SESSION_ID;
         const inputUpdateData = {...VALID_UPDATE_INPUT};
@@ -807,6 +982,17 @@ describe('updateWorkoutSessionWithExercises', () => {
 
         expect(result.success).toBe(false);
         expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).not.toHaveBeenCalled();
+    });
+
+    it('updateWorkoutSessionWithExercises_weightExactly499point9_passesValidation', async () => {
+        workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+        const inputSessionId = SESSION_ID;
+        const inputUpdateData = {...VALID_UPDATE_INPUT};
+        const inputExercises = [{exerciseId: 'ex-001', sets: 3, reps: 10, weight: 499.9}];
+
+        await updateWorkoutSessionWithExercises(inputSessionId, inputUpdateData, inputExercises);
+
+        expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalled();
     });
 
     it('updateWorkoutSessionWithExercises_weightAtUpperBoundary500_passesValidation', async () => {

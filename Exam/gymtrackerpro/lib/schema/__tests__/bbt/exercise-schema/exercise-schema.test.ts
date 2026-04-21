@@ -1,426 +1,637 @@
 import {Equipment, MuscleGroup} from "@/lib/domain/exercise";
-import {CreateExerciseInput, createExerciseSchema, updateExerciseSchema} from '@/lib/schema/exercise-schema';
+import {
+    CreateExerciseInput,
+    createExerciseSchema,
+    UpdateExerciseInput,
+    updateExerciseSchema
+} from '@/lib/schema/exercise-schema';
 
 const VALID_EXERCISE: CreateExerciseInput = {
     name: 'Bench Press',
     description: 'Classic chest compound exercise with a barbell',
     muscleGroup: MuscleGroup.CHEST,
     equipmentNeeded: Equipment.BARBELL,
-} as const;
+};
 
 describe('createExerciseSchema', () => {
-    it('createExerciseSchema_allFieldsValid_parsesSuccessfully', () => {
-        const inputValidExercise = {...VALID_EXERCISE};
+    describe('Equivalence Classes', () => {
+        it('createExerciseSchema_EC_allFieldsValid_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE
+            };
 
-        const result = createExerciseSchema.safeParse(inputValidExercise);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_descriptionAbsent_parsesSuccessfully', () => {
+            const inputExercise = {
+                name: 'Bench Press',
+                muscleGroup: MuscleGroup.CHEST,
+                equipmentNeeded: Equipment.BARBELL,
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_descriptionEmptyString_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: ''
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_invalidMuscleGroup_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                muscleGroup: 'INVALID'
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_invalidEquipment_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                equipmentNeeded: 'INVALID'
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_missingName_returnsValidationError', () => {
+            const inputExercise = {
+                description: 'Desc',
+                muscleGroup: MuscleGroup.CHEST,
+                equipmentNeeded: Equipment.BARBELL,
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_nameEmptyString_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: ''
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_nameWhitespaceOnly_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: '         '
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_nameWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: '  Bench Press  '
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_descriptionWhitespaceOnly_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: '     '
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_descriptionWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: '  some description  '
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('createExerciseSchema_EC_missingMuscleGroup_returnsValidationError', () => {
+            const inputExercise = {
+                name: 'Bench Press',
+                description: 'Desc',
+                equipmentNeeded: Equipment.BARBELL,
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('createExerciseSchema_EC_missingEquipment_returnsValidationError', () => {
+            const inputExercise = {
+                name: 'Bench Press',
+                description: 'Desc',
+                muscleGroup: MuscleGroup.CHEST,
+            };
+
+            const result = createExerciseSchema.safeParse(inputExercise);
+
+            expect(result.success).toBe(false);
+        });
     });
 
-    it('createExerciseSchema_descriptionAbsent_parsesSuccessfully', () => {
-        const {description, ...inputWithoutDescription} = VALID_EXERCISE;
+    describe('Boundary Value Analysis', () => {
+        it('createExerciseSchema_BVA_name7Chars_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(7)
+            };
 
-        const result = createExerciseSchema.safeParse(inputWithoutDescription);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('createExerciseSchema_descriptionEmptyString_parsesSuccessfully', () => {
-        const inputEmptyDescription = {...VALID_EXERCISE, description: ''};
+        it('createExerciseSchema_BVA_name8Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(8)
+            };
 
-        const result = createExerciseSchema.safeParse(inputEmptyDescription);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_nameAtLowerBoundary8Chars_parsesSuccessfully', () => {
-        const inputMinName = {...VALID_EXERCISE, name: 'PullDown'};
+        it('createExerciseSchema_BVA_name9Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(9)
+            };
 
-        const result = createExerciseSchema.safeParse(inputMinName);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_nameBelowLowerBoundary7Chars_returnsValidationError', () => {
-        const inputShortName = {...VALID_EXERCISE, name: 'Squat-X'};
+        it('createExerciseSchema_BVA_name63Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(63)
+            };
 
-        const result = createExerciseSchema.safeParse(inputShortName);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(false);
-        expect(result.error?.issues.some(i => i.message === 'Name must be at least 8 characters')).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_nameAtUpperBoundary64Chars_parsesSuccessfully', () => {
-        const inputMaxName = {...VALID_EXERCISE, name: 'E'.repeat(64)};
+        it('createExerciseSchema_BVA_name64Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(64)
+            };
 
-        const result = createExerciseSchema.safeParse(inputMaxName);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_nameAboveUpperBoundary65Chars_returnsValidationError', () => {
-        const inputLongName = {...VALID_EXERCISE, name: 'E'.repeat(65)};
+        it('createExerciseSchema_BVA_name65Chars_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: 'A'.repeat(65)
+            };
 
-        const result = createExerciseSchema.safeParse(inputLongName);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(false);
-        expect(result.error?.issues.some(i => i.message === 'Name must be at most 64 characters')).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('createExerciseSchema_descriptionAtUpperBoundary1024Chars_parsesSuccessfully', () => {
-        const inputMaxDescription = {...VALID_EXERCISE, description: 'D'.repeat(1024)};
+        it('createExerciseSchema_BVA_nameWhitespace8Chars_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: ' '.repeat(8)
+            };
 
-        const result = createExerciseSchema.safeParse(inputMaxDescription);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('createExerciseSchema_descriptionAboveUpperBoundary1025Chars_returnsValidationError', () => {
-        const inputLongDescription = {...VALID_EXERCISE, description: 'D'.repeat(1025)};
+        it('createExerciseSchema_BVA_namePadded8CharsAfterTrim_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: ' ' + 'A'.repeat(8) + ' '
+            };
 
-        const result = createExerciseSchema.safeParse(inputLongDescription);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(false);
-        expect(result.error?.issues.some(i => i.message === 'Description must be at most 1024 characters')).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_muscleGroupCHEST_parsesSuccessfully', () => {
-        const inputMuscleGroupChest = {...VALID_EXERCISE, muscleGroup: MuscleGroup.CHEST};
+        it('createExerciseSchema_BVA_namePadded64CharsAfterTrim_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                name: ' ' + 'A'.repeat(64) + ' '
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupChest);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_muscleGroupSHOULDERS_parsesSuccessfully', () => {
-        const inputMuscleGroupShoulders = {...VALID_EXERCISE, muscleGroup: MuscleGroup.SHOULDERS};
+        it('createExerciseSchema_BVA_namePadded65CharsAfterTrim_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                name: ' ' + 'A'.repeat(65) + ' '
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupShoulders);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('createExerciseSchema_muscleGroupARMS_parsesSuccessfully', () => {
-        const inputMuscleGroupArms = {...VALID_EXERCISE, muscleGroup: MuscleGroup.ARMS};
+        it('createExerciseSchema_BVA_description0Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: ''
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupArms);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_muscleGroupBACK_parsesSuccessfully', () => {
-        const inputMuscleGroupBack = {...VALID_EXERCISE, muscleGroup: MuscleGroup.BACK};
+        it('createExerciseSchema_BVA_description1Char_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: 'A'
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupBack);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_muscleGroupCORE_parsesSuccessfully', () => {
-        const inputMuscleGroupCore = {...VALID_EXERCISE, muscleGroup: MuscleGroup.CORE};
+        it('createExerciseSchema_BVA_description1023Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: 'A'.repeat(1023)
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupCore);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_muscleGroupLEGS_parsesSuccessfully', () => {
-        const inputMuscleGroupLegs = {...VALID_EXERCISE, muscleGroup: MuscleGroup.LEGS};
+        it('createExerciseSchema_BVA_description1024Chars_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: 'A'.repeat(1024)
+            };
 
-        const result = createExerciseSchema.safeParse(inputMuscleGroupLegs);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_invalidMuscleGroup_returnsValidationError', () => {
-        const inputInvalidMuscleGroup = {...VALID_EXERCISE, muscleGroup: 'GLUTES'};
+        it('createExerciseSchema_BVA_description1025Chars_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                description: 'A'.repeat(1025)
+            };
 
-        const result = createExerciseSchema.safeParse(inputInvalidMuscleGroup);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(false);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('createExerciseSchema_equipmentCABLE_parsesSuccessfully', () => {
-        const inputEquipmentCable = {...VALID_EXERCISE, equipmentNeeded: Equipment.CABLE};
+        it('createExerciseSchema_BVA_descriptionPadded1024CharsAfterTrim_parsesSuccessfully', () => {
+            const inputExercise: CreateExerciseInput = {
+                ...VALID_EXERCISE,
+                description: ' ' + 'A'.repeat(1024) + ' '
+            };
 
-        const result = createExerciseSchema.safeParse(inputEquipmentCable);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('createExerciseSchema_equipmentDUMBBELL_parsesSuccessfully', () => {
-        const inputEquipmentDumbbell = {...VALID_EXERCISE, equipmentNeeded: Equipment.DUMBBELL};
+        it('createExerciseSchema_BVA_descriptionPadded1025CharsAfterTrim_returnsValidationError', () => {
+            const inputExercise = {
+                ...VALID_EXERCISE,
+                description: ' ' + 'A'.repeat(1025) + ' '
+            };
 
-        const result = createExerciseSchema.safeParse(inputEquipmentDumbbell);
+            const result = createExerciseSchema.safeParse(inputExercise);
 
-        expect(result.success).toBe(true);
-    });
-
-    it('createExerciseSchema_equipmentBARBELL_parsesSuccessfully', () => {
-        const inputEquipmentBarbell = {...VALID_EXERCISE, equipmentNeeded: Equipment.BARBELL};
-
-        const result = createExerciseSchema.safeParse(inputEquipmentBarbell);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('createExerciseSchema_equipmentMACHINE_parsesSuccessfully', () => {
-        const inputEquipmentMachine = {...VALID_EXERCISE, equipmentNeeded: Equipment.MACHINE};
-
-        const result = createExerciseSchema.safeParse(inputEquipmentMachine);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('createExerciseSchema_invalidEquipment_returnsValidationError', () => {
-        const inputInvalidEquipment = {...VALID_EXERCISE, equipmentNeeded: 'KETTLEBELL'};
-
-        const result = createExerciseSchema.safeParse(inputInvalidEquipment);
-
-        expect(result.success).toBe(false);
-    });
-
-    it('createExerciseSchema_missingName_returnsValidationError', () => {
-        const {name, ...inputWithoutName} = VALID_EXERCISE;
-
-        const result = createExerciseSchema.safeParse(inputWithoutName);
-
-        expect(result.success).toBe(false);
-    });
-
-    it('createExerciseSchema_missingMuscleGroup_returnsValidationError', () => {
-        const {muscleGroup, ...inputWithoutMuscleGroup} = VALID_EXERCISE;
-
-        const result = createExerciseSchema.safeParse(inputWithoutMuscleGroup);
-
-        expect(result.success).toBe(false);
-    });
-
-    it('createExerciseSchema_missingEquipment_returnsValidationError', () => {
-        const {equipmentNeeded, ...inputWithoutEquipment} = VALID_EXERCISE;
-
-        const result = createExerciseSchema.safeParse(inputWithoutEquipment);
-
-        expect(result.success).toBe(false);
-    });
-
-    it('createExerciseSchema_nameEmptyString_returnsValidationError', () => {
-        const inputEmptyName = {...VALID_EXERCISE, name: ''};
-
-        const result = createExerciseSchema.safeParse(inputEmptyName);
-
-        expect(result.success).toBe(false);
-        expect(result.error?.issues.some(i => i.message === 'Name must be at least 8 characters')).toBe(true);
-    });
-
-    it('createExerciseSchema_descriptionExactly1Char_parsesSuccessfully', () => {
-        const inputOneCharDescription = {...VALID_EXERCISE, description: 'X'};
-
-        const result = createExerciseSchema.safeParse(inputOneCharDescription);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('createExerciseSchema_descriptionExactly1023Chars_parsesSuccessfully', () => {
-        const inputNearMaxDescription = {...VALID_EXERCISE, description: 'D'.repeat(1023)};
-
-        const result = createExerciseSchema.safeParse(inputNearMaxDescription);
-
-        expect(result.success).toBe(true);
+            expect(result.success).toBe(false);
+        });
     });
 });
 
 describe('updateExerciseSchema', () => {
-    it('updateExerciseSchema_emptyObject_parsesSuccessfully', () => {
-        const inputEmpty = {};
+    describe('Equivalence Classes', () => {
+        it('updateExerciseSchema_EC_emptyObject_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {};
 
-        const result = updateExerciseSchema.safeParse(inputEmpty);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_validNameOnly_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: 'New Name'
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_validDescriptionOnly_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: 'Updated description text'
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_validMuscleGroupOnly_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                muscleGroup: MuscleGroup.CHEST
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_validEquipmentOnly_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                equipmentNeeded: Equipment.BARBELL
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_invalidMuscleGroup_returnsValidationError', () => {
+            const inputUpdate = {
+                muscleGroup: 'INVALID'
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('updateExerciseSchema_EC_invalidEquipment_returnsValidationError', () => {
+            const inputUpdate = {
+                equipmentNeeded: 'INVALID'
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('updateExerciseSchema_EC_nameWhitespaceOnly_returnsValidationError', () => {
+            const inputUpdate = {
+                name: '         '
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('updateExerciseSchema_EC_nameWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: '  New Exercise Name  '
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_descriptionWhitespaceOnly_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: '     '
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('updateExerciseSchema_EC_descriptionWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: '  updated description  '
+            };
+
+            const result = updateExerciseSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+        });
     });
 
-    it('updateExerciseSchema_validNameProvided_parsesSuccessfully', () => {
-        const inputName = {name: 'Overhead Press'};
+    describe('Boundary Value Analysis', () => {
+        it('updateExerciseSchema_BVA_name7Chars_returnsValidationError', () => {
+            const inputUpdate = {
+                name: 'A'.repeat(7)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputName);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('updateExerciseSchema_validDescriptionProvided_parsesSuccessfully', () => {
-        const inputDescription = {description: 'Updated description for this exercise'};
+        it('updateExerciseSchema_BVA_name8Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: 'A'.repeat(8)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputDescription);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_nameAtLowerBoundary8Chars_parsesSuccessfully', () => {
-        const inputMinName = {name: 'LegPress'};
+        it('updateExerciseSchema_BVA_name9Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: 'A'.repeat(9)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMinName);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_nameBelowLowerBoundary7Chars_returnsValidationError', () => {
-        const inputShortName = {name: 'RowExr'};
+        it('updateExerciseSchema_BVA_name63Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: 'A'.repeat(63)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputShortName);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(false);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_nameAtUpperBoundary64Chars_parsesSuccessfully', () => {
-        const inputMaxName = {name: 'E'.repeat(64)};
+        it('updateExerciseSchema_BVA_name64Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: 'A'.repeat(64)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMaxName);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_nameAboveUpperBoundary65Chars_returnsValidationError', () => {
-        const inputLongName = {name: 'E'.repeat(65)};
+        it('updateExerciseSchema_BVA_name65Chars_returnsValidationError', () => {
+            const inputUpdate = {
+                name: 'A'.repeat(65)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputLongName);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(false);
-        expect(result.error?.issues.some(i => i.message === 'Name must be at most 64 characters')).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('updateExerciseSchema_descriptionAt1024Chars_parsesSuccessfully', () => {
-        const inputMaxDescription = {description: 'X'.repeat(1024)};
+        it('updateExerciseSchema_BVA_nameWhitespace8Chars_returnsValidationError', () => {
+            const inputUpdate = {
+                name: ' '.repeat(8)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMaxDescription);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('updateExerciseSchema_descriptionAbove1024Chars_returnsValidationError', () => {
-        const inputLongDescription = {description: 'X'.repeat(1025)};
+        it('updateExerciseSchema_BVA_namePadded8CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: ' ' + 'A'.repeat(8) + ' '
+            };
 
-        const result = updateExerciseSchema.safeParse(inputLongDescription);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(false);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_validMuscleGroup_parsesSuccessfully', () => {
-        const inputMuscleGroup = {muscleGroup: MuscleGroup.CHEST};
+        it('updateExerciseSchema_BVA_namePadded64CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                name: ' ' + 'A'.repeat(64) + ' '
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMuscleGroup);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_invalidMuscleGroup_returnsValidationError', () => {
-        const inputInvalidMuscleGroup = {muscleGroup: 'BICEP'};
+        it('updateExerciseSchema_BVA_namePadded65CharsAfterTrim_returnsValidationError', () => {
+            const inputUpdate = {
+                name: ' ' + 'A'.repeat(65) + ' '
+            };
 
-        const result = updateExerciseSchema.safeParse(inputInvalidMuscleGroup);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(false);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('updateExerciseSchema_validEquipment_parsesSuccessfully', () => {
-        const inputEquipment = {equipmentNeeded: Equipment.BARBELL};
+        it('updateExerciseSchema_BVA_description0Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: ''
+            };
 
-        const result = updateExerciseSchema.safeParse(inputEquipment);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_invalidEquipment_returnsValidationError', () => {
-        const inputInvalidEquipment = {equipmentNeeded: 'RESISTANCE_BAND'};
+        it('updateExerciseSchema_BVA_description1Char_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: 'A'
+            };
 
-        const result = updateExerciseSchema.safeParse(inputInvalidEquipment);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(false);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_descriptionEmptyString_parsesSuccessfully', () => {
-        const inputEmptyDescription = {description: ''};
+        it('updateExerciseSchema_BVA_description1023Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: 'A'.repeat(1023)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputEmptyDescription);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_descriptionAbsent_parsesSuccessfully', () => {
-        const inputUndefinedDescription = {description: undefined};
+        it('updateExerciseSchema_BVA_description1024Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: 'A'.repeat(1024)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputUndefinedDescription);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_muscleGroupSHOULDERS_parsesSuccessfully', () => {
-        const inputMuscleGroupShoulders = {muscleGroup: MuscleGroup.SHOULDERS};
+        it('updateExerciseSchema_BVA_description1025Chars_returnsValidationError', () => {
+            const inputUpdate = {
+                description: 'A'.repeat(1025)
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMuscleGroupShoulders);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(false);
+        });
 
-    it('updateExerciseSchema_muscleGroupARMS_parsesSuccessfully', () => {
-        const inputMuscleGroupArms = {muscleGroup: MuscleGroup.ARMS};
+        it('updateExerciseSchema_BVA_descriptionPadded1024CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUpdate: UpdateExerciseInput = {
+                description: ' ' + 'A'.repeat(1024) + ' '
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMuscleGroupArms);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
+            expect(result.success).toBe(true);
+        });
 
-    it('updateExerciseSchema_muscleGroupBACK_parsesSuccessfully', () => {
-        const inputMuscleGroupBack = {muscleGroup: MuscleGroup.BACK};
+        it('updateExerciseSchema_BVA_descriptionPadded1025CharsAfterTrim_returnsValidationError', () => {
+            const inputUpdate = {
+                description: ' ' + 'A'.repeat(1025) + ' '
+            };
 
-        const result = updateExerciseSchema.safeParse(inputMuscleGroupBack);
+            const result = updateExerciseSchema.safeParse(inputUpdate);
 
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_muscleGroupCORE_parsesSuccessfully', () => {
-        const inputMuscleGroupCore = {muscleGroup: MuscleGroup.CORE};
-
-        const result = updateExerciseSchema.safeParse(inputMuscleGroupCore);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_muscleGroupLEGS_parsesSuccessfully', () => {
-        const inputMuscleGroupLegs = {muscleGroup: MuscleGroup.LEGS};
-
-        const result = updateExerciseSchema.safeParse(inputMuscleGroupLegs);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_equipmentCABLE_parsesSuccessfully', () => {
-        const inputEquipmentCable = {equipmentNeeded: Equipment.CABLE};
-
-        const result = updateExerciseSchema.safeParse(inputEquipmentCable);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_equipmentDUMBBELL_parsesSuccessfully', () => {
-        const inputEquipmentDumbbell = {equipmentNeeded: Equipment.DUMBBELL};
-
-        const result = updateExerciseSchema.safeParse(inputEquipmentDumbbell);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_equipmentMACHINE_parsesSuccessfully', () => {
-        const inputEquipmentMachine = {equipmentNeeded: Equipment.MACHINE};
-
-        const result = updateExerciseSchema.safeParse(inputEquipmentMachine);
-
-        expect(result.success).toBe(true);
-    });
-
-    it('updateExerciseSchema_nameEmptyString_returnsValidationError', () => {
-        const inputEmptyName = {name: ''};
-
-        const result = updateExerciseSchema.safeParse(inputEmptyName);
-
-        expect(result.success).toBe(false);
+            expect(result.success).toBe(false);
+        });
     });
 });

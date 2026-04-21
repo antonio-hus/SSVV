@@ -139,12 +139,20 @@ describe('createMember', () => {
         expect((result as { success: true; data: MemberWithUser }).data).toEqual(MOCK_MEMBER);
     });
 
-
     it('createMember_fullNameAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
         const inputMinName = {...VALID_MEMBER_INPUT, fullName: 'John Doe'};
 
         const result = await createMember(inputMinName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createMember_fullNameExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
+        const inputName9 = {...VALID_MEMBER_INPUT, fullName: 'John Doe1'};
+
+        const result = await createMember(inputName9);
 
         expect(result.success).toBe(true);
     });
@@ -168,6 +176,15 @@ describe('createMember', () => {
         expect(result.success).toBe(true);
     });
 
+    it('createMember_fullNameExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
+        const inputName63 = {...VALID_MEMBER_INPUT, fullName: 'A'.repeat(63)};
+
+        const result = await createMember(inputName63);
+
+        expect(result.success).toBe(true);
+    });
+
     it('createMember_fullNameAboveUpperBoundary65Chars_returnsValidationError', async () => {
         const inputLongName = {...VALID_MEMBER_INPUT, fullName: 'A'.repeat(65)};
 
@@ -177,7 +194,6 @@ describe('createMember', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
-
 
     it('createMember_validEmailFormat_passesEmailValidation', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
@@ -208,7 +224,6 @@ describe('createMember', () => {
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
 
-
     it('createMember_validE164Phone_passesPhoneValidation', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
         const inputValidPhone = {...VALID_MEMBER_INPUT, phone: '+40712345678'};
@@ -227,7 +242,6 @@ describe('createMember', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
-
 
     it('createMember_dateOfBirthValidIsoFormatInPast_passesValidation', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
@@ -258,12 +272,20 @@ describe('createMember', () => {
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
 
-
     it('createMember_passwordAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
         const inputMinPassword = {...VALID_MEMBER_INPUT, password: 'Secure1!'};
 
         const result = await createMember(inputMinPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createMember_passwordExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
+        const inputPassword9 = {...VALID_MEMBER_INPUT, password: 'Secure1!a'};
+
+        const result = await createMember(inputPassword9);
 
         expect(result.success).toBe(true);
     });
@@ -283,6 +305,15 @@ describe('createMember', () => {
         const inputMaxPassword = {...VALID_MEMBER_INPUT, password: 'Secure1!' + 'a'.repeat(56)};
 
         const result = await createMember(inputMaxPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createMember_passwordExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
+        const inputPassword63 = {...VALID_MEMBER_INPUT, password: 'Secure1!' + 'a'.repeat(55)};
+
+        const result = await createMember(inputPassword63);
 
         expect(result.success).toBe(true);
     });
@@ -327,7 +358,6 @@ describe('createMember', () => {
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
 
-
     it('createMember_membershipStartValidIsoFormat_passesValidation', async () => {
         userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER);
         const inputValidStart = {...VALID_MEMBER_INPUT, membershipStart: '2024-01-01'};
@@ -356,7 +386,6 @@ describe('createMember', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createMember).not.toHaveBeenCalled();
     });
-
 
     it('createMember_serviceThrowsConflictError_returnsFailureWithMessage', async () => {
         userServiceMock.createMember.mockRejectedValue(new ConflictError('Email already registered'));
@@ -391,13 +420,22 @@ describe('createMemberWithTempPassword', () => {
         expect((result as { success: true; data: MemberWithUserAndTempPassword }).data.tempPassword).toBeDefined();
     });
 
-
     it('createMemberWithTempPassword_fullNameAtLowerBoundary8Chars_returnsSuccess', async () => {
         const mockResult: MemberWithUserAndTempPassword = {...MOCK_MEMBER, tempPassword: 'TempPass123!'};
         userServiceMock.createMemberWithTempPassword.mockResolvedValue(mockResult);
         const inputMinName = {...VALID_MEMBER_NO_PWD, fullName: 'John Doe'};
 
         const result = await createMemberWithTempPassword(inputMinName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createMemberWithTempPassword_fullNameExactly9Chars_returnsSuccess', async () => {
+        const mockResult: MemberWithUserAndTempPassword = {...MOCK_MEMBER, tempPassword: 'TempPass123!'};
+        userServiceMock.createMemberWithTempPassword.mockResolvedValue(mockResult);
+        const inputName9 = {...VALID_MEMBER_NO_PWD, fullName: 'John Doe1'};
+
+        const result = await createMemberWithTempPassword(inputName9);
 
         expect(result.success).toBe(true);
     });
@@ -422,6 +460,16 @@ describe('createMemberWithTempPassword', () => {
         expect(result.success).toBe(true);
     });
 
+    it('createMemberWithTempPassword_fullNameExactly63Chars_returnsSuccess', async () => {
+        const mockResult: MemberWithUserAndTempPassword = {...MOCK_MEMBER, tempPassword: 'TempPass123!'};
+        userServiceMock.createMemberWithTempPassword.mockResolvedValue(mockResult);
+        const inputName63 = {...VALID_MEMBER_NO_PWD, fullName: 'A'.repeat(63)};
+
+        const result = await createMemberWithTempPassword(inputName63);
+
+        expect(result.success).toBe(true);
+    });
+
     it('createMemberWithTempPassword_fullNameAboveUpperBoundary65Chars_returnsValidationError', async () => {
         const inputLongName = {...VALID_MEMBER_NO_PWD, fullName: 'A'.repeat(65)};
 
@@ -431,7 +479,6 @@ describe('createMemberWithTempPassword', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createMemberWithTempPassword).not.toHaveBeenCalled();
     });
-
 
     it('createMemberWithTempPassword_emailMissingAtSymbol_returnsValidationError', async () => {
         const inputInvalidEmail = {...VALID_MEMBER_NO_PWD, email: 'bademail'};
@@ -463,7 +510,6 @@ describe('createMemberWithTempPassword', () => {
         expect(userServiceMock.createMemberWithTempPassword).not.toHaveBeenCalled();
     });
 
-
     it('createMemberWithTempPassword_membershipStartSlashSeparated_returnsValidationError', async () => {
         const inputSlashStart = {...VALID_MEMBER_NO_PWD, membershipStart: '01/01/2024'};
 
@@ -473,7 +519,6 @@ describe('createMemberWithTempPassword', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createMemberWithTempPassword).not.toHaveBeenCalled();
     });
-
 
     it('createMemberWithTempPassword_serviceThrowsConflictError_returnsFailureWithMessage', async () => {
         userServiceMock.createMemberWithTempPassword.mockRejectedValue(new ConflictError('Email already registered'));
@@ -507,12 +552,20 @@ describe('createAdmin', () => {
         expect((result as { success: true; data: AdminWithUser }).data).toEqual(MOCK_ADMIN);
     });
 
-
     it('createAdmin_fullNameAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
         const inputMinName = {...VALID_ADMIN_INPUT, fullName: 'John Doe'};
 
         const result = await createAdmin(inputMinName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createAdmin_fullNameExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputName9 = {...VALID_ADMIN_INPUT, fullName: 'John Doe1'};
+
+        const result = await createAdmin(inputName9);
 
         expect(result.success).toBe(true);
     });
@@ -536,6 +589,15 @@ describe('createAdmin', () => {
         expect(result.success).toBe(true);
     });
 
+    it('createAdmin_fullNameExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputName63 = {...VALID_ADMIN_INPUT, fullName: 'A'.repeat(63)};
+
+        const result = await createAdmin(inputName63);
+
+        expect(result.success).toBe(true);
+    });
+
     it('createAdmin_fullNameAboveUpperBoundary65Chars_returnsValidationError', async () => {
         const inputLongName = {...VALID_ADMIN_INPUT, fullName: 'A'.repeat(65)};
 
@@ -545,7 +607,6 @@ describe('createAdmin', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createAdmin).not.toHaveBeenCalled();
     });
-
 
     it('createAdmin_emailMissingAtSymbol_returnsValidationError', async () => {
         const inputInvalidEmail = {...VALID_ADMIN_INPUT, email: 'notanemail'};
@@ -577,7 +638,6 @@ describe('createAdmin', () => {
         expect(userServiceMock.createAdmin).not.toHaveBeenCalled();
     });
 
-
     it('createAdmin_dateOfBirthFutureDate_returnsValidationError', async () => {
         const inputFutureDob = {...VALID_ADMIN_INPUT, dateOfBirth: '2099-01-01'};
 
@@ -598,12 +658,20 @@ describe('createAdmin', () => {
         expect(userServiceMock.createAdmin).not.toHaveBeenCalled();
     });
 
-
     it('createAdmin_passwordAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
         const inputMinPassword = {...VALID_ADMIN_INPUT, password: 'Secure1!'};
 
         const result = await createAdmin(inputMinPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createAdmin_passwordExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputPassword9 = {...VALID_ADMIN_INPUT, password: 'Secure1!a'};
+
+        const result = await createAdmin(inputPassword9);
 
         expect(result.success).toBe(true);
     });
@@ -623,6 +691,15 @@ describe('createAdmin', () => {
         const inputMaxPassword = {...VALID_ADMIN_INPUT, password: 'Secure1!' + 'a'.repeat(56)};
 
         const result = await createAdmin(inputMaxPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createAdmin_passwordExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputPassword63 = {...VALID_ADMIN_INPUT, password: 'Secure1!' + 'a'.repeat(55)};
+
+        const result = await createAdmin(inputPassword63);
 
         expect(result.success).toBe(true);
     });
@@ -666,7 +743,6 @@ describe('createAdmin', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.createAdmin).not.toHaveBeenCalled();
     });
-
 
     it('createAdmin_serviceThrowsConflictError_returnsFailureWithMessage', async () => {
         userServiceMock.createAdmin.mockRejectedValue(new ConflictError('Email already registered'));
@@ -872,12 +948,20 @@ describe('updateMember', () => {
         expect(result.success).toBe(true);
     });
 
-
     it('updateMember_fullNameAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
         const inputMinName = {fullName: 'John Doe'};
 
         const result = await updateMember(MEMBER_ID, inputMinName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('updateMember_fullNameExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
+        const inputName9 = {fullName: 'John Doe1'};
+
+        const result = await updateMember(MEMBER_ID, inputName9);
 
         expect(result.success).toBe(true);
     });
@@ -901,6 +985,15 @@ describe('updateMember', () => {
         expect(result.success).toBe(true);
     });
 
+    it('updateMember_fullNameExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
+        const inputName63 = {fullName: 'A'.repeat(63)};
+
+        const result = await updateMember(MEMBER_ID, inputName63);
+
+        expect(result.success).toBe(true);
+    });
+
     it('updateMember_fullNameAboveUpperBoundary65Chars_returnsValidationError', async () => {
         const inputLongName = {fullName: 'A'.repeat(65)};
 
@@ -910,7 +1003,6 @@ describe('updateMember', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.updateMember).not.toHaveBeenCalled();
     });
-
 
     it('updateMember_emailMissingAtSymbol_returnsValidationError', async () => {
         const inputInvalidEmail = {email: 'bademail'};
@@ -941,11 +1033,29 @@ describe('updateMember', () => {
         expect(result.success).toBe(true);
     });
 
+    it('updateMember_passwordExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
+        const inputPassword9 = {password: 'Secure1!a'};
+
+        const result = await updateMember(MEMBER_ID, inputPassword9);
+
+        expect(result.success).toBe(true);
+    });
+
     it('updateMember_passwordAtUpperBoundary64Chars_returnsSuccess', async () => {
         userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
         const inputMaxPassword = {password: 'Secure1!' + 'a'.repeat(56)};
 
         const result = await updateMember(MEMBER_ID, inputMaxPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('updateMember_passwordExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.updateMember.mockResolvedValue(MOCK_MEMBER);
+        const inputPassword63 = {password: 'Secure1!' + 'a'.repeat(55)};
+
+        const result = await updateMember(MEMBER_ID, inputPassword63);
 
         expect(result.success).toBe(true);
     });
@@ -1052,12 +1162,20 @@ describe('updateAdmin', () => {
         expect(result.success).toBe(true);
     });
 
-
     it('updateAdmin_fullNameAtLowerBoundary8Chars_returnsSuccess', async () => {
         userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
         const inputMinName = {fullName: 'John Doe'};
 
         const result = await updateAdmin(ADMIN_ID, inputMinName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('updateAdmin_fullNameExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputName9 = {fullName: 'John Doe1'};
+
+        const result = await updateAdmin(ADMIN_ID, inputName9);
 
         expect(result.success).toBe(true);
     });
@@ -1081,6 +1199,15 @@ describe('updateAdmin', () => {
         expect(result.success).toBe(true);
     });
 
+    it('updateAdmin_fullNameExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputName63 = {fullName: 'A'.repeat(63)};
+
+        const result = await updateAdmin(ADMIN_ID, inputName63);
+
+        expect(result.success).toBe(true);
+    });
+
     it('updateAdmin_fullNameAboveUpperBoundary65Chars_returnsValidationError', async () => {
         const inputLongName = {fullName: 'A'.repeat(65)};
 
@@ -1090,7 +1217,6 @@ describe('updateAdmin', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.updateAdmin).not.toHaveBeenCalled();
     });
-
 
     it('updateAdmin_emailMissingAtSymbol_returnsValidationError', async () => {
         const inputInvalidEmail = {email: 'bademail'};
@@ -1121,11 +1247,29 @@ describe('updateAdmin', () => {
         expect(result.success).toBe(true);
     });
 
+    it('updateAdmin_passwordExactly9Chars_returnsSuccess', async () => {
+        userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputPassword9 = {password: 'Secure1!a'};
+
+        const result = await updateAdmin(ADMIN_ID, inputPassword9);
+
+        expect(result.success).toBe(true);
+    });
+
     it('updateAdmin_passwordAtUpperBoundary64Chars_returnsSuccess', async () => {
         userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
         const inputMaxPassword = {password: 'Secure1!' + 'a'.repeat(56)};
 
         const result = await updateAdmin(ADMIN_ID, inputMaxPassword);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('updateAdmin_passwordExactly63Chars_returnsSuccess', async () => {
+        userServiceMock.updateAdmin.mockResolvedValue(MOCK_ADMIN);
+        const inputPassword63 = {password: 'Secure1!' + 'a'.repeat(55)};
+
+        const result = await updateAdmin(ADMIN_ID, inputPassword63);
 
         expect(result.success).toBe(true);
     });
@@ -1169,7 +1313,6 @@ describe('updateAdmin', () => {
         expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
         expect(userServiceMock.updateAdmin).not.toHaveBeenCalled();
     });
-
 
     it('updateAdmin_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
         userServiceMock.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));

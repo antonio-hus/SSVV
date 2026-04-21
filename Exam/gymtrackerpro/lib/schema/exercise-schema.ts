@@ -4,11 +4,13 @@ import {MuscleGroup, Equipment} from '@/lib/domain/exercise';
 const exerciseFields = {
     name: z
         .string()
+        .trim()
         .min(8, 'Name must be at least 8 characters')
         .max(64, 'Name must be at most 64 characters')
         .describe('Name of the exercise'),
     description: z
         .string()
+        .trim()
         .max(1024, 'Description must be at most 1024 characters')
         .optional()
         .describe('Optional description of the exercise'),

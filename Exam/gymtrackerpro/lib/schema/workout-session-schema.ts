@@ -14,6 +14,7 @@ const sessionFields = {
         .describe('Duration of the workout session in minutes'),
     notes: z
         .string()
+        .trim()
         .max(1024, 'Notes must be at most 1024 characters')
         .optional()
         .describe('Optional notes for the session'),

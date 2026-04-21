@@ -72,6 +72,15 @@ describe('createExercise', () => {
         expect(result.success).toBe(true);
     });
 
+    it('createExercise_nameExactly9Chars_returnsSuccess', async () => {
+        exerciseServiceMock.createExercise.mockResolvedValue(MOCK_EXERCISE);
+        const inputName9 = {...VALID_EXERCISE_INPUT, name: 'BenchPrs1'};
+
+        const result = await createExercise(inputName9);
+
+        expect(result.success).toBe(true);
+    });
+
     it('createExercise_nameBelowLowerBoundary7Chars_returnsValidationError', async () => {
         const inputShortName = {...VALID_EXERCISE_INPUT, name: 'BenchPr'};
 
@@ -87,6 +96,15 @@ describe('createExercise', () => {
         const inputMaxName = {...VALID_EXERCISE_INPUT, name: 'B'.repeat(64)};
 
         const result = await createExercise(inputMaxName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('createExercise_nameExactly63Chars_returnsSuccess', async () => {
+        exerciseServiceMock.createExercise.mockResolvedValue(MOCK_EXERCISE);
+        const inputName63 = {...VALID_EXERCISE_INPUT, name: 'B'.repeat(63)};
+
+        const result = await createExercise(inputName63);
 
         expect(result.success).toBe(true);
     });
@@ -316,6 +334,16 @@ describe('updateExercise', () => {
         expect(result.success).toBe(true);
     });
 
+    it('updateExercise_nameExactly9Chars_returnsSuccess', async () => {
+        exerciseServiceMock.updateExercise.mockResolvedValue(MOCK_EXERCISE);
+        const inputExerciseId = EXERCISE_ID;
+        const inputName9 = {name: 'BenchPrs1'};
+
+        const result = await updateExercise(inputExerciseId, inputName9);
+
+        expect(result.success).toBe(true);
+    });
+
     it('updateExercise_nameBelowLowerBoundary7Chars_returnsValidationError', async () => {
         const inputExerciseId = EXERCISE_ID;
         const inputShortName = {name: 'BenchPr'};
@@ -333,6 +361,16 @@ describe('updateExercise', () => {
         const inputMaxName = {name: 'B'.repeat(64)};
 
         const result = await updateExercise(inputExerciseId, inputMaxName);
+
+        expect(result.success).toBe(true);
+    });
+
+    it('updateExercise_nameExactly63Chars_returnsSuccess', async () => {
+        exerciseServiceMock.updateExercise.mockResolvedValue(MOCK_EXERCISE);
+        const inputExerciseId = EXERCISE_ID;
+        const inputName63 = {name: 'B'.repeat(63)};
+
+        const result = await updateExercise(inputExerciseId, inputName63);
 
         expect(result.success).toBe(true);
     });

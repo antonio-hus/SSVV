@@ -67,17 +67,19 @@ export interface UserRepositoryInterface {
 
     /**
      * Returns a paginated list of members, optionally filtered by name or email.
+     * Results are ordered by full name ascending.
      *
      * @param options - Optional search term and pagination parameters.
-     * @returns A page of member records (each with the parent user included) and the total count.
+     * @returns A page of member records (each with the parent user included) and the total count, ordered by full name ascending.
      */
     findMembers(options?: MemberListOptions): Promise<PageResult<MemberWithUser>>;
 
     /**
      * Returns a paginated list of admins, optionally filtered by name or email.
+     * Results are ordered by full name ascending.
      *
      * @param options - Optional search term and pagination parameters.
-     * @returns A page of member records (each with the parent user included) and the total count.
+     * @returns A page of admin records (each with the parent user included) and the total count, ordered by full name ascending.
      */
     findAdmins(options?: AdminListOptions): Promise<PageResult<AdminWithUser>>;
 

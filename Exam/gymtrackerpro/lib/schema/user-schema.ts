@@ -20,7 +20,6 @@ const userFields = {
         .describe('Phone number'),
     dateOfBirth: z
         .string()
-        .trim()
         .regex(isoDateRegex, 'Date of birth must be in YYYY-MM-DD format')
         .refine((val) => {
             const today = new Date().toISOString().slice(0, 10);
@@ -58,7 +57,9 @@ export const updateUserSchema = z.object({
 export const loginUserSchema = z.object({
     email: z
         .string()
-        .regex(emailRegex, 'Invalid email address'),
+        .trim()
+        .regex(emailRegex, 'Invalid email address')
+        .describe('User email address'),
     password: z
         .string()
         .min(1, 'Password is required'),

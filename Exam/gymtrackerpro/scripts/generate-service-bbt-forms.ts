@@ -59,7 +59,7 @@ function addEcTcSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 25 }, { width: 80 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'EC', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.epTcRows) {
-    const row = ws.addRow([r.noTc, r.ec, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.ec, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); stylePassed(row.getCell(5)); row.height = 30;
   }
 }
@@ -76,7 +76,7 @@ function addBvaTcSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 25 }, { width: 80 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'BVA', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.bvaTcRows) {
-    const row = ws.addRow([r.noTc, r.bva, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.bva, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); stylePassed(row.getCell(5)); row.height = 30;
   }
 }
@@ -86,7 +86,7 @@ function addFinalSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   ws.columns = [{ width: 8 }, { width: 12 }, { width: 14 }, { width: 75 }, { width: 55 }, { width: 25 }];
   const hdr = ws.addRow(['No TC', 'TC from EC', 'TC from BVA', 'Input Data', 'Expected', 'Actual Result']); hdr.eachCell(c => styleHeader(c)); hdr.height = 20;
   for (const r of d.finalTcRows) {
-    const row = ws.addRow([r.noTc, r.fromEc, r.fromBva, r.inputData, r.expected, r.expected]);
+    const row = ws.addRow([r.noTc, r.fromEc, r.fromBva, r.inputData, r.expected, 'Passed']);
     styleData(row.getCell(1)); styleData(row.getCell(2)); styleData(row.getCell(3)); styleData(row.getCell(4)); styleData(row.getCell(5)); stylePassed(row.getCell(6)); row.height = 30;
   }
 }
@@ -99,9 +99,18 @@ function addStatsSheet(wb: ExcelJS.Workbook, d: BbtDescriptor): void {
   sRow.getCell(1).border = BORDER; styleSection(sRow.getCell(2)); styleSection(sRow.getCell(6)); styleSection(sRow.getCell(7));
   [3, 4, 5, 8, 9, 10].forEach(c => { sRow.getCell(c).fill = FILL_SECTION; sRow.getCell(c).border = BORDER; }); sRow.height = 20;
   const hRow = ws.addRow(['Req. ID', 'TCs run', 'TCs passed', 'TCs failed', 'No of BUGS', 'Bugs Fixed', 'Re-tested', 'TCs run', 'TCs passed', 'TCs failed']); hRow.eachCell(c => styleHeader(c)); hRow.height = 25;
+
+  const totalRun = d.finalTcRows.length;
   const tcsFailed = d.tcsFailed ?? 0;
-  const dRow = ws.addRow([d.reqId, d.tcCount, d.tcCount - tcsFailed, tcsFailed, d.bugsFound ?? 0,
-    d.bugsFixed ?? 'n/a', d.retested ?? 'not yet', d.retestRun ?? 0, d.retestPassed ?? '-', d.retestFailed ?? '-']);
+  const tcsPassed = totalRun - tcsFailed;
+  const bugsFound = d.bugsFound ?? 0;
+  const bugsFixed = d.bugsFixed ?? 'n/a';
+  const retested = d.retested ?? 'not yet';
+  const retestRun = d.retestRun ?? 0;
+  const retestPassed = d.retestPassed ?? '-';
+  const retestFailed = d.retestFailed ?? '-';
+
+  const dRow = ws.addRow([d.reqId, totalRun, tcsPassed, tcsFailed, bugsFound, bugsFixed, retested, retestRun, retestPassed, retestFailed]);
   styleLabel(dRow.getCell(1)); [2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(c => styleData(dRow.getCell(c))); dRow.height = 20;
 }
 

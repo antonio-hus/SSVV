@@ -52,6 +52,7 @@ export class ExerciseRepository implements ExerciseRepositoryInterface {
     /** @inheritdoc */
     async findAll(options: ExerciseListOptions = {}): Promise<PageResult<Exercise>> {
         const {search, muscleGroup, includeInactive = false, page = 1, pageSize = 10} = options;
+        const safePage = Math.max(1, page);
 
         const safeSearch = search ? escapeLike(search) : undefined;
         const where = {
@@ -63,7 +64,7 @@ export class ExerciseRepository implements ExerciseRepositoryInterface {
         const [items, total] = await this.database.$transaction([
             this.database.exercise.findMany({
                 where,
-                skip: (page - 1) * pageSize,
+                skip: (safePage - 1) * pageSize,
                 take: pageSize,
                 orderBy: {name: 'asc'},
             }),

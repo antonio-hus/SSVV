@@ -146,6 +146,7 @@ export class UserRepository implements UserRepositoryInterface {
     /** @inheritdoc */
     async findMembers(options: MemberListOptions = {}): Promise<PageResult<MemberWithUser>> {
         const {search, page = 1, pageSize = 10} = options;
+        const safePage = Math.max(1, page);
 
         const safeSearch = search ? escapeLike(search) : undefined;
         const where = safeSearch
@@ -163,7 +164,7 @@ export class UserRepository implements UserRepositoryInterface {
             this.database.member.findMany({
                 where,
                 include: {user: true},
-                skip: (page - 1) * pageSize,
+                skip: (safePage - 1) * pageSize,
                 take: pageSize,
                 orderBy: {user: {fullName: 'asc'}},
             }),
@@ -176,6 +177,7 @@ export class UserRepository implements UserRepositoryInterface {
     /** @inheritdoc */
     async findAdmins(options: AdminListOptions = {}): Promise<PageResult<AdminWithUser>> {
         const {search, page = 1, pageSize = 10} = options;
+        const safePage = Math.max(1, page);
 
         const safeSearch = search ? escapeLike(search) : undefined;
         const where = safeSearch
@@ -193,7 +195,7 @@ export class UserRepository implements UserRepositoryInterface {
             this.database.admin.findMany({
                 where,
                 include: {user: true},
-                skip: (page - 1) * pageSize,
+                skip: (safePage - 1) * pageSize,
                 take: pageSize,
                 orderBy: {user: {fullName: 'asc'}},
             }),

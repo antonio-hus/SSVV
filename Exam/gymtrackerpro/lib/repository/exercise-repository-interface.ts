@@ -27,9 +27,10 @@ export interface ExerciseRepositoryInterface {
     /**
      * Returns a paginated list of exercises.
      * Only active exercises are returned by default.
+     * Results are ordered by exercise name ascending.
      *
      * @param options - Filters (name substring, muscle group, active flag) and pagination.
-     * @returns A page of exercises and the total matching count.
+     * @returns A page of exercises and the total matching count, ordered by name ascending.
      */
     findAll(options?: ExerciseListOptions): Promise<PageResult<Exercise>>;
 
