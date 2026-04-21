@@ -18,7 +18,7 @@ const VALID_MEMBER: CreateMemberInput = {
     fullName: 'John Doe Test',
     phone: '+40712345678',
     dateOfBirth: '1990-01-15',
-    password: 'SecureP@ss1',
+    password: 'SecureP@ss1!',
     membershipStart: '2024-01-01',
 };
 
@@ -35,12 +35,12 @@ const VALID_ADMIN: CreateAdminInput = {
     fullName: 'Admin User Test',
     phone: '+40712345678',
     dateOfBirth: '1985-06-20',
-    password: 'AdminP@ss1',
+    password: 'AdminP@ss1!',
 };
 
 const VALID_LOGIN: LoginUserInput = {
     email: 'admin@gymtrackerpro.com',
-    password: 'admin',
+    password: 'ValidPassword1!',
 };
 
 const getYesterdayIso = (): string => {
@@ -1043,13 +1043,11 @@ describe('loginUserSchema', () => {
                 expect(result.data.email).toBe('admin@gymtrackerpro.com');
             }
         });
-    });
 
-    describe('Boundary Value Analysis', () => {
-        it('loginUserSchema_BVA_passwordLength0Chars_returnsValidationError', () => {
+        it('loginUserSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
             const inputLogin = {
                 ...VALID_LOGIN,
-                password: ''
+                password: 'validpassword1!'
             };
 
             const result = loginUserSchema.safeParse(inputLogin);
@@ -1060,31 +1058,117 @@ describe('loginUserSchema', () => {
             }
         });
 
-        it('loginUserSchema_BVA_passwordLength1Char_parsesSuccessfully', () => {
-            const inputLogin: LoginUserInput = {
+        it('loginUserSchema_EC_passwordMissingNumber_returnsValidationError', () => {
+            const inputLogin = {
                 ...VALID_LOGIN,
-                password: 'a'
+                password: 'ValidPassword!'
             };
 
             const result = loginUserSchema.safeParse(inputLogin);
 
-            expect(result.success).toBe(true);
-            if (result.success) {
-                expect(result.data.password).toBe('a');
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
             }
         });
 
-        it('loginUserSchema_BVA_passwordLength2Chars_parsesSuccessfully', () => {
+        it('loginUserSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
+            const inputLogin = {
+                ...VALID_LOGIN,
+                password: 'ValidPassword1'
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+    });
+
+    describe('Boundary Value Analysis', () => {
+        it('loginUserSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
+            const inputLogin = {
+                ...VALID_LOGIN,
+                password: 'P1@' + 'a'.repeat(4)
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('loginUserSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
             const inputLogin: LoginUserInput = {
                 ...VALID_LOGIN,
-                password: 'ab'
+                password: 'P1@' + 'a'.repeat(5)
             };
 
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(true);
             if (result.success) {
-                expect(result.data.password).toBe('ab');
+                expect(result.data.password).toBe(inputLogin.password);
+            }
+        });
+
+        it('loginUserSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
+            const inputLogin: LoginUserInput = {
+                ...VALID_LOGIN,
+                password: 'P1@' + 'a'.repeat(6)
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputLogin.password);
+            }
+        });
+
+        it('loginUserSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
+            const inputLogin: LoginUserInput = {
+                ...VALID_LOGIN,
+                password: 'P1@' + 'a'.repeat(60)
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputLogin.password);
+            }
+        });
+
+        it('loginUserSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
+            const inputLogin: LoginUserInput = {
+                ...VALID_LOGIN,
+                password: 'P1@' + 'a'.repeat(61)
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputLogin.password);
+            }
+        });
+
+        it('loginUserSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
+            const inputLogin = {
+                ...VALID_LOGIN,
+                password: 'P1@' + 'a'.repeat(62)
+            };
+
+            const result = loginUserSchema.safeParse(inputLogin);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
             }
         });
     });

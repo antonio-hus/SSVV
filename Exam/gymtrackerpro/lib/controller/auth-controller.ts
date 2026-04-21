@@ -47,7 +47,14 @@ export async function login(data: LoginUserInput): Promise<ActionResult<SessionD
  * @returns A success result with no data.
  */
 export async function logout(): Promise<ActionResult<void>> {
-    const session = await getSession();
-    session.destroy();
-    return {success: true, data: undefined};
+    try {
+        const session = await getSession();
+        await session.destroy();
+        return {success: true, data: undefined};
+    } catch (error) {
+        if (error instanceof AppError) {
+            return {success: false, message: error.message};
+        }
+        return {success: false, message: 'An unexpected error occurred'};
+    }
 }
