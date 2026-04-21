@@ -1,5 +1,5 @@
 import {mock, mockReset} from 'jest-mock-extended';
-import {AdminWithUser, MemberListOptions, MemberWithUser, Role, UserWithProfile, AdminListOptions} from '@/lib/domain/user';
+import {AdminWithUser, MemberListOptions, MemberWithUser, Role, AdminListOptions} from '@/lib/domain/user';
 import {ConflictError, NotFoundError, TransactionError} from '@/lib/domain/errors';
 import {UserRepositoryInterface} from '@/lib/repository/user-repository-interface';
 import {UserService} from '@/lib/service/user-service';
@@ -67,7 +67,8 @@ describe('createMember', () => {
 
             const result = await service.createMember(inputMember);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
+            expect(result.user.email).toBe(inputMember.email);
         });
 
         it('createMember_EC_emailAlreadyRegistered_throwsConflictError', async () => {
@@ -78,6 +79,7 @@ describe('createMember', () => {
             const act = service.createMember(inputMember);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Email already registered');
         });
 
         it('createMember_EC_databaseWriteFails_throwsTransactionError', async () => {
@@ -88,6 +90,7 @@ describe('createMember', () => {
             const act = service.createMember(inputMember);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB failure');
         });
     });
 });
@@ -108,6 +111,7 @@ describe('createMemberWithTempPassword', () => {
             const result = await service.createMemberWithTempPassword(inputData);
 
             expect(result.id).toBe(MEMBER_ID);
+            expect(result.user.email).toBe(inputData.email);
             expect(result.tempPassword).toHaveLength(16);
         });
 
@@ -125,6 +129,7 @@ describe('createMemberWithTempPassword', () => {
             const act = service.createMemberWithTempPassword(inputData);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Email taken');
         });
     });
 
@@ -170,11 +175,13 @@ describe('createAdmin', () => {
         it('createAdmin_EC_emailNotRegistered_returnsAdminWithUser', async () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
-            mockUserRepo.createAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
+            const expectedReturn = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_ADMIN_WITH_USER.user, email: CREATE_ADMIN_INPUT.email}};
+            mockUserRepo.createAdmin.mockResolvedValue(expectedReturn);
 
             const result = await service.createAdmin(inputAdmin);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(expectedReturn);
+            expect(result.user.email).toBe(CREATE_ADMIN_INPUT.email);
         });
 
         it('createAdmin_EC_emailAlreadyRegistered_throwsConflictError', async () => {
@@ -185,6 +192,7 @@ describe('createAdmin', () => {
             const act = service.createAdmin(inputAdmin);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Email already registered');
         });
 
         it('createAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
@@ -195,6 +203,7 @@ describe('createAdmin', () => {
             const act = service.createAdmin(inputAdmin);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB failure');
         });
     });
 });
@@ -208,7 +217,7 @@ describe('getMember', () => {
 
             const result = await service.getMember(inputId);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('getMember_EC_nonExistentMemberId_throwsNotFoundError', async () => {
@@ -219,6 +228,7 @@ describe('getMember', () => {
             const act = service.getMember(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
     });
 
@@ -252,6 +262,7 @@ describe('getMember', () => {
             const result = await service.getMember(inputId);
 
             expect(result.id).toBe('a');
+            expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
     });
 });
@@ -265,7 +276,7 @@ describe('getAdmin', () => {
 
             const result = await service.getAdmin(inputId);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('getAdmin_EC_nonExistentAdminId_throwsNotFoundError', async () => {
@@ -276,6 +287,7 @@ describe('getAdmin', () => {
             const act = service.getAdmin(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Admin not found');
         });
     });
 
@@ -309,6 +321,7 @@ describe('getAdmin', () => {
             const result = await service.getAdmin(inputId);
 
             expect(result.id).toBe('a');
+            expect(result.user).toEqual(MOCK_ADMIN_WITH_USER.user);
         });
     });
 });
@@ -322,6 +335,7 @@ describe('listMembers', () => {
             const result = await service.listMembers();
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_MEMBER_WITH_USER);
             expect(result.total).toBe(1);
         });
 
@@ -333,6 +347,8 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_MEMBER_WITH_USER);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_EC_multipleMembers_returnsMembersOrderedByFullNameAscending', async () => {
@@ -344,6 +360,7 @@ describe('listMembers', () => {
 
             expect(result.items[0].user.fullName).toBe('Alice');
             expect(result.items[1].user.fullName).toBe('John Doe');
+            expect(result.total).toBe(2);
         });
 
         it('listMembers_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
@@ -366,6 +383,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_searchEmpty_returnsItems', async () => {
@@ -376,6 +394,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_searchOneChar_returnsItems', async () => {
@@ -386,6 +405,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_pageUndefined_returnsFirstPage', async () => {
@@ -396,6 +416,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page0_returnsFirstPage', async () => {
@@ -406,6 +427,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page1_returnsFirstPage', async () => {
@@ -416,6 +438,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page2_returnsSecondPage', async () => {
@@ -437,6 +460,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_pageSize0_returnsNoItems', async () => {
@@ -458,6 +482,7 @@ describe('listMembers', () => {
             const result = await service.listMembers(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(5);
         });
     });
 });
@@ -471,6 +496,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins();
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_ADMIN_WITH_USER);
             expect(result.total).toBe(1);
         });
 
@@ -482,6 +508,8 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_ADMIN_WITH_USER);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_EC_multipleAdmins_returnsAdminsOrderedByFullNameAscending', async () => {
@@ -492,6 +520,8 @@ describe('listAdmins', () => {
             const result = await service.listAdmins();
 
             expect(result.items[0].user.fullName).toBe('Alice');
+            expect(result.items[1].user.fullName).toBe('John Doe');
+            expect(result.total).toBe(2);
         });
 
         it('listAdmins_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
@@ -514,6 +544,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_searchEmpty_returnsItems', async () => {
@@ -524,6 +555,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_searchOneChar_returnsItems', async () => {
@@ -534,6 +566,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_pageUndefined_returnsFirstPage', async () => {
@@ -544,6 +577,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page0_returnsFirstPage', async () => {
@@ -554,6 +588,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page1_returnsFirstPage', async () => {
@@ -564,6 +599,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page2_returnsSecondPage', async () => {
@@ -574,6 +610,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(15);
         });
 
         it('listAdmins_BVA_pageSizeUndefined_returnsDefaultPageSize', async () => {
@@ -584,6 +621,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_pageSize0_returnsNoItems', async () => {
@@ -594,6 +632,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(5);
         });
 
         it('listAdmins_BVA_pageSize1_returnsOneItem', async () => {
@@ -604,6 +643,7 @@ describe('listAdmins', () => {
             const result = await service.listAdmins(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.total).toBe(5);
         });
     });
 });
@@ -614,10 +654,12 @@ describe('updateMember', () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: 'Updated Name'};
-            mockUserRepo.updateMember.mockResolvedValue({...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Updated Name'}});
+            const expectedReturn = {...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Updated Name'}};
+            mockUserRepo.updateMember.mockResolvedValue(expectedReturn);
 
             const result = await service.updateMember(inputId, inputData);
 
+            expect(result).toEqual(expectedReturn);
             expect(result.user.fullName).toBe('Updated Name');
         });
 
@@ -630,6 +672,7 @@ describe('updateMember', () => {
             const act = service.updateMember(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
 
         it('updateMember_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
@@ -641,6 +684,7 @@ describe('updateMember', () => {
             const act = service.updateMember(inputId, inputData);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Email taken');
         });
 
         it('updateMember_EC_sameEmailAsCurrentUser_returnsUpdatedMember', async () => {
@@ -651,7 +695,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_EC_withNewPassword_returnsUpdatedMember', async () => {
@@ -662,7 +706,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_EC_databaseWriteFails_throwsTransactionError', async () => {
@@ -674,6 +718,7 @@ describe('updateMember', () => {
             const act = service.updateMember(inputId, inputData);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB Error');
         });
     });
 
@@ -704,11 +749,13 @@ describe('updateMember', () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateMemberInput = {fullName: 'New'};
-            mockUserRepo.updateMember.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+            const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a'};
+            mockUserRepo.updateMember.mockResolvedValue(expectedReturn);
 
             const result = await service.updateMember(inputId, inputData);
 
             expect(result.id).toBe('a');
+            expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
 
         it('updateMember_BVA_emailUndefined_updatesSuccessfully', async () => {
@@ -719,7 +766,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_emailEmpty_updatesSuccessfully', async () => {
@@ -730,7 +777,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_emailOneChar_updatesSuccessfully', async () => {
@@ -741,7 +788,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameUndefined_updatesSuccessfully', async () => {
@@ -752,7 +799,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameEmpty_updatesSuccessfully', async () => {
@@ -763,7 +810,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameOneChar_updatesSuccessfully', async () => {
@@ -774,7 +821,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneUndefined_updatesSuccessfully', async () => {
@@ -785,7 +832,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneEmpty_updatesSuccessfully', async () => {
@@ -796,7 +843,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneOneChar_updatesSuccessfully', async () => {
@@ -807,7 +854,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
@@ -818,7 +865,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
@@ -829,7 +876,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
@@ -840,7 +887,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordUndefined_updatesSuccessfully', async () => {
@@ -851,7 +898,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordEmpty_updatesSuccessfully', async () => {
@@ -862,7 +909,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordOneChar_updatesSuccessfully', async () => {
@@ -873,7 +920,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartUndefined_updatesSuccessfully', async () => {
@@ -884,7 +931,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartEmpty_updatesSuccessfully', async () => {
@@ -895,7 +942,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartOneChar_updatesSuccessfully', async () => {
@@ -906,7 +953,7 @@ describe('updateMember', () => {
 
             const result = await service.updateMember(inputId, inputData);
 
-            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
     });
 });
@@ -917,10 +964,12 @@ describe('updateAdmin', () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: 'Updated Admin'};
-            mockUserRepo.updateAdmin.mockResolvedValue({...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Updated Admin'}});
+            const expectedReturn = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Updated Admin'}};
+            mockUserRepo.updateAdmin.mockResolvedValue(expectedReturn);
 
             const result = await service.updateAdmin(inputId, inputData);
 
+            expect(result).toEqual(expectedReturn);
             expect(result.user.fullName).toBe('Updated Admin');
         });
 
@@ -933,6 +982,7 @@ describe('updateAdmin', () => {
             const act = service.updateAdmin(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Admin not found');
         });
 
         it('updateAdmin_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
@@ -944,6 +994,7 @@ describe('updateAdmin', () => {
             const act = service.updateAdmin(inputId, inputData);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Email taken');
         });
 
         it('updateAdmin_EC_sameEmailAsCurrentUser_returnsUpdatedAdmin', async () => {
@@ -954,7 +1005,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_EC_withNewPassword_returnsUpdatedAdmin', async () => {
@@ -965,7 +1016,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
@@ -977,6 +1028,7 @@ describe('updateAdmin', () => {
             const act = service.updateAdmin(inputId, inputData);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB Error');
         });
     });
 
@@ -1007,11 +1059,13 @@ describe('updateAdmin', () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateAdminInput = {fullName: 'New'};
-            mockUserRepo.updateAdmin.mockResolvedValue({...MOCK_ADMIN_WITH_USER, id: 'a'});
+            const expectedReturn = {...MOCK_ADMIN_WITH_USER, id: 'a'};
+            mockUserRepo.updateAdmin.mockResolvedValue(expectedReturn);
 
             const result = await service.updateAdmin(inputId, inputData);
 
             expect(result.id).toBe('a');
+            expect(result.user).toEqual(MOCK_ADMIN_WITH_USER.user);
         });
 
         it('updateAdmin_BVA_emailUndefined_updatesSuccessfully', async () => {
@@ -1022,7 +1076,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_emailEmpty_updatesSuccessfully', async () => {
@@ -1033,7 +1087,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_emailOneChar_updatesSuccessfully', async () => {
@@ -1044,7 +1098,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameUndefined_updatesSuccessfully', async () => {
@@ -1055,7 +1109,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameEmpty_updatesSuccessfully', async () => {
@@ -1066,7 +1120,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameOneChar_updatesSuccessfully', async () => {
@@ -1077,7 +1131,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneUndefined_updatesSuccessfully', async () => {
@@ -1088,7 +1142,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneEmpty_updatesSuccessfully', async () => {
@@ -1099,7 +1153,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneOneChar_updatesSuccessfully', async () => {
@@ -1110,7 +1164,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
@@ -1121,7 +1175,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
@@ -1132,7 +1186,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
@@ -1143,7 +1197,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordUndefined_updatesSuccessfully', async () => {
@@ -1154,7 +1208,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordEmpty_updatesSuccessfully', async () => {
@@ -1165,7 +1219,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordOneChar_updatesSuccessfully', async () => {
@@ -1176,7 +1230,7 @@ describe('updateAdmin', () => {
 
             const result = await service.updateAdmin(inputId, inputData);
 
-            expect(result.id).toBe(ADMIN_ID);
+            expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
     });
 });
@@ -1186,11 +1240,14 @@ describe('suspendMember', () => {
         it('suspendMember_EC_existingMember_suspendsMember', async () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
-            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, isActive: false});
+            const expectedReturn = {...MOCK_MEMBER_WITH_USER, isActive: false};
+            mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
             const result = await service.suspendMember(inputId);
 
             expect(result.isActive).toBe(false);
+            expect(result.id).toBe(MEMBER_ID);
+            expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
 
         it('suspendMember_EC_nonExistentMember_throwsNotFoundError', async () => {
@@ -1201,6 +1258,7 @@ describe('suspendMember', () => {
             const act = service.suspendMember(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
     });
 
@@ -1228,11 +1286,14 @@ describe('suspendMember', () => {
         it('suspendMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
-            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a', isActive: false});
+            const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a', isActive: false};
+            mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
             const result = await service.suspendMember(inputId);
 
             expect(result.id).toBe('a');
+            expect(result.isActive).toBe(false);
+            expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
     });
 });
@@ -1247,6 +1308,8 @@ describe('activateMember', () => {
             const result = await service.activateMember(inputId);
 
             expect(result.isActive).toBe(true);
+            expect(result.id).toBe(MEMBER_ID);
+            expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('activateMember_EC_nonExistentMember_throwsNotFoundError', async () => {
@@ -1257,6 +1320,7 @@ describe('activateMember', () => {
             const act = service.activateMember(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
     });
 
@@ -1284,11 +1348,14 @@ describe('activateMember', () => {
         it('activateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
-            mockUserRepo.setMemberActive.mockResolvedValue({...MOCK_MEMBER_WITH_USER, id: 'a'});
+            const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a'};
+            mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
             const result = await service.activateMember(inputId);
 
             expect(result.id).toBe('a');
+            expect(result.isActive).toBe(true);
+            expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
     });
 });
@@ -1313,6 +1380,7 @@ describe('deleteMember', () => {
             const act = service.deleteMember(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Not found');
         });
     });
 
@@ -1369,6 +1437,7 @@ describe('deleteAdmin', () => {
             const act = service.deleteAdmin(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Not found');
         });
     });
 

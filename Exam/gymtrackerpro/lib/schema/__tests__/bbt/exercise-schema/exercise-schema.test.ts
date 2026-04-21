@@ -23,6 +23,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputExercise);
+            }
         });
 
         it('createExerciseSchema_EC_descriptionAbsent_parsesSuccessfully', () => {
@@ -35,6 +38,10 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe(inputExercise.name);
+                expect(result.data.description).toBeUndefined();
+            }
         });
 
         it('createExerciseSchema_EC_descriptionEmptyString_parsesSuccessfully', () => {
@@ -46,6 +53,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('');
+            }
         });
 
         it('createExerciseSchema_EC_invalidMuscleGroup_returnsValidationError', () => {
@@ -57,6 +67,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('muscleGroup');
+            }
         });
 
         it('createExerciseSchema_EC_invalidEquipment_returnsValidationError', () => {
@@ -68,6 +81,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('equipmentNeeded');
+            }
         });
 
         it('createExerciseSchema_EC_missingName_returnsValidationError', () => {
@@ -80,6 +96,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_EC_nameEmptyString_returnsValidationError', () => {
@@ -91,6 +110,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_EC_nameWhitespaceOnly_returnsValidationError', () => {
@@ -102,6 +124,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_EC_nameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -113,6 +138,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('Bench Press');
+            }
         });
 
         it('createExerciseSchema_EC_descriptionWhitespaceOnly_parsesSuccessfully', () => {
@@ -124,6 +152,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('');
+            }
         });
 
         it('createExerciseSchema_EC_descriptionWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -135,6 +166,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('some description');
+            }
         });
 
         it('createExerciseSchema_EC_missingMuscleGroup_returnsValidationError', () => {
@@ -147,6 +181,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('muscleGroup');
+            }
         });
 
         it('createExerciseSchema_EC_missingEquipment_returnsValidationError', () => {
@@ -159,6 +196,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('equipmentNeeded');
+            }
         });
     });
 
@@ -172,6 +212,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_BVA_name8Chars_parsesSuccessfully', () => {
@@ -183,6 +226,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(8));
+            }
         });
 
         it('createExerciseSchema_BVA_name9Chars_parsesSuccessfully', () => {
@@ -194,6 +240,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(9));
+            }
         });
 
         it('createExerciseSchema_BVA_name63Chars_parsesSuccessfully', () => {
@@ -205,6 +254,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(63));
+            }
         });
 
         it('createExerciseSchema_BVA_name64Chars_parsesSuccessfully', () => {
@@ -216,6 +268,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(64));
+            }
         });
 
         it('createExerciseSchema_BVA_name65Chars_returnsValidationError', () => {
@@ -227,6 +282,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_BVA_nameWhitespace8Chars_returnsValidationError', () => {
@@ -238,6 +296,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_BVA_namePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -249,6 +310,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(8));
+            }
         });
 
         it('createExerciseSchema_BVA_namePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -260,6 +324,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(64));
+            }
         });
 
         it('createExerciseSchema_BVA_namePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -271,6 +338,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('createExerciseSchema_BVA_description0Chars_parsesSuccessfully', () => {
@@ -282,6 +352,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('');
+            }
         });
 
         it('createExerciseSchema_BVA_description1Char_parsesSuccessfully', () => {
@@ -293,6 +366,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A');
+            }
         });
 
         it('createExerciseSchema_BVA_description1023Chars_parsesSuccessfully', () => {
@@ -304,6 +380,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1023));
+            }
         });
 
         it('createExerciseSchema_BVA_description1024Chars_parsesSuccessfully', () => {
@@ -315,6 +394,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1024));
+            }
         });
 
         it('createExerciseSchema_BVA_description1025Chars_returnsValidationError', () => {
@@ -326,6 +408,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('description');
+            }
         });
 
         it('createExerciseSchema_BVA_descriptionPadded1024CharsAfterTrim_parsesSuccessfully', () => {
@@ -337,6 +422,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1024));
+            }
         });
 
         it('createExerciseSchema_BVA_descriptionPadded1025CharsAfterTrim_returnsValidationError', () => {
@@ -348,6 +436,9 @@ describe('createExerciseSchema', () => {
             const result = createExerciseSchema.safeParse(inputExercise);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('description');
+            }
         });
     });
 });
@@ -360,6 +451,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual({});
+            }
         });
 
         it('updateExerciseSchema_EC_validNameOnly_parsesSuccessfully', () => {
@@ -370,6 +464,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('New Name');
+            }
         });
 
         it('updateExerciseSchema_EC_validDescriptionOnly_parsesSuccessfully', () => {
@@ -380,6 +477,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('Updated description text');
+            }
         });
 
         it('updateExerciseSchema_EC_validMuscleGroupOnly_parsesSuccessfully', () => {
@@ -390,6 +490,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.muscleGroup).toBe(MuscleGroup.CHEST);
+            }
         });
 
         it('updateExerciseSchema_EC_validEquipmentOnly_parsesSuccessfully', () => {
@@ -400,6 +503,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.equipmentNeeded).toBe(Equipment.BARBELL);
+            }
         });
 
         it('updateExerciseSchema_EC_invalidMuscleGroup_returnsValidationError', () => {
@@ -410,6 +516,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('muscleGroup');
+            }
         });
 
         it('updateExerciseSchema_EC_invalidEquipment_returnsValidationError', () => {
@@ -420,6 +529,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('equipmentNeeded');
+            }
         });
 
         it('updateExerciseSchema_EC_nameWhitespaceOnly_returnsValidationError', () => {
@@ -430,6 +542,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('updateExerciseSchema_EC_nameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -440,6 +555,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('New Exercise Name');
+            }
         });
 
         it('updateExerciseSchema_EC_descriptionWhitespaceOnly_parsesSuccessfully', () => {
@@ -450,6 +568,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('');
+            }
         });
 
         it('updateExerciseSchema_EC_descriptionWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -460,6 +581,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('updated description');
+            }
         });
     });
 
@@ -472,6 +596,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('updateExerciseSchema_BVA_name8Chars_parsesSuccessfully', () => {
@@ -482,6 +609,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(8));
+            }
         });
 
         it('updateExerciseSchema_BVA_name9Chars_parsesSuccessfully', () => {
@@ -492,6 +622,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(9));
+            }
         });
 
         it('updateExerciseSchema_BVA_name63Chars_parsesSuccessfully', () => {
@@ -502,6 +635,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(63));
+            }
         });
 
         it('updateExerciseSchema_BVA_name64Chars_parsesSuccessfully', () => {
@@ -512,6 +648,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(64));
+            }
         });
 
         it('updateExerciseSchema_BVA_name65Chars_returnsValidationError', () => {
@@ -522,6 +661,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('updateExerciseSchema_BVA_nameWhitespace8Chars_returnsValidationError', () => {
@@ -532,6 +674,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('updateExerciseSchema_BVA_namePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -542,6 +687,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(8));
+            }
         });
 
         it('updateExerciseSchema_BVA_namePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -552,6 +700,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.name).toBe('A'.repeat(64));
+            }
         });
 
         it('updateExerciseSchema_BVA_namePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -562,6 +713,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('name');
+            }
         });
 
         it('updateExerciseSchema_BVA_description0Chars_parsesSuccessfully', () => {
@@ -572,6 +726,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('');
+            }
         });
 
         it('updateExerciseSchema_BVA_description1Char_parsesSuccessfully', () => {
@@ -582,6 +739,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A');
+            }
         });
 
         it('updateExerciseSchema_BVA_description1023Chars_parsesSuccessfully', () => {
@@ -592,6 +752,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1023));
+            }
         });
 
         it('updateExerciseSchema_BVA_description1024Chars_parsesSuccessfully', () => {
@@ -602,6 +765,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1024));
+            }
         });
 
         it('updateExerciseSchema_BVA_description1025Chars_returnsValidationError', () => {
@@ -612,6 +778,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('description');
+            }
         });
 
         it('updateExerciseSchema_BVA_descriptionPadded1024CharsAfterTrim_parsesSuccessfully', () => {
@@ -622,6 +791,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.description).toBe('A'.repeat(1024));
+            }
         });
 
         it('updateExerciseSchema_BVA_descriptionPadded1025CharsAfterTrim_returnsValidationError', () => {
@@ -632,6 +804,9 @@ describe('updateExerciseSchema', () => {
             const result = updateExerciseSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('description');
+            }
         });
     });
 });

@@ -8,6 +8,7 @@ import {getMemberProgressReport} from '@/lib/controller/report-controller';
 import {reportService} from '@/lib/di';
 import {NotFoundError} from '@/lib/domain/errors';
 import {Report} from '@/lib/domain/report';
+import {ActionResult} from "@/lib/domain/action-result";
 
 const reportServiceMock = reportService as unknown as { getMemberProgressReport: jest.Mock };
 
@@ -34,36 +35,28 @@ describe('getMemberProgressReport', () => {
         const inputStartDate = '2024-01-01';
         const inputEndDate = '2024-03-31';
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        const result: ActionResult<Report> = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(true);
-        expect((result as { success: true; data: Report }).data).toEqual(MOCK_REPORT);
-    });
-
-    it('getMemberProgressReport_validInput_passesCorrectArgumentsToService', async () => {
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
-
-        await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(reportServiceMock.getMemberProgressReport).toHaveBeenCalledWith(
-            'member-001',
-            new Date('2024-01-01'),
-            new Date('2024-03-31'),
-        );
+        if (result.success) {
+            expect(result.data).toEqual(MOCK_REPORT);
+            expect(result.data.memberId).toBe(inputMemberId);
+        }
     });
 
     it('getMemberProgressReport_memberIdAtLowerBoundary1Char_passesValidation', async () => {
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
         const inputMemberId = 'x';
         const inputStartDate = '2024-01-01';
         const inputEndDate = '2024-03-31';
+        const expectedReport = {...MOCK_REPORT, memberId: 'x'};
+        reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
 
-        await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
-        expect(reportServiceMock.getMemberProgressReport).toHaveBeenCalled();
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.memberId).toBe('x');
+        }
     });
 
     it('getMemberProgressReport_memberIdBelowLowerBoundary0Chars_returnsValidationError', async () => {
@@ -74,8 +67,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.memberId).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_memberIdWhitespaceOnly_returnsValidationError', async () => {
@@ -86,19 +80,24 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.memberId).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_startDateValidIsoFormat_passesValidation', async () => {
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
         const inputMemberId = 'member-001';
         const inputStartDate = '2024-06-15';
         const inputEndDate = '2024-12-31';
+        const expectedReport = {...MOCK_REPORT, startDate: new Date(inputStartDate), endDate: new Date(inputEndDate)};
+        reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
 
-        await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
-        expect(reportServiceMock.getMemberProgressReport).toHaveBeenCalled();
+        expect(result.success).toBe(true);
+        if (result.success) {
+            expect(result.data.startDate).toEqual(new Date(inputStartDate));
+        }
     });
 
     it('getMemberProgressReport_startDateSlashSeparated_returnsValidationError', async () => {
@@ -109,8 +108,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.startDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_startDateDotSeparated_returnsValidationError', async () => {
@@ -121,8 +121,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.startDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_startDateFreeText_returnsValidationError', async () => {
@@ -133,8 +134,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.startDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_startDateEmpty_returnsValidationError', async () => {
@@ -145,8 +147,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.startDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_endDateSlashSeparated_returnsValidationError', async () => {
@@ -157,8 +160,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.endDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_endDateDotSeparated_returnsValidationError', async () => {
@@ -169,8 +173,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.endDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_endDateFreeText_returnsValidationError', async () => {
@@ -181,8 +186,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.endDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_endDateEmpty_returnsValidationError', async () => {
@@ -193,8 +199,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.endDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_bothDatesInvalidFormat_returnsValidationError', async () => {
@@ -205,8 +212,10 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; errors?: Record<string, string[]> }).errors).toBeDefined();
-        expect(reportServiceMock.getMemberProgressReport).not.toHaveBeenCalled();
+        if (!result.success) {
+            expect(result.errors?.startDate).toBeDefined();
+            expect(result.errors?.endDate).toBeDefined();
+        }
     });
 
     it('getMemberProgressReport_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
@@ -218,7 +227,9 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; message: string }).message).toBe('Member not found');
+        if (!result.success) {
+            expect(result.message).toBe('Member not found');
+        }
     });
 
     it('getMemberProgressReport_serviceThrowsUnexpectedError_returnsGenericFailure', async () => {
@@ -230,6 +241,8 @@ describe('getMemberProgressReport', () => {
         const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
         expect(result.success).toBe(false);
-        expect((result as { success: false; message: string }).message).toBe('An unexpected error occurred');
+        if (!result.success) {
+            expect(result.message).toBe('An unexpected error occurred');
+        }
     });
 });

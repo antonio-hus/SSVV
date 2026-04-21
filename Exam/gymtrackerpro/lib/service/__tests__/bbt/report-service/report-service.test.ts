@@ -80,6 +80,7 @@ describe('getMemberProgressReport', () => {
             const act = service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
 
         it('getMemberProgressReport_EC_noSessionsInRange_returnsZeroStats', async () => {
@@ -92,10 +93,13 @@ describe('getMemberProgressReport', () => {
 
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            expect(result.memberId).toBe(MEMBER_ID);
+            expect(result.memberName).toBe(MOCK_MEMBER.user.fullName);
             expect(result.totalSessions).toBe(0);
             expect(result.totalVolume).toBe(0);
             expect(result.averageSessionDuration).toBe(0);
             expect(result.exerciseBreakdown).toHaveLength(0);
+            expect(result.sessionDetails).toHaveLength(0);
         });
 
         it('getMemberProgressReport_EC_multipleSessions_computesCorrectAggregates', async () => {
@@ -103,12 +107,13 @@ describe('getMemberProgressReport', () => {
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
+            const sessions = [
+                makeSession(SESSION_ID_1, 60, 3, 10, 50),
+                makeSession(SESSION_ID_2, 90, 3, 10, 50)
+            ];
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({
-                items: [
-                    makeSession(SESSION_ID_1, 60, 3, 10, 50),
-                    makeSession(SESSION_ID_2, 90, 3, 10, 50)
-                ],
+                items: sessions,
                 total: 2
             });
 
@@ -116,8 +121,14 @@ describe('getMemberProgressReport', () => {
 
             expect(result.totalSessions).toBe(2);
             expect(result.averageSessionDuration).toBe(75);
-            expect(result.totalVolume).toBe(3000);
+            expect(result.totalVolume).toBe(3000); // (3*10*50) * 2
+            expect(result.exerciseBreakdown).toHaveLength(1);
+            expect(result.exerciseBreakdown[0].exerciseId).toBe(EXERCISE_ID);
             expect(result.exerciseBreakdown[0].sessionCount).toBe(2);
+            expect(result.exerciseBreakdown[0].totalVolume).toBe(3000);
+            expect(result.sessionDetails).toHaveLength(2);
+            expect(result.sessionDetails[0].sessionId).toBe(SESSION_ID_1);
+            expect(result.sessionDetails[1].sessionId).toBe(SESSION_ID_2);
         });
 
         it('getMemberProgressReport_EC_multipleExercises_aggregatesCorrectly', async () => {
@@ -150,6 +161,10 @@ describe('getMemberProgressReport', () => {
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
             expect(result.exerciseBreakdown).toHaveLength(2);
+            const bench = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-a');
+            const ohp = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-b');
+            expect(bench?.totalVolume).toBe(1500);
+            expect(ohp?.totalVolume).toBe(1920);
             expect(result.totalVolume).toBe(1500 + 1920);
         });
 
@@ -184,6 +199,7 @@ describe('getMemberProgressReport', () => {
 
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex-high');
             expect(result.exerciseBreakdown[1].exerciseId).toBe('ex-low');
+            expect(result.exerciseBreakdown[0].totalVolume).toBeGreaterThan(result.exerciseBreakdown[1].totalVolume);
         });
     });
 
@@ -223,6 +239,7 @@ describe('getMemberProgressReport', () => {
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
             expect(result.memberId).toBe('a');
+            expect(result.totalSessions).toBe(0);
         });
 
         it('getMemberProgressReport_BVA_startDateEqualsEndDate_returnsReport', async () => {
@@ -265,6 +282,7 @@ describe('getMemberProgressReport', () => {
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
             expect(result.totalVolume).toBe(0);
+            expect(result.exerciseBreakdown[0].totalVolume).toBe(0);
         });
 
         it('getMemberProgressReport_BVA_durationZero_returnsReportWithZeroAverageDuration', async () => {
@@ -279,6 +297,7 @@ describe('getMemberProgressReport', () => {
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
             expect(result.averageSessionDuration).toBe(0);
+            expect(result.totalSessions).toBe(1);
         });
     });
 });

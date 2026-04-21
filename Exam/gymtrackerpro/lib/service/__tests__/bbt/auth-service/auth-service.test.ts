@@ -64,8 +64,12 @@ describe('login', () => {
             const result = await service.login(inputData);
 
             expect(result.userId).toBe(USER_ID);
+            expect(result.email).toBe(MOCK_ADMIN_USER.email);
+            expect(result.fullName).toBe(MOCK_ADMIN_USER.fullName);
             expect(result.role).toBe(Role.ADMIN);
             expect(result.adminId).toBe(ADMIN_ID);
+            expect(result.memberId).toBeUndefined();
+            expect(result.isActive).toBeUndefined();
         });
 
         it('login_EC_validMemberCredentials_returnsSessionData', async () => {
@@ -77,8 +81,11 @@ describe('login', () => {
             const result = await service.login(inputData);
 
             expect(result.userId).toBe('user-uuid-002');
+            expect(result.email).toBe(MOCK_MEMBER_USER.email);
+            expect(result.fullName).toBe(MOCK_MEMBER_USER.fullName);
             expect(result.role).toBe(Role.MEMBER);
             expect(result.memberId).toBe(MEMBER_ID);
+            expect(result.adminId).toBeUndefined();
             expect(result.isActive).toBe(true);
         });
 
@@ -92,6 +99,8 @@ describe('login', () => {
 
             expect(result.isActive).toBe(false);
             expect(result.memberId).toBe(MEMBER_ID);
+            expect(result.userId).toBe('user-uuid-002');
+            expect(result.role).toBe(Role.MEMBER);
         });
 
         it('login_EC_userNotFound_throwsNotFoundError', async () => {
@@ -127,6 +136,7 @@ describe('login', () => {
             const act = service.login(inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_inexistentOneCharEmail_throwsNotFoundError', async () => {
@@ -137,6 +147,7 @@ describe('login', () => {
             const act = service.login(inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_existingOneCharEmail_authenticatesSuccessfully', async () => {
@@ -149,6 +160,7 @@ describe('login', () => {
             const result = await service.login(inputData);
 
             expect(result.email).toBe('a');
+            expect(result.userId).toBe(oneCharUser.id);
         });
 
         it('login_BVA_emptyPassword_throwsAuthorizationError', async () => {
@@ -160,6 +172,7 @@ describe('login', () => {
             const act = service.login(inputData);
 
             await expect(act).rejects.toThrow(AuthorizationError);
+            await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_inexistentOneCharPassword_throwsAuthorizationError', async () => {
@@ -171,6 +184,7 @@ describe('login', () => {
             const act = service.login(inputData);
 
             await expect(act).rejects.toThrow(AuthorizationError);
+            await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_existingOneCharPassword_authenticatesSuccessfully', async () => {
@@ -182,6 +196,7 @@ describe('login', () => {
             const result = await service.login(inputData);
 
             expect(result.userId).toBe('user-uuid-002');
+            expect(result.email).toBe(MOCK_MEMBER_USER.email);
         });
     });
 });

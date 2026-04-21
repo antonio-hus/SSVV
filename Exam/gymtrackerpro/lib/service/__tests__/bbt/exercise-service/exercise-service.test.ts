@@ -50,7 +50,7 @@ describe('createExercise', () => {
 
             const result = await service.createExercise(inputExercise);
 
-            expect(result).toBe(MOCK_EXERCISE);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('createExercise_EC_duplicateExerciseName_throwsConflictError', async () => {
@@ -61,6 +61,7 @@ describe('createExercise', () => {
             const act = service.createExercise(inputExercise);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise name already in use');
         });
     });
 
@@ -74,6 +75,7 @@ describe('createExercise', () => {
             const result = await service.createExercise(inputData);
 
             expect(result.name).toBe('A');
+            expect(result.id).toBe(MOCK_EXERCISE.id);
         });
     });
 });
@@ -87,7 +89,7 @@ describe('getExercise', () => {
 
             const result = await service.getExercise(inputId);
 
-            expect(result.id).toBe(inputId);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('getExercise_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -98,6 +100,7 @@ describe('getExercise', () => {
             const act = service.getExercise(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
     });
 
@@ -131,6 +134,7 @@ describe('getExercise', () => {
             const result = await service.getExercise(inputId);
 
             expect(result.id).toBe('a');
+            expect(result.name).toBe(MOCK_EXERCISE.name);
         });
     });
 });
@@ -144,7 +148,8 @@ describe('listExercises', () => {
             const result = await service.listExercises();
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].isActive).toBe(true);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
+            expect(result.total).toBe(1);
         });
 
         it('listExercises_EC_includeInactiveFalse_returnsOnlyActiveExercises', async () => {
@@ -155,7 +160,8 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].isActive).toBe(true);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
+            expect(result.total).toBe(1);
         });
 
         it('listExercises_EC_includeInactiveTrue_returnsAllExercises', async () => {
@@ -167,6 +173,8 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(inactiveExercise);
             expect(result.total).toBe(2);
         });
 
@@ -178,7 +186,8 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].muscleGroup).toBe(MuscleGroup.BACK);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE_BACK);
+            expect(result.total).toBe(1);
         });
 
         it('listExercises_EC_withSearchAndMuscleGroupFilter_returnsMatchingItems', async () => {
@@ -189,7 +198,8 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].muscleGroup).toBe(MuscleGroup.CHEST);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
+            expect(result.total).toBe(1);
         });
 
         it('listExercises_EC_multipleExercises_returnsExercisesOrderedByNameAscending', async () => {
@@ -211,6 +221,8 @@ describe('listExercises', () => {
 
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(MOCK_EXERCISE_BACK);
         });
     });
 
@@ -223,6 +235,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.total).toBe(2);
         });
 
         it('listExercises_BVA_searchEmpty_returnsItems', async () => {
@@ -233,6 +246,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.total).toBe(2);
         });
 
         it('listExercises_BVA_searchOneCharacter_returnsMatchingItems', async () => {
@@ -243,6 +257,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('listExercises_BVA_muscleGroupChest_returnsMatchingItems', async () => {
@@ -264,6 +279,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('listExercises_BVA_muscleGroupArms_returnsMatchingItems', async () => {
@@ -274,6 +290,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('listExercises_BVA_muscleGroupBack_returnsMatchingItems', async () => {
@@ -350,6 +367,8 @@ describe('listExercises', () => {
 
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(inactiveExercise);
         });
 
         it('listExercises_BVA_pageUndefined_returnsFirstPage', async () => {
@@ -360,6 +379,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('listExercises_BVA_page0_returnsFirstPage', async () => {
@@ -370,6 +390,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('listExercises_BVA_page1_returnsFirstPage', async () => {
@@ -380,6 +401,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('listExercises_BVA_page2_returnsSecondPage', async () => {
@@ -390,6 +412,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE_BACK);
             expect(result.total).toBe(11);
         });
 
@@ -401,6 +424,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('listExercises_BVA_pageSize0_returnsNoItems', async () => {
@@ -422,6 +446,7 @@ describe('listExercises', () => {
             const result = await service.listExercises(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
             expect(result.total).toBe(2);
         });
     });
@@ -439,6 +464,7 @@ describe('updateExercise', () => {
             const result = await service.updateExercise(inputId, inputData);
 
             expect(result.name).toBe(inputData.name);
+            expect(result.id).toBe(inputId);
         });
 
         it('updateExercise_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -450,6 +476,7 @@ describe('updateExercise', () => {
             const act = service.updateExercise(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
 
         it('updateExercise_EC_duplicateExerciseName_throwsConflictError', async () => {
@@ -461,6 +488,7 @@ describe('updateExercise', () => {
             const act = service.updateExercise(inputId, inputData);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise name already in use');
         });
     });
 
@@ -498,6 +526,7 @@ describe('updateExercise', () => {
 
             expect(result.id).toBe('a');
             expect(result.description).toBe('Updated description');
+            expect(result.name).toBe(MOCK_EXERCISE.name);
         });
 
         it('updateExercise_BVA_nameUndefined_updatesSuccessfully', async () => {
@@ -508,7 +537,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(MOCK_EXERCISE);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('updateExercise_BVA_nameEmpty_updatesSuccessfully', async () => {
@@ -520,7 +549,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('updateExercise_BVA_nameOneChar_updatesSuccessfully', async () => {
@@ -532,7 +561,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('updateExercise_BVA_descriptionUndefined_updatesSuccessfully', async () => {
@@ -543,7 +572,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(MOCK_EXERCISE);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('updateExercise_BVA_descriptionEmpty_updatesSuccessfully', async () => {
@@ -555,7 +584,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('updateExercise_BVA_descriptionOneChar_updatesSuccessfully', async () => {
@@ -567,7 +596,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('updateExercise_BVA_muscleGroupUndefined_updatesSuccessfully', async () => {
@@ -578,7 +607,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(MOCK_EXERCISE);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('updateExercise_BVA_muscleGroupChest_updatesSuccessfully', async () => {
@@ -661,7 +690,7 @@ describe('updateExercise', () => {
 
             const result = await service.updateExercise(inputId, inputData);
 
-            expect(result).toBe(MOCK_EXERCISE);
+            expect(result).toEqual(MOCK_EXERCISE);
         });
 
         it('updateExercise_BVA_equipmentNeededCable_updatesSuccessfully', async () => {
@@ -725,6 +754,7 @@ describe('archiveExercise', () => {
             const result = await service.archiveExercise(inputId);
 
             expect(result.isActive).toBe(false);
+            expect(result.id).toBe(inputId);
         });
 
         it('archiveExercise_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -735,6 +765,7 @@ describe('archiveExercise', () => {
             const act = service.archiveExercise(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
     });
 
@@ -769,6 +800,7 @@ describe('archiveExercise', () => {
 
             expect(result.id).toBe('a');
             expect(result.isActive).toBe(false);
+            expect(result.name).toBe(MOCK_EXERCISE.name);
         });
     });
 });
@@ -784,6 +816,7 @@ describe('unarchiveExercise', () => {
             const result = await service.unarchiveExercise(inputId);
 
             expect(result.isActive).toBe(true);
+            expect(result.id).toBe(inputId);
         });
 
         it('unarchiveExercise_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -794,6 +827,7 @@ describe('unarchiveExercise', () => {
             const act = service.unarchiveExercise(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
     });
 
@@ -828,6 +862,7 @@ describe('unarchiveExercise', () => {
 
             expect(result.id).toBe('a');
             expect(result.isActive).toBe(true);
+            expect(result.name).toBe(MOCK_EXERCISE.name);
         });
     });
 });
@@ -852,6 +887,7 @@ describe('deleteExercise', () => {
             const act = service.deleteExercise(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
 
         it('deleteExercise_EC_exerciseReferencedInWorkoutSession_throwsConflictError', async () => {
@@ -884,6 +920,7 @@ describe('deleteExercise', () => {
             const act = service.deleteExercise(inputId);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise is referenced by workout sessions');
         });
 
         it('deleteExercise_BVA_emptyId_throwsNotFoundError', async () => {

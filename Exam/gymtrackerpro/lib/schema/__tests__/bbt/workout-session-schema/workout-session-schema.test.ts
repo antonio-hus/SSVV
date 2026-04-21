@@ -33,6 +33,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputSession);
+            }
         });
 
         it('createWorkoutSessionSchema_EC_notesAbsent_parsesSuccessfully', () => {
@@ -45,6 +48,10 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe(inputSession.memberId);
+                expect(result.data.notes).toBeUndefined();
+            }
         });
 
         it('createWorkoutSessionSchema_EC_notesEmptyString_parsesSuccessfully', () => {
@@ -56,6 +63,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_missingMemberId_returnsValidationError', () => {
@@ -67,6 +77,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('memberId');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_missingDate_returnsValidationError', () => {
@@ -78,6 +91,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('date');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_missingDuration_returnsValidationError', () => {
@@ -89,6 +105,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('duration');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_memberIdWhitespace_returnsValidationError', () => {
@@ -100,6 +119,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('memberId');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_memberIdWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -111,6 +133,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe('member-123');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_dateWrongFormat_returnsValidationError', () => {
@@ -122,6 +147,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('date');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_notesWhitespaceOnly_parsesSuccessfully', () => {
@@ -133,6 +161,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('');
+            }
         });
 
         it('createWorkoutSessionSchema_EC_notesWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -144,6 +175,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('some notes');
+            }
         });
     });
 
@@ -157,6 +191,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('memberId');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_memberId1Char_parsesSuccessfully', () => {
@@ -168,6 +205,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe('A');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_memberId2Chars_parsesSuccessfully', () => {
@@ -179,6 +219,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe('AB');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_memberIdPadded1CharAfterTrim_parsesSuccessfully', () => {
@@ -190,6 +233,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe('A');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_durationMinus1_returnsValidationError', () => {
@@ -201,6 +247,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('duration');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_duration0_parsesSuccessfully', () => {
@@ -212,6 +261,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(0);
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_duration1_parsesSuccessfully', () => {
@@ -223,6 +275,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(1);
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_duration179_parsesSuccessfully', () => {
@@ -234,6 +289,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(179);
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_duration180_parsesSuccessfully', () => {
@@ -245,6 +303,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(180);
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_duration181_returnsValidationError', () => {
@@ -256,6 +317,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('duration');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notes0Chars_parsesSuccessfully', () => {
@@ -267,6 +331,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notes1Char_parsesSuccessfully', () => {
@@ -278,6 +345,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notes1023Chars_parsesSuccessfully', () => {
@@ -289,6 +359,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1023));
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notes1024Chars_parsesSuccessfully', () => {
@@ -300,6 +373,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1024));
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notes1025Chars_returnsValidationError', () => {
@@ -311,6 +387,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('notes');
+            }
         });
 
         it('createWorkoutSessionSchema_BVA_notesPadded1024CharsAfterTrim_parsesSuccessfully', () => {
@@ -322,6 +401,9 @@ describe('createWorkoutSessionSchema', () => {
             const result = createWorkoutSessionSchema.safeParse(inputSession);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1024));
+            }
         });
     });
 });
@@ -336,6 +418,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputExercises);
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_multipleValidExercises_parsesSuccessfully', () => {
@@ -347,6 +432,10 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toHaveLength(2);
+                expect(result.data[1].exerciseId).toBe('exercise-456');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_emptyArray_returnsValidationError', () => {
@@ -365,6 +454,10 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain(0);
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_exerciseIdWhitespace_returnsValidationError', () => {
@@ -375,6 +468,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_exerciseIdWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -385,6 +481,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].exerciseId).toBe('exercise-123');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_invalidSetsType_returnsValidationError', () => {
@@ -395,6 +494,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_invalidRepsType_returnsValidationError', () => {
@@ -405,6 +507,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
         });
 
         it('workoutSessionExercisesSchema_EC_invalidWeightType_returnsValidationError', () => {
@@ -415,6 +520,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
         });
     });
 
@@ -427,6 +535,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_sets0_parsesSuccessfully', () => {
@@ -437,6 +548,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_sets1_parsesSuccessfully', () => {
@@ -447,6 +561,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(1);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_sets5_parsesSuccessfully', () => {
@@ -457,6 +574,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(5);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_sets6_parsesSuccessfully', () => {
@@ -467,6 +587,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(6);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_sets7_returnsValidationError', () => {
@@ -477,6 +600,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_exerciseIdPadded1CharAfterTrim_parsesSuccessfully', () => {
@@ -487,6 +613,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].exerciseId).toBe('E');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_repsMinus1_returnsValidationError', () => {
@@ -497,6 +626,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_reps0_parsesSuccessfully', () => {
@@ -507,6 +639,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_reps1_parsesSuccessfully', () => {
@@ -517,6 +652,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(1);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_reps29_parsesSuccessfully', () => {
@@ -527,6 +665,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(29);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_reps30_parsesSuccessfully', () => {
@@ -537,6 +678,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(30);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_reps31_returnsValidationError', () => {
@@ -547,6 +691,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weightMinus0point1_returnsValidationError', () => {
@@ -557,6 +704,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weight0_parsesSuccessfully', () => {
@@ -567,6 +717,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weight0point1_parsesSuccessfully', () => {
@@ -577,6 +730,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(0.1);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weight499point9_parsesSuccessfully', () => {
@@ -587,6 +743,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(499.9);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weight500_parsesSuccessfully', () => {
@@ -597,6 +756,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(500);
+            }
         });
 
         it('workoutSessionExercisesSchema_BVA_weight500point1_returnsValidationError', () => {
@@ -607,6 +769,9 @@ describe('workoutSessionExercisesSchema', () => {
             const result = workoutSessionExercisesSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
         });
     });
 });
@@ -619,6 +784,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual({});
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_validDateOnly_parsesSuccessfully', () => {
@@ -629,6 +797,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.date).toBe('2024-06-15');
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_validDurationOnly_parsesSuccessfully', () => {
@@ -639,6 +810,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(45);
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_validNotesOnly_parsesSuccessfully', () => {
@@ -649,6 +823,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('Updated notes');
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_dateFormatWrong_returnsValidationError', () => {
@@ -659,6 +836,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('date');
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_notesWhitespaceOnly_parsesSuccessfully', () => {
@@ -669,6 +849,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('');
+            }
         });
 
         it('updateWorkoutSessionSchema_EC_notesWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -679,6 +862,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('updated notes');
+            }
         });
     });
 
@@ -691,6 +877,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('duration');
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_duration0_parsesSuccessfully', () => {
@@ -701,6 +890,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(0);
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_duration1_parsesSuccessfully', () => {
@@ -711,6 +903,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(1);
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_duration179_parsesSuccessfully', () => {
@@ -721,6 +916,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(179);
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_duration180_parsesSuccessfully', () => {
@@ -731,6 +929,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.duration).toBe(180);
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_duration181_returnsValidationError', () => {
@@ -741,6 +942,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('duration');
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notes0Chars_parsesSuccessfully', () => {
@@ -751,6 +955,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('');
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notes1Char_parsesSuccessfully', () => {
@@ -761,6 +968,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A');
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notes1023Chars_parsesSuccessfully', () => {
@@ -771,6 +981,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1023));
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notes1024Chars_parsesSuccessfully', () => {
@@ -781,6 +994,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1024));
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notes1025Chars_returnsValidationError', () => {
@@ -791,6 +1007,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('notes');
+            }
         });
 
         it('updateWorkoutSessionSchema_BVA_notesPadded1024CharsAfterTrim_parsesSuccessfully', () => {
@@ -801,6 +1020,9 @@ describe('updateWorkoutSessionSchema', () => {
             const result = updateWorkoutSessionSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.notes).toBe('A'.repeat(1024));
+            }
         });
     });
 });
@@ -815,6 +1037,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputExercises);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_EC_validWithId_parsesSuccessfully', () => {
@@ -825,6 +1050,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].id).toBe('uuid-123');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_EC_emptyArray_returnsValidationError', () => {
@@ -843,6 +1071,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_EC_exerciseIdWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -853,6 +1084,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].exerciseId).toBe('exercise-123');
+            }
         });
     });
 
@@ -865,6 +1099,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_sets0_parsesSuccessfully', () => {
@@ -875,6 +1112,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_sets1_parsesSuccessfully', () => {
@@ -885,6 +1125,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(1);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_sets5_parsesSuccessfully', () => {
@@ -895,6 +1138,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(5);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_sets6_parsesSuccessfully', () => {
@@ -905,6 +1151,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].sets).toBe(6);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_sets7_returnsValidationError', () => {
@@ -915,6 +1164,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_exerciseIdPadded1CharAfterTrim_parsesSuccessfully', () => {
@@ -925,6 +1177,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].exerciseId).toBe('E');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_repsMinus1_returnsValidationError', () => {
@@ -935,6 +1190,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_reps0_parsesSuccessfully', () => {
@@ -945,6 +1203,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_reps1_parsesSuccessfully', () => {
@@ -955,6 +1216,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(1);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_reps29_parsesSuccessfully', () => {
@@ -965,6 +1229,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(29);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_reps30_parsesSuccessfully', () => {
@@ -975,6 +1242,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].reps).toBe(30);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_reps31_returnsValidationError', () => {
@@ -985,6 +1255,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weightMinus0point1_returnsValidationError', () => {
@@ -995,6 +1268,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weight0_parsesSuccessfully', () => {
@@ -1005,6 +1281,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(0);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weight0point1_parsesSuccessfully', () => {
@@ -1015,6 +1294,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(0.1);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weight499point9_parsesSuccessfully', () => {
@@ -1025,6 +1307,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(499.9);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weight500_parsesSuccessfully', () => {
@@ -1035,6 +1320,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data[0].weight).toBe(500);
+            }
         });
 
         it('workoutSessionExercisesUpdateSchema_BVA_weight500point1_returnsValidationError', () => {
@@ -1045,6 +1333,9 @@ describe('workoutSessionExercisesUpdateSchema', () => {
             const result = workoutSessionExercisesUpdateSchema.safeParse(inputExercises);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
         });
     });
 });

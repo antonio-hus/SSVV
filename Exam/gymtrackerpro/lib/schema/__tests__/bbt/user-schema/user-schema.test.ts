@@ -67,6 +67,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputMember);
+            }
         });
 
         it('createMemberSchema_EC_missingEmail_returnsValidationError', () => {
@@ -75,6 +78,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createMemberSchema_EC_missingFullName_returnsValidationError', () => {
@@ -83,6 +89,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_EC_missingPhone_returnsValidationError', () => {
@@ -91,6 +100,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createMemberSchema_EC_missingDateOfBirth_returnsValidationError', () => {
@@ -99,6 +111,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberSchema_EC_missingPassword_returnsValidationError', () => {
@@ -107,6 +122,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_EC_missingMembershipStart_returnsValidationError', () => {
@@ -115,6 +133,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('membershipStart');
+            }
         });
 
         it('createMemberSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -126,6 +147,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createMemberSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
@@ -137,6 +161,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_EC_passwordMissingNumber_returnsValidationError', () => {
@@ -148,6 +175,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
@@ -159,6 +189,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
@@ -170,6 +203,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createMemberSchema_EC_dateOfBirthInvalidFormat_returnsValidationError', () => {
@@ -181,6 +217,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberSchema_EC_dateOfBirthInTheFuture_returnsValidationError', () => {
@@ -192,6 +231,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberSchema_EC_membershipStartInvalidFormat_returnsValidationError', () => {
@@ -203,6 +245,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('membershipStart');
+            }
         });
 
         it('createMemberSchema_EC_membershipStartInTheFuture_parsesSuccessfully', () => {
@@ -214,6 +259,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.membershipStart).toBe('2099-01-01');
+            }
         });
 
         it('createMemberSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
@@ -225,6 +273,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -236,6 +287,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('John Doe Test');
+            }
         });
 
         it('createMemberSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -247,6 +301,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('john.doe@example.com');
+            }
         });
 
         it('createMemberSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -258,6 +315,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
     });
 
@@ -271,6 +331,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
@@ -282,6 +345,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createMemberSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
@@ -293,6 +359,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
         });
 
         it('createMemberSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
@@ -304,6 +373,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
         });
 
         it('createMemberSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
@@ -315,6 +387,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createMemberSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
@@ -326,6 +401,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
@@ -337,6 +415,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -348,6 +429,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createMemberSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -359,6 +443,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createMemberSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -370,6 +457,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
@@ -381,6 +471,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
@@ -392,6 +485,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputMember.password);
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
@@ -403,6 +499,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputMember.password);
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
@@ -414,6 +513,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputMember.password);
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
@@ -425,6 +527,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputMember.password);
+            }
         });
 
         it('createMemberSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
@@ -436,17 +541,24 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createMemberSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputMember: CreateMemberInput = {
                 ...VALID_MEMBER,
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('createMemberSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
@@ -458,6 +570,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
@@ -469,6 +584,9 @@ describe('createMemberSchema', () => {
             const result = createMemberSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
     });
 });
@@ -483,6 +601,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputMember);
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_missingEmail_returnsValidationError', () => {
@@ -491,6 +612,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_missingFullName_returnsValidationError', () => {
@@ -499,6 +623,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_missingPhone_returnsValidationError', () => {
@@ -507,6 +634,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_missingDateOfBirth_returnsValidationError', () => {
@@ -515,6 +645,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_missingMembershipStart_returnsValidationError', () => {
@@ -523,6 +656,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('membershipStart');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -534,6 +670,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
@@ -545,6 +684,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_membershipStartInvalidFormat_returnsValidationError', () => {
@@ -556,6 +698,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('membershipStart');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_passwordFieldIgnored_parsesSuccessfully', () => {
@@ -567,7 +712,10 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
-            expect((result.data as any).password).toBeUndefined();
+            if (result.success) {
+                expect((result.data as any).password).toBeUndefined();
+                expect(result.data.email).toBe(VALID_MEMBER_NO_PWD.email);
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
@@ -579,6 +727,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -590,6 +741,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Jane Doe Test');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -601,6 +755,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('jane.doe@example.com');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -612,6 +769,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
     });
 
@@ -625,6 +785,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
@@ -636,6 +799,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
@@ -647,6 +813,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
@@ -658,6 +827,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
@@ -669,6 +841,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
@@ -680,6 +855,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
@@ -691,6 +869,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -702,6 +883,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -713,6 +897,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -724,17 +911,24 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputMember: CreateMemberWithTempPasswordInput = {
                 ...VALID_MEMBER_NO_PWD,
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
@@ -746,6 +940,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createMemberWithTempPasswordSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
@@ -757,6 +954,9 @@ describe('createMemberWithTempPasswordSchema', () => {
             const result = createMemberWithTempPasswordSchema.safeParse(inputMember);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
     });
 });
@@ -771,6 +971,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputLogin);
+            }
         });
 
         it('loginUserSchema_EC_missingEmail_returnsValidationError', () => {
@@ -781,6 +984,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('loginUserSchema_EC_missingPassword_returnsValidationError', () => {
@@ -791,6 +997,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('loginUserSchema_EC_emptyPassword_returnsValidationError', () => {
@@ -802,6 +1011,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('loginUserSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -813,6 +1025,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('loginUserSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -824,6 +1039,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('admin@gymtrackerpro.com');
+            }
         });
     });
 
@@ -837,6 +1055,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('loginUserSchema_BVA_passwordLength1Char_parsesSuccessfully', () => {
@@ -848,6 +1069,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe('a');
+            }
         });
 
         it('loginUserSchema_BVA_passwordLength2Chars_parsesSuccessfully', () => {
@@ -859,6 +1083,9 @@ describe('loginUserSchema', () => {
             const result = loginUserSchema.safeParse(inputLogin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe('ab');
+            }
         });
     });
 });
@@ -873,6 +1100,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputAdmin);
+            }
         });
 
         it('createAdminSchema_EC_missingEmail_returnsValidationError', () => {
@@ -881,6 +1111,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createAdminSchema_EC_missingFullName_returnsValidationError', () => {
@@ -889,6 +1122,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_EC_missingPhone_returnsValidationError', () => {
@@ -897,6 +1133,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createAdminSchema_EC_missingDateOfBirth_returnsValidationError', () => {
@@ -905,6 +1144,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createAdminSchema_EC_missingPassword_returnsValidationError', () => {
@@ -913,6 +1155,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -924,6 +1169,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('createAdminSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
@@ -935,6 +1183,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('createAdminSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
@@ -946,6 +1197,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_EC_passwordMissingNumber_returnsValidationError', () => {
@@ -957,6 +1211,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
@@ -968,6 +1225,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_EC_dateOfBirthInvalidFormat_returnsValidationError', () => {
@@ -979,6 +1239,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createAdminSchema_EC_dateOfBirthInTheFuture_returnsValidationError', () => {
@@ -990,6 +1253,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createAdminSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
@@ -1001,6 +1267,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1012,6 +1281,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Admin User Test');
+            }
         });
 
         it('createAdminSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1023,6 +1295,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('admin@example.com');
+            }
         });
 
         it('createAdminSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1034,6 +1309,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
     });
 
@@ -1047,6 +1325,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
@@ -1058,6 +1339,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createAdminSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
@@ -1069,6 +1353,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
         });
 
         it('createAdminSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
@@ -1080,6 +1367,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
         });
 
         it('createAdminSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
@@ -1091,6 +1381,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createAdminSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
@@ -1102,6 +1395,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
@@ -1113,6 +1409,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -1124,6 +1423,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('createAdminSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -1135,6 +1437,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('createAdminSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -1146,6 +1451,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
@@ -1157,6 +1465,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
@@ -1168,6 +1479,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputAdmin.password);
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
@@ -1179,6 +1493,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputAdmin.password);
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
@@ -1190,6 +1507,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputAdmin.password);
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
@@ -1201,6 +1521,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputAdmin.password);
+            }
         });
 
         it('createAdminSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
@@ -1212,17 +1535,24 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('createAdminSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputAdmin: CreateAdminInput = {
                 ...VALID_ADMIN,
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('createAdminSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
@@ -1234,6 +1564,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('createAdminSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
@@ -1245,6 +1578,9 @@ describe('createAdminSchema', () => {
             const result = createAdminSchema.safeParse(inputAdmin);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
     });
 });
@@ -1257,6 +1593,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual({});
+            }
         });
 
         it('updateMemberSchema_EC_validEmail_parsesSuccessfully', () => {
@@ -1267,6 +1606,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('new@example.com');
+            }
         });
 
         it('updateMemberSchema_EC_validFullName_parsesSuccessfully', () => {
@@ -1277,6 +1619,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Name Test');
+            }
         });
 
         it('updateMemberSchema_EC_validPhone_parsesSuccessfully', () => {
@@ -1287,6 +1632,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
 
         it('updateMemberSchema_EC_validPassword_parsesSuccessfully', () => {
@@ -1297,16 +1645,23 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe('NewP@ss1');
+            }
         });
 
         it('updateMemberSchema_EC_validDateOfBirth_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputUpdate: UpdateMemberInput = {
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('updateMemberSchema_EC_validMembershipStart_parsesSuccessfully', () => {
@@ -1317,6 +1672,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.membershipStart).toBe('2024-06-01');
+            }
         });
 
         it('updateMemberSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -1327,6 +1685,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('updateMemberSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
@@ -1337,6 +1698,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('updateMemberSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
@@ -1347,6 +1711,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateMemberSchema_EC_passwordMissingNumber_returnsValidationError', () => {
@@ -1357,6 +1724,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateMemberSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
@@ -1367,6 +1737,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateMemberSchema_EC_membershipStartInvalidFormat_returnsValidationError', () => {
@@ -1377,6 +1750,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('membershipStart');
+            }
         });
 
         it('updateMemberSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
@@ -1387,6 +1763,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateMemberSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1397,6 +1776,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Name Test');
+            }
         });
 
         it('updateMemberSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1407,6 +1789,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('new@example.com');
+            }
         });
 
         it('updateMemberSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1417,6 +1802,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
     });
 
@@ -1429,6 +1817,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
@@ -1439,6 +1830,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
@@ -1449,6 +1843,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
@@ -1459,6 +1856,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
@@ -1469,6 +1869,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
@@ -1479,6 +1882,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateMemberSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
@@ -1489,6 +1895,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateMemberSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -1499,6 +1908,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -1509,6 +1921,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('updateMemberSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -1519,6 +1934,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
@@ -1529,6 +1947,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
@@ -1539,6 +1960,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
@@ -1549,6 +1973,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
@@ -1559,6 +1986,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
@@ -1569,6 +1999,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateMemberSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
@@ -1579,16 +2012,23 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateMemberSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputUpdate: UpdateMemberInput = {
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('updateMemberSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
@@ -1599,6 +2039,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('updateMemberSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
@@ -1609,6 +2052,9 @@ describe('updateMemberSchema', () => {
             const result = updateMemberSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
     });
 });
@@ -1621,6 +2067,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual({});
+            }
         });
 
         it('updateAdminSchema_EC_validEmail_parsesSuccessfully', () => {
@@ -1631,6 +2080,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('admin-new@example.com');
+            }
         });
 
         it('updateAdminSchema_EC_validFullName_parsesSuccessfully', () => {
@@ -1641,6 +2093,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Admin Test');
+            }
         });
 
         it('updateAdminSchema_EC_validPhone_parsesSuccessfully', () => {
@@ -1651,6 +2106,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
 
         it('updateAdminSchema_EC_validPassword_parsesSuccessfully', () => {
@@ -1661,16 +2119,23 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe('NewP@ss1');
+            }
         });
 
         it('updateAdminSchema_EC_validDateOfBirth_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputUpdate: UpdateAdminInput = {
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('updateAdminSchema_EC_emailInvalidFormat_returnsValidationError', () => {
@@ -1681,6 +2146,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
         });
 
         it('updateAdminSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
@@ -1691,6 +2159,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
         });
 
         it('updateAdminSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
@@ -1701,6 +2172,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateAdminSchema_EC_passwordMissingNumber_returnsValidationError', () => {
@@ -1711,6 +2185,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateAdminSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
@@ -1721,6 +2198,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateAdminSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
@@ -1731,6 +2211,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateAdminSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1741,6 +2224,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Admin Test');
+            }
         });
 
         it('updateAdminSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1751,6 +2237,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('admin-new@example.com');
+            }
         });
 
         it('updateAdminSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
@@ -1761,6 +2250,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
         });
     });
 
@@ -1773,6 +2265,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
@@ -1783,6 +2278,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
@@ -1793,6 +2291,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
@@ -1803,6 +2304,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
@@ -1813,6 +2317,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
@@ -1823,6 +2330,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateAdminSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
@@ -1833,6 +2343,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateAdminSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
@@ -1843,6 +2356,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
@@ -1853,6 +2369,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
         });
 
         it('updateAdminSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
@@ -1863,6 +2382,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
@@ -1873,6 +2395,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
@@ -1883,6 +2408,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
@@ -1893,6 +2421,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
@@ -1903,6 +2434,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
@@ -1913,6 +2447,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
         });
 
         it('updateAdminSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
@@ -1923,16 +2460,23 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
         });
 
         it('updateAdminSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
             const inputUpdate: UpdateAdminInput = {
-                dateOfBirth: getYesterdayIso()
+                dateOfBirth: yesterday
             };
 
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
         });
 
         it('updateAdminSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
@@ -1943,6 +2487,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
 
         it('updateAdminSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
@@ -1953,6 +2500,9 @@ describe('updateAdminSchema', () => {
             const result = updateAdminSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
         });
     });
 });

@@ -104,8 +104,10 @@ describe('create', () => {
 
             const result = await repo.create(inputSessionData, inputExercises);
 
+            expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
+            expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
 
         it('create_EC_multipleExercises_returnsSessionWithAllExercises', async () => {
@@ -119,7 +121,7 @@ describe('create', () => {
                 ...MOCK_SESSION_WITH_EXERCISES,
                 exercises: [
                     MOCK_SESSION_EXERCISE,
-                    {...MOCK_SESSION_EXERCISE, id: 'se-uuid-002', exerciseId: 'exercise-uuid-002'},
+                    {...MOCK_SESSION_EXERCISE, id: 'se-uuid-002', exerciseId: 'exercise-uuid-002', sets: 4, reps: 8, weight: 60.0},
                 ],
             };
             prismaMock.member.findUnique.mockResolvedValue(MOCK_MEMBER);
@@ -128,6 +130,8 @@ describe('create', () => {
             const result = await repo.create(inputSessionData, inputExercises);
 
             expect(result.exercises).toHaveLength(2);
+            expect(result.exercises[1].exerciseId).toBe('exercise-uuid-002');
+            expect(result.exercises[1].sets).toBe(4);
         });
 
         it('create_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
@@ -138,6 +142,7 @@ describe('create', () => {
             const act = repo.create(inputSessionData, inputExercises);
 
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
+            await expect(act).rejects.toThrow('A workout session must include at least one exercise.');
         });
 
         it('create_EC_nonExistentMemberId_throwsNotFoundError', async () => {
@@ -149,6 +154,7 @@ describe('create', () => {
             const act = repo.create(inputSessionData, inputExercises);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Member not found');
         });
 
         it('create_EC_databaseWriteFails_throwsTransactionError', async () => {
@@ -161,6 +167,7 @@ describe('create', () => {
             const act = repo.create(inputSessionData, inputExercises);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB error');
         });
     });
 
@@ -192,11 +199,13 @@ describe('create', () => {
             const inputSessionData: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: 'a'};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue({...MOCK_MEMBER, id: 'a'});
-            prismaMock.workoutSession.create.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, memberId: 'a'});
+            const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, memberId: 'a'};
+            prismaMock.workoutSession.create.mockResolvedValue(expectedReturn);
 
             const result = await repo.create(inputSessionData, inputExercises);
 
             expect(result.memberId).toBe('a');
+            expect(result).toEqual(expectedReturn);
         });
 
         it('create_BVA_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
@@ -224,6 +233,7 @@ describe('create', () => {
             const result = await repo.create(inputSessionData, inputExercises);
 
             expect(result.exercises).toHaveLength(1);
+            expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
     });
 });
@@ -237,6 +247,7 @@ describe('findById', () => {
 
             const result = await repo.findById(inputId);
 
+            expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
         });
@@ -249,6 +260,7 @@ describe('findById', () => {
             const act = repo.findById(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Workout session not found');
         });
     });
 
@@ -276,11 +288,13 @@ describe('findById', () => {
         it('findById_BVA_existingOneCharId_returnsSessionWithExercises', async () => {
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
-            prismaMock.workoutSession.findUnique.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, id: 'a'});
+            const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, id: 'a'};
+            prismaMock.workoutSession.findUnique.mockResolvedValue(expectedReturn);
 
             const result = await repo.findById(inputId);
 
             expect(result.id).toBe('a');
+            expect(result).toEqual(expectedReturn);
         });
     });
 });
@@ -297,6 +311,8 @@ describe('findAll', () => {
             const result = await repo.findAll();
 
             expect(result.items).toHaveLength(2);
+            expect(result.items[0]).toEqual(MOCK_SESSION_WITH_EXERCISES);
+            expect(result.items[1]).toEqual(session2);
             expect(result.total).toBe(2);
         });
 
@@ -311,11 +327,13 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(1);
             expect(result.items[0].memberId).toBe(MEMBER_ID);
+            expect(result.items[0]).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('findAll_EC_withStartDate_returnsSessionsFromDate', async () => {
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
-            const inputOptions: WorkoutSessionListOptions = {startDate: new Date('2024-06-01')};
+            const startDate = new Date('2024-06-01');
+            const inputOptions: WorkoutSessionListOptions = {startDate};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
@@ -323,12 +341,13 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].date >= new Date('2024-06-01')).toBe(true);
+            expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
         });
 
         it('findAll_EC_withEndDate_returnsSessionsUntilDate', async () => {
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
-            const inputOptions: WorkoutSessionListOptions = {endDate: new Date('2024-06-30')};
+            const endDate = new Date('2024-06-30');
+            const inputOptions: WorkoutSessionListOptions = {endDate};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
@@ -336,12 +355,14 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].date <= new Date('2024-06-30')).toBe(true);
+            expect(result.items[0].date.getTime()).toBeLessThanOrEqual(endDate.getTime());
         });
 
         it('findAll_EC_withDateRange_returnsSessionsInRange', async () => {
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
-            const inputOptions: WorkoutSessionListOptions = {startDate: new Date('2024-01-01'), endDate: new Date('2024-12-31')};
+            const startDate = new Date('2024-01-01');
+            const endDate = new Date('2024-12-31');
+            const inputOptions: WorkoutSessionListOptions = {startDate, endDate};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
@@ -349,8 +370,8 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].date >= new Date('2024-01-01')).toBe(true);
-            expect(result.items[0].date <= new Date('2024-12-31')).toBe(true);
+            expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
+            expect(result.items[0].date.getTime()).toBeLessThanOrEqual(endDate.getTime());
         });
 
         it('findAll_EC_withMemberIdAndDateRange_returnsFilteredSessions', async () => {
@@ -381,7 +402,6 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(25);
-            expect(result.total).toBeGreaterThan(result.items.length);
         });
 
         it('findAll_EC_noMatchingSessions_returnsEmptyPageResult', async () => {
@@ -401,12 +421,12 @@ describe('findAll', () => {
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const olderSession: WorkoutSessionWithExercises = {
                 ...MOCK_SESSION_WITH_EXERCISES,
-                id: 'session-uuid-000',
+                id: 'older',
                 date: new Date('2024-01-01'),
             };
             const newerSession: WorkoutSessionWithExercises = {
                 ...MOCK_SESSION_WITH_EXERCISES,
-                id: 'session-uuid-002',
+                id: 'newer',
                 date: new Date('2024-12-01'),
             };
             mockTransaction();
@@ -415,8 +435,10 @@ describe('findAll', () => {
 
             const result = await repo.findAll();
 
-            expect(result.items[0].date).toEqual(new Date('2024-01-01'));
-            expect(result.items[1].date).toEqual(new Date('2024-12-01'));
+            expect(result.items).toHaveLength(2);
+            expect(result.items[0].id).toBe('older');
+            expect(result.items[1].id).toBe('newer');
+            expect(result.items[0].date.getTime()).toBeLessThan(result.items[1].date.getTime());
         });
 
         it('findAll_EC_paginatedMultipleSessions_returnsSessionsOrderedByDateDescending', async () => {
@@ -424,12 +446,12 @@ describe('findAll', () => {
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 10};
             const olderSession: WorkoutSessionWithExercises = {
                 ...MOCK_SESSION_WITH_EXERCISES,
-                id: 'session-uuid-000',
+                id: 'older',
                 date: new Date('2024-01-01'),
             };
             const newerSession: WorkoutSessionWithExercises = {
                 ...MOCK_SESSION_WITH_EXERCISES,
-                id: 'session-uuid-002',
+                id: 'newer',
                 date: new Date('2024-12-01'),
             };
             mockTransaction();
@@ -438,8 +460,10 @@ describe('findAll', () => {
 
             const result = await repo.findAll(inputOptions);
 
-            expect(result.items[0].date).toEqual(new Date('2024-12-01'));
-            expect(result.items[1].date).toEqual(new Date('2024-01-01'));
+            expect(result.items).toHaveLength(2);
+            expect(result.items[0].id).toBe('newer');
+            expect(result.items[1].id).toBe('older');
+            expect(result.items[0].date.getTime()).toBeGreaterThan(result.items[1].date.getTime());
         });
     });
 
@@ -481,6 +505,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0].memberId).toBe(MEMBER_ID);
         });
 
         it('findAll_BVA_startDateUndefined_returnsAllSessions', async () => {
@@ -592,7 +617,6 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(25);
-            expect(result.total).toBeGreaterThan(result.items.length);
         });
 
         it('findAll_BVA_page2_returnsSecondPage', async () => {
@@ -630,11 +654,13 @@ describe('update', () => {
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(MOCK_SESSION);
-            prismaMock.workoutSession.update.mockResolvedValue({...MOCK_SESSION, duration: 75});
+            const expectedReturn = {...MOCK_SESSION, duration: 75};
+            prismaMock.workoutSession.update.mockResolvedValue(expectedReturn);
 
             const result = await repo.update(inputId, inputData);
 
             expect(result.duration).toBe(75);
+            expect(result).toEqual(expectedReturn);
         });
 
         it('update_EC_nonExistentSessionId_throwsNotFoundError', async () => {
@@ -646,6 +672,7 @@ describe('update', () => {
             const act = repo.update(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Workout session not found');
         });
     });
 
@@ -678,12 +705,14 @@ describe('update', () => {
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const existing = {...MOCK_SESSION, id: 'a'};
             prismaMock.workoutSession.findUnique.mockResolvedValue(existing);
-            prismaMock.workoutSession.update.mockResolvedValue({...existing, duration: 75});
+            const expectedReturn = {...existing, duration: 75};
+            prismaMock.workoutSession.update.mockResolvedValue(expectedReturn);
 
             const result = await repo.update(inputId, inputData);
 
             expect(result.id).toBe('a');
             expect(result.duration).toBe(75);
+            expect(result).toEqual(expectedReturn);
         });
     });
 });
@@ -708,6 +737,7 @@ describe('updateWithExercises', () => {
 
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
+            expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
@@ -731,6 +761,7 @@ describe('updateWithExercises', () => {
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Workout session not found');
         });
 
         it('updateWithExercises_EC_existingExerciseIdKept_returnsUpdatedSession', async () => {
@@ -741,11 +772,15 @@ describe('updateWithExercises', () => {
                 {id: 'se-uuid-001', exerciseId: EXERCISE_ID, sets: 4, reps: 8, weight: 90.0},
             ];
             prismaMock.workoutSession.findUnique.mockResolvedValue(MOCK_SESSION);
+            const updatedMock = {
+                ...MOCK_SESSION_WITH_EXERCISES,
+                exercises: [{...MOCK_SESSION_EXERCISE, sets: 4, reps: 8, weight: 90.0}]
+            };
             prismaMock.$transaction.mockImplementation(async (fn: unknown) => {
                 const tx = mockDeep<PrismaClient>();
                 tx.workoutSessionExercise.findMany.mockResolvedValue([{id: 'se-uuid-001'}] as WorkoutSessionExercise[]);
                 tx.workoutSessionExercise.update.mockResolvedValue(MOCK_SESSION_EXERCISE);
-                tx.workoutSession.update.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
+                tx.workoutSession.update.mockResolvedValue(updatedMock);
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
@@ -753,6 +788,8 @@ describe('updateWithExercises', () => {
 
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
+            expect(result.exercises[0].sets).toBe(4);
+            expect(result).toEqual(updatedMock);
         });
 
         it('updateWithExercises_EC_staleExerciseRemoved_returnsUpdatedSession', async () => {
@@ -775,6 +812,7 @@ describe('updateWithExercises', () => {
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
             expect(result.id).toBe(SESSION_ID);
+            expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_mixedExercises_returnsUpdatedSession', async () => {
@@ -802,6 +840,7 @@ describe('updateWithExercises', () => {
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
             expect(result.id).toBe(SESSION_ID);
+            expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_transactionFails_throwsTransactionError', async () => {
@@ -815,6 +854,7 @@ describe('updateWithExercises', () => {
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
             await expect(act).rejects.toThrow(TransactionError);
+            await expect(act).rejects.toThrow('DB connection lost');
         });
     });
 
@@ -849,17 +889,19 @@ describe('updateWithExercises', () => {
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue({...MOCK_SESSION, id: 'a'});
+            const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, id: 'a'};
             prismaMock.$transaction.mockImplementation(async (fn: unknown) => {
                 const tx = mockDeep<PrismaClient>();
                 tx.workoutSessionExercise.findMany.mockResolvedValue([]);
                 tx.workoutSessionExercise.createMany.mockResolvedValue({count: 1});
-                tx.workoutSession.update.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, id: 'a'});
+                tx.workoutSession.update.mockResolvedValue(expectedReturn);
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
             expect(result.id).toBe('a');
+            expect(result).toEqual(expectedReturn);
         });
 
         it('updateWithExercises_BVA_oneExercise_returnsUpdatedSessionWithOneExercise', async () => {
@@ -884,6 +926,7 @@ describe('updateWithExercises', () => {
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
             expect(result.exercises).toHaveLength(1);
+            expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
     });
 });
@@ -909,6 +952,7 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Workout session not found');
         });
     });
 
@@ -924,11 +968,11 @@ describe('delete', () => {
         });
 
         it('delete_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
-            const repo = WorkoutSessionRepository.getInstance(prismaMock);
+            const repoActual = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
-            const act = repo.delete(inputId);
+            const act = repoActual.delete(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
         });

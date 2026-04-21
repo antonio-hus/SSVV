@@ -64,8 +64,8 @@ describe('create', () => {
 
             const result = await repo.create(inputExercise);
 
-            expect(result).toBe(expectedReturn);
-            expect(prismaMock.exercise.create).toHaveBeenCalled();
+            expect(result).toEqual(expectedReturn);
+            expect(result.name).toBe(inputExercise.name);
         });
 
         it('create_EC_duplicateExerciseName_throwsConflictError', async () => {
@@ -76,6 +76,7 @@ describe('create', () => {
             const act = repo.create(inputExercise);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise name already in use');
         });
     });
 });
@@ -89,6 +90,7 @@ describe('findById', () => {
 
             const result = await repo.findById(inputId);
 
+            expect(result).toEqual(MOCK_EXERCISE);
             expect(result.id).toBe(inputId);
         });
 
@@ -100,6 +102,7 @@ describe('findById', () => {
             const act = repo.findById(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
     });
 
@@ -133,6 +136,7 @@ describe('findById', () => {
             const result = await repo.findById(inputId);
 
             expect(result.id).toBe('a');
+            expect(result).toEqual(expectedReturn);
         });
     });
 });
@@ -148,7 +152,8 @@ describe('findAll', () => {
             const result = await repo.findAll();
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].isActive).toBe(true);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
+            expect(result.total).toBe(1);
         });
 
         it('findAll_EC_includeInactiveFalse_returnsOnlyActiveExercises', async () => {
@@ -161,7 +166,8 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
-            expect(result.items[0].isActive).toBe(true);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
+            expect(result.total).toBe(1);
         });
 
         it('findAll_EC_includeInactiveTrue_returnsAllExercises', async () => {
@@ -175,6 +181,8 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(inactiveExercise);
             expect(result.total).toBe(2);
         });
 
@@ -189,6 +197,7 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(1);
             expect(result.items[0].muscleGroup).toBe(MuscleGroup.BACK);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE_BACK);
         });
 
         it('findAll_EC_withSearchAndMuscleGroupFilter_returnsMatchingItems', async () => {
@@ -202,18 +211,22 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(1);
             expect(result.items[0].muscleGroup).toBe(MuscleGroup.CHEST);
+            expect(result.items[0].name).toContain('Bench');
         });
 
         it('findAll_EC_multipleExercises_returnsExercisesOrderedByNameAscending', async () => {
             const repo = ExerciseRepository.getInstance(prismaMock);
+            const exerciseA = {...MOCK_EXERCISE, id: 'a', name: 'A Exercise'};
+            const exerciseB = {...MOCK_EXERCISE, id: 'b', name: 'B Exercise'};
             mockTransaction();
-            prismaMock.exercise.findMany.mockResolvedValue([MOCK_EXERCISE_BACK, MOCK_EXERCISE]);
+            prismaMock.exercise.findMany.mockResolvedValue([exerciseA, exerciseB]);
             prismaMock.exercise.count.mockResolvedValue(2);
 
             const result = await repo.findAll();
 
-            expect(result.items[0].name).toBe('Deadlift');
-            expect(result.items[1].name).toBe('Standard Bench Press');
+            expect(result.items).toHaveLength(2);
+            expect(result.items[0].name).toBe('A Exercise');
+            expect(result.items[1].name).toBe('B Exercise');
         });
 
         it('findAll_EC_noSearchNoMuscleGroup_returnsAllActiveExercises', async () => {
@@ -227,6 +240,8 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(MOCK_EXERCISE_BACK);
         });
     });
 
@@ -241,6 +256,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_searchEmpty_returnsItems', async () => {
@@ -253,6 +269,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(2);
+            expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_searchOneCharacter_returnsMatchingItems', async () => {
@@ -265,6 +282,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('findAll_BVA_muscleGroupChest_returnsMatchingItems', async () => {
@@ -290,6 +308,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_muscleGroupArms_returnsMatchingItems', async () => {
@@ -302,6 +321,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_muscleGroupBack_returnsMatchingItems', async () => {
@@ -327,6 +347,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_muscleGroupLegs_returnsMatchingItems', async () => {
@@ -339,6 +360,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_muscleGroupInvalid_returnsEmptyResult', async () => {
@@ -352,6 +374,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(0);
+            expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_includeInactiveUndefined_defaultsToActiveOnly', async () => {
@@ -392,6 +415,8 @@ describe('findAll', () => {
 
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
+            expect(result.items).toContainEqual(MOCK_EXERCISE);
+            expect(result.items).toContainEqual(inactiveExercise);
         });
 
         it('findAll_BVA_pageUndefined_returnsFirstPage', async () => {
@@ -404,6 +429,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('findAll_BVA_page0_returnsFirstPage', async () => {
@@ -416,6 +442,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('findAll_BVA_page1_returnsFirstPage', async () => {
@@ -428,6 +455,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('findAll_BVA_page2_returnsSecondPage', async () => {
@@ -440,6 +468,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE_BACK);
             expect(result.total).toBe(11);
         });
 
@@ -453,6 +482,7 @@ describe('findAll', () => {
             const result = await repo.findAll(inputOptions);
 
             expect(result.items).toHaveLength(1);
+            expect(result.items[0]).toEqual(MOCK_EXERCISE);
         });
 
         it('findAll_BVA_pageSize0_returnsNoItems', async () => {
@@ -489,12 +519,14 @@ describe('update', () => {
             const repo = ExerciseRepository.getInstance(prismaMock);
             const inputId = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'Updated Bench Press'};
+            const expectedReturn = {...MOCK_EXERCISE, name: inputData.name!};
             prismaMock.exercise.findUnique.mockResolvedValueOnce(MOCK_EXERCISE).mockResolvedValueOnce(null);
-            prismaMock.exercise.update.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name!});
+            prismaMock.exercise.update.mockResolvedValue(expectedReturn);
 
             const result = await repo.update(inputId, inputData);
 
             expect(result.name).toBe(inputData.name);
+            expect(result).toEqual(expectedReturn);
         });
 
         it('update_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -506,6 +538,7 @@ describe('update', () => {
             const act = repo.update(inputId, inputData);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
 
         it('update_EC_duplicateExerciseName_throwsConflictError', async () => {
@@ -519,6 +552,7 @@ describe('update', () => {
             const act = repo.update(inputId, inputData);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise name already in use');
         });
     });
 
@@ -558,6 +592,7 @@ describe('update', () => {
 
             expect(result.id).toBe('a');
             expect(result.description).toBe('Updated description');
+            expect(result).toEqual(updated);
         });
 
         it('update_BVA_nameUndefined_updatesSuccessfully', async () => {
@@ -570,7 +605,7 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_nameEmpty_updatesSuccessfully', async () => {
@@ -583,7 +618,8 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
+            expect(result.name).toBe('');
         });
 
         it('update_BVA_nameOneChar_updatesSuccessfully', async () => {
@@ -598,7 +634,8 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
+            expect(result.name).toBe('a');
         });
 
         it('update_BVA_descriptionUndefined_updatesSuccessfully', async () => {
@@ -611,7 +648,7 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_descriptionEmpty_updatesSuccessfully', async () => {
@@ -624,7 +661,8 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
+            expect(result.description).toBe('');
         });
 
         it('update_BVA_descriptionOneChar_updatesSuccessfully', async () => {
@@ -637,7 +675,8 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
+            expect(result.description).toBe('a');
         });
 
         it('update_BVA_muscleGroupUndefined_updatesSuccessfully', async () => {
@@ -650,7 +689,7 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupChest_updatesSuccessfully', async () => {
@@ -664,6 +703,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.CHEST);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupShoulders_updatesSuccessfully', async () => {
@@ -677,6 +717,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.SHOULDERS);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupArms_updatesSuccessfully', async () => {
@@ -690,6 +731,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.ARMS);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupBack_updatesSuccessfully', async () => {
@@ -703,6 +745,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.BACK);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupCore_updatesSuccessfully', async () => {
@@ -716,6 +759,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.CORE);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_muscleGroupLegs_updatesSuccessfully', async () => {
@@ -729,6 +773,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.muscleGroup).toBe(MuscleGroup.LEGS);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_equipmentNeededUndefined_updatesSuccessfully', async () => {
@@ -741,7 +786,7 @@ describe('update', () => {
 
             const result = await repo.update(inputId, inputData);
 
-            expect(result).toBe(expected);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_equipmentNeededCable_updatesSuccessfully', async () => {
@@ -755,6 +800,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.equipmentNeeded).toBe(Equipment.CABLE);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_equipmentNeededDumbbell_updatesSuccessfully', async () => {
@@ -768,6 +814,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.equipmentNeeded).toBe(Equipment.DUMBBELL);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_equipmentNeededBarbell_updatesSuccessfully', async () => {
@@ -781,6 +828,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.equipmentNeeded).toBe(Equipment.BARBELL);
+            expect(result).toEqual(expected);
         });
 
         it('update_BVA_equipmentNeededMachine_updatesSuccessfully', async () => {
@@ -794,6 +842,7 @@ describe('update', () => {
             const result = await repo.update(inputId, inputData);
 
             expect(result.equipmentNeeded).toBe(Equipment.MACHINE);
+            expect(result).toEqual(expected);
         });
     });
 });
@@ -805,11 +854,13 @@ describe('setActive', () => {
             const inputId = EXERCISE_ID;
             const inputIsActive = false;
             prismaMock.exercise.findUnique.mockResolvedValue(MOCK_EXERCISE);
-            prismaMock.exercise.update.mockResolvedValue({...MOCK_EXERCISE, isActive: false});
+            const expected = {...MOCK_EXERCISE, isActive: false};
+            prismaMock.exercise.update.mockResolvedValue(expected);
 
             const result = await repo.setActive(inputId, inputIsActive);
 
             expect(result.isActive).toBe(false);
+            expect(result).toEqual(expected);
         });
 
         it('setActive_EC_existingExerciseSetTrue_activatesExercise', async () => {
@@ -818,11 +869,13 @@ describe('setActive', () => {
             const inputIsActive = true;
             const inactiveExercise = {...MOCK_EXERCISE, isActive: false};
             prismaMock.exercise.findUnique.mockResolvedValue(inactiveExercise);
-            prismaMock.exercise.update.mockResolvedValue({...MOCK_EXERCISE, isActive: true});
+            const expected = {...MOCK_EXERCISE, isActive: true};
+            prismaMock.exercise.update.mockResolvedValue(expected);
 
             const result = await repo.setActive(inputId, inputIsActive);
 
             expect(result.isActive).toBe(true);
+            expect(result).toEqual(expected);
         });
 
         it('setActive_EC_nonExistentExerciseId_throwsNotFoundError', async () => {
@@ -834,6 +887,7 @@ describe('setActive', () => {
             const act = repo.setActive(inputId, inputIsActive);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
     });
 
@@ -873,6 +927,7 @@ describe('setActive', () => {
 
             expect(result.id).toBe('a');
             expect(result.isActive).toBe(false);
+            expect(result).toEqual(updated);
         });
     });
 });
@@ -898,6 +953,7 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(NotFoundError);
+            await expect(act).rejects.toThrow('Exercise not found');
         });
 
         it('delete_EC_exerciseReferencedInWorkoutSession_throwsConflictError', async () => {
@@ -909,6 +965,7 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise is used in existing workout sessions and cannot be deleted');
         });
     });
 
@@ -933,6 +990,7 @@ describe('delete', () => {
             const act = repo.delete(inputId);
 
             await expect(act).rejects.toThrow(ConflictError);
+            await expect(act).rejects.toThrow('Exercise is used in existing workout sessions and cannot be deleted');
         });
 
         it('delete_BVA_emptyId_throwsNotFoundError', async () => {
