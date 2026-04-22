@@ -7,19 +7,65 @@ jest.mock('@/lib/di', () => ({
 import {getMemberProgressReport} from '@/lib/controller/report-controller';
 import {reportService} from '@/lib/di';
 import {NotFoundError} from '@/lib/domain/errors';
-import {Report} from '@/lib/domain/report';
+import {Report, ExerciseStats, SessionDetail} from '@/lib/domain/report';
 import {ActionResult} from "@/lib/domain/action-result";
 
 const reportServiceMock = reportService as unknown as { getMemberProgressReport: jest.Mock };
 
+const MEMBER_ID: string = 'member-uuid-001';
+const START_DATE_STR: string = '2024-01-01';
+const END_DATE_STR: string = '2024-12-31';
+const START_DATE: Date = new Date(START_DATE_STR);
+const END_DATE: Date = new Date(END_DATE_STR);
+
+const MOCK_EXERCISE_STATS: ExerciseStats = {
+    exerciseId: 'ex-uuid-001',
+    exerciseName: 'Bench Press',
+    muscleGroup: 'CHEST',
+    totalSets: 12,
+    totalReps: 120,
+    totalVolume: 6000,
+    sessionCount: 4,
+};
+
+const MOCK_SESSION_DETAIL: SessionDetail = {
+    sessionId: 'sess-uuid-001',
+    date: new Date('2024-06-15'),
+    durationMinutes: 60,
+    notes: 'Good session',
+    totalVolume: 1500,
+    exercises: [
+        {
+            exerciseId: 'ex-uuid-001',
+            exerciseName: 'Bench Press',
+            sets: 3,
+            reps: 10,
+            weight: 50,
+            volume: 1500,
+        }
+    ],
+};
+
 const MOCK_REPORT: Report = {
-    memberId: 'member-001',
-    memberName: 'John Doe',
-    startDate: new Date('2024-01-01'),
-    endDate: new Date('2024-03-31'),
-    totalSessions: 12,
-    totalVolume: 45600,
-    averageSessionDuration: 65,
+    memberId: MEMBER_ID,
+    memberName: 'John Michael Doe',
+    startDate: START_DATE,
+    endDate: END_DATE,
+    totalSessions: 1,
+    totalVolume: 1500,
+    averageSessionDuration: 60,
+    exerciseBreakdown: [MOCK_EXERCISE_STATS],
+    sessionDetails: [MOCK_SESSION_DETAIL],
+};
+
+const EMPTY_REPORT: Report = {
+    memberId: MEMBER_ID,
+    memberName: 'John Michael Doe',
+    startDate: START_DATE,
+    endDate: END_DATE,
+    totalSessions: 0,
+    totalVolume: 0,
+    averageSessionDuration: 0,
     exerciseBreakdown: [],
     sessionDetails: [],
 };
@@ -29,220 +75,288 @@ beforeEach(() => {
 });
 
 describe('getMemberProgressReport', () => {
-    it('getMemberProgressReport_validMemberIdAndDates_returnsSuccessWithReport', async () => {
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
+    describe('Equivalence Classes', () => {
+        it('getMemberProgressReport_EC_allFieldsValid_returnsSuccessWithReport', async () => {
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
 
-        const result: ActionResult<Report> = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+            const result: ActionResult<Report> = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
 
-        expect(result.success).toBe(true);
-        if (result.success) {
-            expect(result.data).toEqual(MOCK_REPORT);
-            expect(result.data.memberId).toBe(inputMemberId);
-        }
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(MOCK_REPORT);
+                expect(result.data.memberId).toBe(MEMBER_ID);
+                expect(result.data.exerciseBreakdown).toHaveLength(1);
+                expect(result.data.sessionDetails).toHaveLength(1);
+            }
+        });
+
+        it('getMemberProgressReport_EC_noSessionsInRange_returnsZeroStats', async () => {
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(EMPTY_REPORT);
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.totalSessions).toBe(0);
+                expect(result.data.totalVolume).toBe(0);
+                expect(result.data.averageSessionDuration).toBe(0);
+                expect(result.data.exerciseBreakdown).toHaveLength(0);
+            }
+        });
+
+        it('getMemberProgressReport_EC_multipleSessions_computesCorrectAggregates', async () => {
+            const multiSessionReport: Report = {
+                ...MOCK_REPORT,
+                totalSessions: 2,
+                totalVolume: 3000,
+                averageSessionDuration: 75,
+                sessionDetails: [
+                    MOCK_SESSION_DETAIL,
+                    {...MOCK_SESSION_DETAIL, sessionId: 'sess-002', durationMinutes: 90}
+                ]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(multiSessionReport);
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.totalSessions).toBe(2);
+                expect(result.data.averageSessionDuration).toBe(75);
+                expect(result.data.totalVolume).toBe(3000);
+            }
+        });
+
+        it('getMemberProgressReport_EC_multipleExercises_aggregatesCorrectly', async () => {
+            const multiExerciseReport: Report = {
+                ...MOCK_REPORT,
+                exerciseBreakdown: [
+                    MOCK_EXERCISE_STATS,
+                    {...MOCK_EXERCISE_STATS, exerciseId: 'ex-002', exerciseName: 'Squat', totalVolume: 8000}
+                ]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(multiExerciseReport);
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseBreakdown).toHaveLength(2);
+                expect(result.data.exerciseBreakdown[1].exerciseName).toBe('Squat');
+            }
+        });
+
+        it('getMemberProgressReport_EC_sortingByVolumeDescending', async () => {
+            const sortedReport: Report = {
+                ...MOCK_REPORT,
+                exerciseBreakdown: [
+                    {...MOCK_EXERCISE_STATS, exerciseId: 'ex-high', totalVolume: 10000},
+                    {...MOCK_EXERCISE_STATS, exerciseId: 'ex-low', totalVolume: 1000}
+                ]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(sortedReport);
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseBreakdown[0].totalVolume).toBeGreaterThan(result.data.exerciseBreakdown[1].totalVolume);
+                expect(result.data.exerciseBreakdown[0].exerciseId).toBe('ex-high');
+            }
+        });
+
+        it('getMemberProgressReport_EC_missingMemberId_returnsValidationError', async () => {
+            const result = await getMemberProgressReport(undefined as unknown as string, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.memberId).toBeDefined();
+            }
+        });
+
+        it('getMemberProgressReport_EC_missingStartDate_returnsValidationError', async () => {
+            const result = await getMemberProgressReport(MEMBER_ID, undefined as unknown as string, END_DATE_STR);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.startDate).toBeDefined();
+            }
+        });
+
+        it('getMemberProgressReport_EC_missingEndDate_returnsValidationError', async () => {
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, undefined as unknown as string);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.endDate).toBeDefined();
+            }
+        });
+
+        it('getMemberProgressReport_EC_startDateWrongFormat_returnsValidationError', async () => {
+            const result = await getMemberProgressReport(MEMBER_ID, '2024.01.01', END_DATE_STR);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.startDate).toBeDefined();
+            }
+        });
+
+        it('getMemberProgressReport_EC_endDateWrongFormat_returnsValidationError', async () => {
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, '12/31/2024');
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.endDate).toBeDefined();
+            }
+        });
+
+        it('getMemberProgressReport_EC_memberNotFound_returnsFailureWithMessage', async () => {
+            reportServiceMock.getMemberProgressReport.mockRejectedValue(new NotFoundError('Member not found'));
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.message).toBe('Member not found');
+            }
+        });
+
+        it('getMemberProgressReport_EC_unexpectedError_returnsGenericFailure', async () => {
+            reportServiceMock.getMemberProgressReport.mockRejectedValue(new Error('Internal failure'));
+
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.message).toBe('An unexpected error occurred');
+            }
+        });
     });
 
-    it('getMemberProgressReport_memberIdAtLowerBoundary1Char_passesValidation', async () => {
-        const inputMemberId = 'x';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
-        const expectedReport = {...MOCK_REPORT, memberId: 'x'};
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
+    describe('Boundary Value Analysis', () => {
+        it('getMemberProgressReport_BVA_memberId0Chars_returnsValidationError', async () => {
+            const result = await getMemberProgressReport('', START_DATE_STR, END_DATE_STR);
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.memberId).toBeDefined();
+            }
+        });
 
-        expect(result.success).toBe(true);
-        if (result.success) {
-            expect(result.data.memberId).toBe('x');
-        }
-    });
+        it('getMemberProgressReport_BVA_memberId1Char_returnsSuccess', async () => {
+            const inputId = 'A';
+            const expectedReport = {...MOCK_REPORT, memberId: inputId};
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
 
-    it('getMemberProgressReport_memberIdBelowLowerBoundary0Chars_returnsValidationError', async () => {
-        const inputMemberId = '';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
+            const result = await getMemberProgressReport(inputId, START_DATE_STR, END_DATE_STR);
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe(inputId);
+            }
+        });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.memberId).toBeDefined();
-        }
-    });
+        it('getMemberProgressReport_BVA_memberId2Chars_returnsSuccess', async () => {
+            const inputId = 'AB';
+            const expectedReport = {...MOCK_REPORT, memberId: inputId};
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
 
-    it('getMemberProgressReport_memberIdWhitespaceOnly_returnsValidationError', async () => {
-        const inputMemberId = '   ';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
+            const result = await getMemberProgressReport(inputId, START_DATE_STR, END_DATE_STR);
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe(inputId);
+            }
+        });
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.memberId).toBeDefined();
-        }
-    });
+        it('getMemberProgressReport_BVA_memberIdWhitespace_returnsValidationError', async () => {
+            const result = await getMemberProgressReport('   ', START_DATE_STR, END_DATE_STR);
 
-    it('getMemberProgressReport_startDateValidIsoFormat_passesValidation', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-06-15';
-        const inputEndDate = '2024-12-31';
-        const expectedReport = {...MOCK_REPORT, startDate: new Date(inputStartDate), endDate: new Date(inputEndDate)};
-        reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.errors?.memberId).toBeDefined();
+            }
+        });
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        it('getMemberProgressReport_BVA_memberIdWithSurroundingWhitespace_parsesSuccessfully', async () => {
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
 
-        expect(result.success).toBe(true);
-        if (result.success) {
-            expect(result.data.startDate).toEqual(new Date(inputStartDate));
-        }
-    });
+            const result = await getMemberProgressReport('  ' + MEMBER_ID + '  ', START_DATE_STR, END_DATE_STR);
 
-    it('getMemberProgressReport_startDateSlashSeparated_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '01/01/2024';
-        const inputEndDate = '2024-03-31';
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.memberId).toBe(MEMBER_ID);
+            }
+        });
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        it('getMemberProgressReport_BVA_startDateSameAsEndDate_returnsSuccess', async () => {
+            const sameDateStr = '2024-06-15';
+            const sameDate = new Date(sameDateStr);
+            const expectedReport = {
+                ...MOCK_REPORT,
+                startDate: sameDate,
+                endDate: sameDate
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(expectedReport);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.startDate).toBeDefined();
-        }
-    });
+            const result = await getMemberProgressReport(MEMBER_ID, sameDateStr, sameDateStr);
 
-    it('getMemberProgressReport_startDateDotSeparated_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '01.01.2024';
-        const inputEndDate = '2024-03-31';
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.startDate).toEqual(sameDate);
+                expect(result.data.endDate).toEqual(sameDate);
+            }
+        });
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        it('getMemberProgressReport_BVA_weightZero_returnsReportWithZeroVolume', async () => {
+            const zeroVolumeReport: Report = {
+                ...MOCK_REPORT,
+                totalVolume: 0,
+                exerciseBreakdown: [{...MOCK_EXERCISE_STATS, totalVolume: 0}],
+                sessionDetails: [{...MOCK_SESSION_DETAIL, totalVolume: 0, exercises: [{...MOCK_SESSION_DETAIL.exercises[0], weight: 0, volume: 0}]}]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(zeroVolumeReport);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.startDate).toBeDefined();
-        }
-    });
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
 
-    it('getMemberProgressReport_startDateFreeText_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = 'not-a-date';
-        const inputEndDate = '2024-03-31';
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.totalVolume).toBe(0);
+                expect(result.data.exerciseBreakdown[0].totalVolume).toBe(0);
+            }
+        });
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        it('getMemberProgressReport_BVA_repsZero_returnsReportWithZeroVolume', async () => {
+            const zeroVolumeReport: Report = {
+                ...MOCK_REPORT,
+                totalVolume: 0,
+                exerciseBreakdown: [{...MOCK_EXERCISE_STATS, totalVolume: 0}],
+                sessionDetails: [{...MOCK_SESSION_DETAIL, totalVolume: 0, exercises: [{...MOCK_SESSION_DETAIL.exercises[0], reps: 0, volume: 0}]}]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(zeroVolumeReport);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.startDate).toBeDefined();
-        }
-    });
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
 
-    it('getMemberProgressReport_startDateEmpty_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '';
-        const inputEndDate = '2024-03-31';
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.totalVolume).toBe(0);
+            }
+        });
 
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
+        it('getMemberProgressReport_BVA_durationZero_returnsReportWithZeroAverageDuration', async () => {
+            const zeroDurationReport: Report = {
+                ...MOCK_REPORT,
+                averageSessionDuration: 0,
+                sessionDetails: [{...MOCK_SESSION_DETAIL, durationMinutes: 0}]
+            };
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(zeroDurationReport);
 
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.startDate).toBeDefined();
-        }
-    });
+            const result = await getMemberProgressReport(MEMBER_ID, START_DATE_STR, END_DATE_STR);
 
-    it('getMemberProgressReport_endDateSlashSeparated_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '31/03/2024';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.endDate).toBeDefined();
-        }
-    });
-
-    it('getMemberProgressReport_endDateDotSeparated_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '31.03.2024';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.endDate).toBeDefined();
-        }
-    });
-
-    it('getMemberProgressReport_endDateFreeText_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = 'not-a-date';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.endDate).toBeDefined();
-        }
-    });
-
-    it('getMemberProgressReport_endDateEmpty_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.endDate).toBeDefined();
-        }
-    });
-
-    it('getMemberProgressReport_bothDatesInvalidFormat_returnsValidationError', async () => {
-        const inputMemberId = 'member-001';
-        const inputStartDate = '01/01/2024';
-        const inputEndDate = '31-03-2024';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.errors?.startDate).toBeDefined();
-            expect(result.errors?.endDate).toBeDefined();
-        }
-    });
-
-    it('getMemberProgressReport_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
-        reportServiceMock.getMemberProgressReport.mockRejectedValue(new NotFoundError('Member not found'));
-        const inputMemberId = 'nonexistent-member';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.message).toBe('Member not found');
-        }
-    });
-
-    it('getMemberProgressReport_serviceThrowsUnexpectedError_returnsGenericFailure', async () => {
-        reportServiceMock.getMemberProgressReport.mockRejectedValue(new Error('DB error'));
-        const inputMemberId = 'member-001';
-        const inputStartDate = '2024-01-01';
-        const inputEndDate = '2024-03-31';
-
-        const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-            expect(result.message).toBe('An unexpected error occurred');
-        }
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.averageSessionDuration).toBe(0);
+            }
+        });
     });
 });
