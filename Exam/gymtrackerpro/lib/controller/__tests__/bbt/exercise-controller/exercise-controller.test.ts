@@ -623,7 +623,7 @@ describe('listExercises', () => {
             }
         });
 
-        it('listExercises_EC_serviceThrowsAppError_returnsFailureWithMessage', async () => {
+        it('listExercises_EC_throwsAppError_returnsFailureWithMessage', async () => {
             exerciseServiceMock.listExercises.mockRejectedValue(new AppError('Service failed'));
 
             const result: ActionResult<PageResult<Exercise>> = await listExercises();
@@ -911,7 +911,7 @@ describe('updateExercise', () => {
             }
         });
 
-        it('updateExercise_EC_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
+        it('updateExercise_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateExerciseInput = {name: 'New Exercise Name'};
             exerciseServiceMock.updateExercise.mockRejectedValue(new NotFoundError('Exercise not found'));

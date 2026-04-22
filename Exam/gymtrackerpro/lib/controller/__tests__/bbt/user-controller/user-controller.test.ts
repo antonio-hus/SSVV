@@ -44,7 +44,6 @@ import {
     deleteMember,
     deleteAdmin
 } from '@/lib/controller/user-controller';
-import {ActionResult} from "@/lib/domain/action-result";
 
 const userServiceMock = userService as unknown as {
     createMember: jest.Mock;
@@ -345,7 +344,7 @@ describe('createMember', () => {
             expect(result.success).toBe(true);
         });
 
-        it('createMember_EC_serviceThrowsConflictError_returnsFailureWithMessage', async () => {
+        it('createMember_EC_throwsConflictError_returnsFailureWithMessage', async () => {
             const inputData = VALID_MEMBER_INPUT;
             userServiceMock.createMember.mockRejectedValue(new ConflictError('Email already registered'));
 
@@ -357,7 +356,7 @@ describe('createMember', () => {
             }
         });
 
-        it('createMember_EC_serviceThrowsTransactionError_returnsFailureWithMessage', async () => {
+        it('createMember_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
             const inputData = VALID_MEMBER_INPUT;
             userServiceMock.createMember.mockRejectedValue(new TransactionError('DB failure'));
 
@@ -691,7 +690,7 @@ describe('createAdmin', () => {
             }
         });
 
-        it('createAdmin_EC_serviceThrowsTransactionError_returnsFailureWithMessage', async () => {
+        it('createAdmin_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
             const inputData = VALID_ADMIN_INPUT;
             userServiceMock.createAdmin.mockRejectedValue(new TransactionError('DB failure'));
 
@@ -874,7 +873,7 @@ describe('listMembers', () => {
             expect(result.success).toBe(true);
         });
 
-        it('listMembers_EC_serviceThrowsAppError_returnsFailureWithMessage', async () => {
+        it('listMembers_EC_throwsAppError_returnsFailureWithMessage', async () => {
             userServiceMock.listMembers.mockRejectedValue(new NotFoundError('Member not found'));
 
             const result = await listMembers();
@@ -1024,7 +1023,7 @@ describe('listAdmins', () => {
             expect(result.success).toBe(true);
         });
 
-        it('listAdmins_EC_serviceThrowsAppError_returnsFailureWithMessage', async () => {
+        it('listAdmins_EC_throwsAppError_returnsFailureWithMessage', async () => {
             userServiceMock.listAdmins.mockRejectedValue(new NotFoundError('Admin not found'));
 
             const result = await listAdmins();
@@ -1162,7 +1161,7 @@ describe('updateMember', () => {
             }
         });
 
-        it('updateMember_EC_serviceThrowsTransactionError_returnsFailureWithMessage', async () => {
+        it('updateMember_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
             const inputId = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: 'Updated Name'};
             userServiceMock.updateMember.mockRejectedValue(new TransactionError('DB failure'));

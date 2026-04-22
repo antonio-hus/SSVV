@@ -257,7 +257,7 @@ describe('createWorkoutSession', () => {
             }
         });
 
-        it('createWorkoutSession_EC_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
+        it('createWorkoutSession_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new NotFoundError('Member not found'));
@@ -270,7 +270,7 @@ describe('createWorkoutSession', () => {
             }
         });
 
-        it('createWorkoutSession_EC_serviceThrowsTransactionError_returnsFailureWithMessage', async () => {
+        it('createWorkoutSession_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new TransactionError('DB failure'));
@@ -799,7 +799,7 @@ describe('listMemberWorkoutSessions', () => {
             }
         });
 
-        it('listMemberWorkoutSessions_EC_serviceThrowsAppError_returnsFailureWithMessage', async () => {
+        it('listMemberWorkoutSessions_EC_throwsAppError_returnsFailureWithMessage', async () => {
             const inputId = MEMBER_ID;
             workoutSessionServiceMock.listMemberWorkoutSessions.mockRejectedValue(new NotFoundError('Member not found'));
 
@@ -1012,7 +1012,7 @@ describe('updateWorkoutSessionWithExercises', () => {
             }
         });
 
-        it('updateWorkoutSessionWithExercises_EC_serviceThrowsTransactionError_returnsFailureWithMessage', async () => {
+        it('updateWorkoutSessionWithExercises_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = VALID_UPDATE_EXERCISES;

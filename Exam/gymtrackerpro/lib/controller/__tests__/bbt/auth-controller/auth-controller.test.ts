@@ -89,7 +89,7 @@ describe('login', () => {
         it('login_EC_missingEmail_returnsValidationError', async () => {
             const inputData = {password: 'ValidPass1!'};
 
-            const result: ActionResult<SessionData> = await login(inputData as any);
+            const result: ActionResult<SessionData> = await login(inputData as never);
 
             expect(result.success).toBe(false);
             if (!result.success) {
@@ -100,7 +100,7 @@ describe('login', () => {
         it('login_EC_missingPassword_returnsValidationError', async () => {
             const inputData = {email: 'admin@gymtrackerpro.com'};
 
-            const result: ActionResult<SessionData> = await login(inputData as any);
+            const result: ActionResult<SessionData> = await login(inputData as never);
 
             expect(result.success).toBe(false);
             if (!result.success) {
@@ -152,7 +152,7 @@ describe('login', () => {
             }
         });
 
-        it('login_EC_serviceThrowsAuthorizationError_returnsFailureWithMessage', async () => {
+        it('login_EC_throwsAuthorizationError_returnsFailureWithMessage', async () => {
             const inputData: LoginUserInput = VALID_LOGIN_INPUT;
             authServiceMock.login.mockRejectedValue(new AuthorizationError('Invalid email or password'));
             getSessionMock.mockResolvedValue(makeMockSession());
@@ -165,7 +165,7 @@ describe('login', () => {
             }
         });
 
-        it('login_EC_serviceThrowsNotFoundError_returnsFailureWithMessage', async () => {
+        it('login_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
             const inputData: LoginUserInput = VALID_LOGIN_INPUT;
             authServiceMock.login.mockRejectedValue(new NotFoundError('User not found'));
             getSessionMock.mockResolvedValue(makeMockSession());

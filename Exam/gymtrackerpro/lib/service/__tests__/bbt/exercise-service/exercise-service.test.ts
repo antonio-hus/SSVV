@@ -1,9 +1,9 @@
 import {mock, mockReset} from 'jest-mock-extended';
-import {Equipment, Exercise, MuscleGroup} from '@/lib/domain/exercise';
+import {Equipment, Exercise, ExerciseListOptions, MuscleGroup} from '@/lib/domain/exercise';
 import {ConflictError, NotFoundError} from '@/lib/domain/errors';
 import {ExerciseRepositoryInterface} from '@/lib/repository/exercise-repository-interface';
 import {ExerciseService} from '@/lib/service/exercise-service';
-import {CreateExerciseInput, ExerciseListOptions, UpdateExerciseInput} from "@/lib/schema/exercise-schema";
+import {CreateExerciseInput, UpdateExerciseInput} from "@/lib/schema/exercise-schema";
 
 const mockExerciseRepo = mock<ExerciseRepositoryInterface>();
 
