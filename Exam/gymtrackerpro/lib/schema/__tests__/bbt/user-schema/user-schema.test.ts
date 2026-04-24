@@ -10,8 +10,16 @@ import {
     CreateAdminInput,
     LoginUserInput,
     UpdateMemberInput,
-    UpdateAdminInput,
+    UpdateAdminInput, createUserSchema, CreateUserInput, UpdateUserInput, updateUserSchema,
 } from '@/lib/schema/user-schema';
+
+const VALID_USER: CreateUserInput = {
+    email: 'john.doe@example.com',
+    fullName: 'John Doe Test',
+    phone: '+40712345678',
+    dateOfBirth: '1990-01-15',
+    password: 'SecureP@ss1!',
+};
 
 const VALID_MEMBER: CreateMemberInput = {
     email: 'john.doe@example.com',
@@ -56,6 +64,501 @@ const getTomorrowIso = (): string => {
     d.setDate(d.getDate() + 1);
     return d.toISOString().slice(0, 10);
 };
+
+describe('createUserSchema', () => {
+    describe('Equivalence Classes', () => {
+        it('createUserSchema_EC_allFieldsValid_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputUser);
+            }
+        });
+
+        it('createUserSchema_EC_missingEmail_returnsValidationError', () => {
+            const { email, ...inputUser } = VALID_USER;
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
+        });
+
+        it('createUserSchema_EC_missingFullName_returnsValidationError', () => {
+            const { fullName, ...inputUser } = VALID_USER;
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_EC_missingPhone_returnsValidationError', () => {
+            const { phone, ...inputUser } = VALID_USER;
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
+        });
+
+        it('createUserSchema_EC_missingDateOfBirth_returnsValidationError', () => {
+            const { dateOfBirth, ...inputUser } = VALID_USER;
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+
+        it('createUserSchema_EC_missingPassword_returnsValidationError', () => {
+            const { password, ...inputUser } = VALID_USER;
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_EC_emailInvalidFormat_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                email: 'invalidemail.com'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
+        });
+
+        it('createUserSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                password: 'secure1@pass'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_EC_passwordMissingNumber_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                password: 'SecureP@ss'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                password: 'SecurePass1'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                phone: '0712345678'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
+        });
+
+        it('createUserSchema_EC_dateOfBirthInvalidFormat_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                dateOfBirth: '15-01-1990'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+
+        it('createUserSchema_EC_dateOfBirthInTheFuture_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                dateOfBirth: '2099-01-01'
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+
+        it('createUserSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                fullName: '         '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: '  John Doe Test  '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('John Doe Test');
+            }
+        });
+
+        it('createUserSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                email: '  john.doe@example.com  '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('john.doe@example.com');
+            }
+        });
+
+        it('createUserSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                phone: '  +40712345678  '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
+        });
+    });
+
+    describe('Boundary Value Analysis', () => {
+        it('createUserSchema_BVA_fullNameLength7Chars_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(7)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(8)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(9)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(63)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(64)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                fullName: 'A'.repeat(65)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                fullName: ' '.repeat(8)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: ' ' + 'A'.repeat(8) + ' '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                fullName: ' ' + 'A'.repeat(64) + ' '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
+        });
+
+        it('createUserSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                fullName: ' ' + 'A'.repeat(65) + ' '
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(4)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(5)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUser.password);
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(6)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUser.password);
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(60)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUser.password);
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(61)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUser.password);
+            }
+        });
+
+        it('createUserSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                password: 'P1@' + 'a'.repeat(62)
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('createUserSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
+            const inputUser: CreateUserInput = {
+                ...VALID_USER,
+                dateOfBirth: yesterday
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
+        });
+
+        it('createUserSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                dateOfBirth: getTodayIso()
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+
+        it('createUserSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
+            const inputUser = {
+                ...VALID_USER,
+                dateOfBirth: getTomorrowIso()
+            };
+
+            const result = createUserSchema.safeParse(inputUser);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+    });
+});
 
 describe('createMemberSchema', () => {
     describe('Equivalence Classes', () => {
@@ -1660,6 +2163,454 @@ describe('createAdminSchema', () => {
             };
 
             const result = createAdminSchema.safeParse(inputAdmin);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+    });
+});
+
+describe('updateUserSchema', () => {
+    describe('Equivalence Classes', () => {
+        it('updateUserSchema_EC_emptyObject_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {};
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual({});
+            }
+        });
+
+        it('updateUserSchema_EC_validEmail_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                email: 'new@example.com'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('new@example.com');
+            }
+        });
+
+        it('updateUserSchema_EC_validFullName_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'Updated Name Test'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Name Test');
+            }
+        });
+
+        it('updateUserSchema_EC_validPhone_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                phone: '+40712345678'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
+        });
+
+        it('updateUserSchema_EC_validPassword_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'NewP@ss1'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe('NewP@ss1');
+            }
+        });
+
+        it('updateUserSchema_EC_validDateOfBirth_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
+            const inputUpdate: UpdateUserInput = {
+                dateOfBirth: yesterday
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
+        });
+
+        it('updateUserSchema_EC_emailInvalidFormat_returnsValidationError', () => {
+            const inputUpdate = {
+                email: 'bad-email'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('email');
+            }
+        });
+
+        it('updateUserSchema_EC_phoneInvalidFormat_returnsValidationError', () => {
+            const inputUpdate = {
+                phone: '0712345678'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('phone');
+            }
+        });
+
+        it('updateUserSchema_EC_passwordMissingUppercase_returnsValidationError', () => {
+            const inputUpdate = {
+                password: 'secure1@pass'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('updateUserSchema_EC_passwordMissingNumber_returnsValidationError', () => {
+            const inputUpdate = {
+                password: 'SecureP@ss'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('updateUserSchema_EC_passwordMissingSpecialChar_returnsValidationError', () => {
+            const inputUpdate = {
+                password: 'SecurePass1'
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('updateUserSchema_EC_fullNameWhitespaceOnly_returnsValidationError', () => {
+            const inputUpdate = {
+                fullName: '         '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('updateUserSchema_EC_fullNameWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: '  Updated Name Test  '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('Updated Name Test');
+            }
+        });
+
+        it('updateUserSchema_EC_emailWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                email: '  new@example.com  '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.email).toBe('new@example.com');
+            }
+        });
+
+        it('updateUserSchema_EC_phoneWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                phone: '  +40712345678  '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.phone).toBe('+40712345678');
+            }
+        });
+    });
+
+    describe('Boundary Value Analysis', () => {
+        it('updateUserSchema_BVA_fullNameLength7Chars_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(7)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameLength8Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(8)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameLength9Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(9)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(9));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameLength63Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(63)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(63));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameLength64Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(64)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameLength65Chars_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: 'A'.repeat(65)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNameWhitespace8Chars_returnsValidationError', () => {
+            const inputUpdate = {
+                fullName: ' '.repeat(8)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNamePadded8CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: ' ' + 'A'.repeat(8) + ' '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(8));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNamePadded64CharsAfterTrim_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: ' ' + 'A'.repeat(64) + ' '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.fullName).toBe('A'.repeat(64));
+            }
+        });
+
+        it('updateUserSchema_BVA_fullNamePadded65CharsAfterTrim_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                fullName: ' ' + 'A'.repeat(65) + ' '
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('fullName');
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength7Chars_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(4)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength8Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(5)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength9Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(6)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength63Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(60)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength64Chars_parsesSuccessfully', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(61)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.password).toBe(inputUpdate.password);
+            }
+        });
+
+        it('updateUserSchema_BVA_passwordLength65Chars_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                password: 'P1@' + 'a'.repeat(62)
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('password');
+            }
+        });
+
+        it('updateUserSchema_BVA_dateOfBirthYesterday_parsesSuccessfully', () => {
+            const yesterday = getYesterdayIso();
+            const inputUpdate: UpdateUserInput = {
+                dateOfBirth: yesterday
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.dateOfBirth).toBe(yesterday);
+            }
+        });
+
+        it('updateUserSchema_BVA_dateOfBirthToday_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                dateOfBirth: getTodayIso()
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('dateOfBirth');
+            }
+        });
+
+        it('updateUserSchema_BVA_dateOfBirthTomorrow_returnsValidationError', () => {
+            const inputUpdate: UpdateUserInput = {
+                dateOfBirth: getTomorrowIso()
+            };
+
+            const result = updateUserSchema.safeParse(inputUpdate);
 
             expect(result.success).toBe(false);
             if (!result.success) {

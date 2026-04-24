@@ -28,8 +28,19 @@ export class UserService implements UserServiceInterface {
     }
 
     /**
-     * Generates a random 16-character temporary password.
-     * Guarantees at least one uppercase letter, one digit, and one special character.
+     * Generates a random 16-character temporary password using crypto.getRandomValues.
+     *
+     * Character pools:
+     *  - Uppercase: A–Z
+     *  - Lowercase: a–z
+     *  - Digits: 0–9
+     *  - Special: !@#$%^&*()-_=+[]{}|;:,.<>?
+     *
+     * Guarantees at least one character from each of the uppercase, digit, and special
+     * pools. The remaining 13 characters are drawn from the union of all four pools.
+     * The final password is shuffled to ensure uniform distribution.
+     *
+     * @returns A 16-character cryptographically random password string.
      */
     private generateTempPassword(): string {
         const LENGTH = 16;

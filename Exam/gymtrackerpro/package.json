@@ -10,7 +10,12 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "generate-bbt-forms": "npx tsx scripts/generate-bbt-forms.ts"
+    "generate-bbt-forms": "npx tsx scripts/generate-bbt-forms.ts",
+    "generate-wbt-forms": "npm run generate-schema-wbt-forms && npm run generate-repository-wbt-forms && npm run generate-service-wbt-forms && npm run generate-utils-wbt-forms",
+    "generate-schema-wbt-forms": "npx tsx scripts/generate-schema-wbt-forms.ts",
+    "generate-repository-wbt-forms": "npx tsx scripts/generate-repository-wbt-forms.ts",
+    "generate-service-wbt-forms": "npx tsx scripts/generate-service-wbt-forms.ts",
+    "generate-utils-wbt-forms": "npx tsx scripts/generate-utils-wbt-forms.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts",
@@ -39,11 +44,13 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@viz-js/viz": "^3.26.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "exceljs": "^4.4.0",

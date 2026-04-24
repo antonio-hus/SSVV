@@ -95,6 +95,49 @@ describe('createMember', () => {
     });
 });
 
+describe('generateTempPassword', () => {
+    const service = UserService.getInstance(mockUserRepo);
+    const SPECIAL_POOL = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+    const ALLOWED_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' + SPECIAL_POOL;
+    const allowedSet = new Set(ALLOWED_POOL.split(''));
+    const specialSet = new Set(SPECIAL_POOL.split(''));
+
+    const generate = () => (service as any).generateTempPassword() as string;
+
+    describe('Equivalence Classes', () => {
+        it('generateTempPassword_EC_outputLength_returnsStringOfLength16', () => {
+            const result = generate();
+
+            expect(typeof result).toBe('string');
+            expect(result).toHaveLength(16);
+        });
+
+        it('generateTempPassword_EC_containsUppercase_returnsStringWithAtLeastOneUppercaseLetter', () => {
+            const result = generate();
+
+            expect(/[A-Z]/.test(result)).toBe(true);
+        });
+
+        it('generateTempPassword_EC_containsDigit_returnsStringWithAtLeastOneDigit', () => {
+            const result = generate();
+
+            expect(/[0-9]/.test(result)).toBe(true);
+        });
+
+        it('generateTempPassword_EC_containsSpecialChar_returnsStringWithAtLeastOneSpecialChar', () => {
+            const result = generate();
+
+            expect(result.split('').some((ch) => specialSet.has(ch))).toBe(true);
+        });
+
+        it('generateTempPassword_EC_allCharsAllowed_returnsStringWithOnlyAllowedChars', () => {
+            const result = generate();
+
+            expect(result.split('').every((ch) => allowedSet.has(ch))).toBe(true);
+        });
+    });
+});
+
 describe('createMemberWithTempPassword', () => {
     describe('Equivalence Classes', () => {
         it('createMemberWithTempPassword_EC_validData_returnsMemberWithTempPassword', async () => {

@@ -548,8 +548,41 @@ const createMemberSvcBbt: BbtDescriptor = {
     ],
 };
 
-const createMemberWithTempPwdBbt: BbtDescriptor = {
+const generateTempPasswordBbt: BbtDescriptor = {
     reqId: 'SERV-03',
+    tcCount: 5,
+    statement: 'generateTempPassword – Generates a random 16-character temporary password. Always returns a string of exactly 16 characters containing at least one uppercase letter (A–Z), at least one digit (0–9), and at least one special character from the set !@#$%^&*()-_=+[]{}|;:,.<>?. All characters are drawn from the union of uppercase, lowercase, digit, and special pools.',
+    data: 'Input: none',
+    precondition: 'Method is called on a valid service instance. crypto.getRandomValues is available in the runtime environment.',
+    results: 'Output: string of exactly 16 characters',
+    postcondition: 'Returned string has length 16, contains at least one uppercase letter, at least one digit, at least one special character, and every character belongs to the allowed pool (A–Z, a–z, 0–9, !@#$%^&*()-_=+[]{}|;:,.<>?).',
+    ecRows: [
+        { number: 1, condition: 'Output length',           validEc: 'Returned string has exactly 16 characters → length === 16', invalidEc: '' },
+        { number: 2, condition: 'Uppercase presence',      validEc: 'Returned string contains at least one character matching /[A-Z]/', invalidEc: '' },
+        { number: 3, condition: 'Digit presence',          validEc: 'Returned string contains at least one character matching /[0-9]/', invalidEc: '' },
+        { number: 4, condition: 'Special char presence',   validEc: 'Returned string contains at least one character from the special pool (!@#$%^&*()-_=+[]{}|;:,.<>?)', invalidEc: '' },
+        { number: 5, condition: 'Character pool validity', validEc: 'Every character in the returned string belongs to the allowed pool (A–Z, a–z, 0–9, special)', invalidEc: '' },
+    ],
+    epTcRows: [
+        { noTc: 1, ec: 'EC-1', inputData: 'no input', expected: 'returned string has length exactly 16' },
+        { noTc: 2, ec: 'EC-2', inputData: 'no input', expected: 'returned string contains at least one uppercase letter [A-Z]' },
+        { noTc: 3, ec: 'EC-3', inputData: 'no input', expected: 'returned string contains at least one digit [0-9]' },
+        { noTc: 4, ec: 'EC-4', inputData: 'no input', expected: 'returned string contains at least one special character from the defined pool' },
+        { noTc: 5, ec: 'EC-5', inputData: 'no input', expected: 'every character in the returned string belongs to the allowed pool' },
+    ],
+    bvaRows: [],
+    bvaTcRows: [],
+    finalTcRows: [
+        { noTc: 1, fromEc: 'EC-1', fromBva: '', inputData: 'no input', expected: 'returned string has length exactly 16' },
+        { noTc: 2, fromEc: 'EC-2', fromBva: '', inputData: 'no input', expected: 'returned string contains at least one uppercase letter [A-Z]' },
+        { noTc: 3, fromEc: 'EC-3', fromBva: '', inputData: 'no input', expected: 'returned string contains at least one digit [0-9]' },
+        { noTc: 4, fromEc: 'EC-4', fromBva: '', inputData: 'no input', expected: 'returned string contains at least one special character from the defined pool' },
+        { noTc: 5, fromEc: 'EC-5', fromBva: '', inputData: 'no input', expected: 'every character in the returned string belongs to the allowed pool' },
+    ],
+};
+
+const createMemberWithTempPwdBbt: BbtDescriptor = {
+    reqId: 'SERV-04',
     tcCount: 4,
     statement: 'UserService.createMemberWithTempPassword(data) – Creates a new member account and generates a temporary password. Returns MemberWithUserAndTempPassword on success. Throws ConflictError if the email is already registered.',
     data: 'Input: CreateMemberWithTempPasswordInput { email, fullName, phone, dateOfBirth, membershipStart }',
@@ -641,7 +674,7 @@ const createMemberWithTempPwdBbt: BbtDescriptor = {
 };
 
 const createAdminSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-04',
+    reqId: 'SERV-05',
     tcCount: 3,
     statement: 'UserService.createAdmin(data) – Creates a new admin account. Returns AdminWithUser on success. Throws ConflictError if the email is already registered. Throws TransactionError if the write fails.',
     data: 'Input: CreateAdminInput { email, password, fullName, phone, dateOfBirth }',
@@ -712,7 +745,7 @@ const createAdminSvcBbt: BbtDescriptor = {
 };
 
 const getMemberSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-05',
+    reqId: 'SERV-06',
     tcCount: 5,
     statement: 'UserService.getMember(memberId) – Retrieves a member by ID. Returns MemberWithUser on success. Throws NotFoundError if no member exists with the given ID.',
     data: 'Input: memberId: string',
@@ -797,7 +830,7 @@ const getMemberSvcBbt: BbtDescriptor = {
 };
 
 const getAdminSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-06',
+    reqId: 'SERV-07',
     tcCount: 5,
     statement: 'UserService.getAdmin(adminId) – Retrieves an admin by ID. Returns AdminWithUser on success. Throws NotFoundError if no admin exists with the given ID.',
     data: 'Input: adminId: string',
@@ -882,7 +915,7 @@ const getAdminSvcBbt: BbtDescriptor = {
 };
 
 const listMembersSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-07',
+    reqId: 'SERV-08',
     tcCount: 14,
     statement: 'UserService.listMembers(options) – Returns a paginated list of members. Supports optional filtering by search term, pagination by page number and page size. Results are ordered by fullName ascending. Returns an empty list when no members exist.',
     data: 'Input: MemberListOptions { search?: string, page?: number, pageSize?: number }',
@@ -1067,7 +1100,7 @@ const listMembersSvcBbt: BbtDescriptor = {
 };
 
 const listAdminsSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-08',
+    reqId: 'SERV-09',
     tcCount: 14,
     statement: 'UserService.listAdmins(options) – Returns a paginated list of admins. Supports optional filtering by search term, pagination by page number and page size. Results are ordered by fullName ascending. Returns an empty list when no admins exist.',
     data: 'Input: AdminListOptions { search?: string, page?: number, pageSize?: number }',
@@ -1252,7 +1285,7 @@ const listAdminsSvcBbt: BbtDescriptor = {
 };
 
 const updateMemberSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-09',
+    reqId: 'SERV-10',
     tcCount: 27,
     statement: 'UserService.updateMember(id, data) – Updates an existing member by ID with the provided fields. Returns the updated MemberWithUser on success. Throws NotFoundError if no member exists with the given ID. Throws ConflictError if the new email is already registered by another user. Throws TransactionError if the write fails.',
     data: 'Input: id: string, UpdateMemberInput { email?, password?, fullName?, phone?, dateOfBirth?, membershipStart? }',
@@ -1495,7 +1528,7 @@ const updateMemberSvcBbt: BbtDescriptor = {
 };
 
 const updateAdminSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-10',
+    reqId: 'SERV-11',
     tcCount: 24,
     statement: 'UserService.updateAdmin(id, data) – Updates an existing admin by ID with the provided fields. Returns the updated AdminWithUser on success. Throws NotFoundError if no admin exists with the given ID. Throws ConflictError if the new email is already registered by another user. Throws TransactionError if the write fails.',
     data: 'Input: id: string, UpdateAdminInput { email?, password?, fullName?, phone?, dateOfBirth? }',
@@ -1706,7 +1739,7 @@ const updateAdminSvcBbt: BbtDescriptor = {
     ],
 };
 const suspendMemberSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-11',
+    reqId: 'SERV-12',
     tcCount: 5,
     statement: 'UserService.suspendMember(id) – Sets the member\'s active status to false. Returns the updated MemberWithUser on success. Throws NotFoundError if no member exists with the given ID.',
     data: 'Input: id: string',
@@ -1791,7 +1824,7 @@ const suspendMemberSvcBbt: BbtDescriptor = {
 };
 
 const activateMemberSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-12',
+    reqId: 'SERV-13',
     tcCount: 5,
     statement: 'UserService.activateMember(id) – Sets the member\'s active status to true. Returns the updated MemberWithUser on success. Throws NotFoundError if no member exists with the given ID.',
     data: 'Input: id: string',
@@ -1876,7 +1909,7 @@ const activateMemberSvcBbt: BbtDescriptor = {
 };
 
 const deleteMemberSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-13',
+    reqId: 'SERV-14',
     tcCount: 5,
     statement: 'UserService.deleteMember(id) – Deletes a member by ID. Resolves with void on success. Throws NotFoundError if no member exists with the given ID.',
     data: 'Input: id: string',
@@ -1923,7 +1956,7 @@ const deleteMemberSvcBbt: BbtDescriptor = {
 };
 
 const deleteAdminSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-14',
+    reqId: 'SERV-15',
     tcCount: 5,
     statement: 'UserService.deleteAdmin(id) – Deletes an admin by ID. Resolves with void on success. Throws NotFoundError if no admin exists with the given ID.',
     data: 'Input: id: string',
@@ -1972,7 +2005,7 @@ const deleteAdminSvcBbt: BbtDescriptor = {
 // ── exercise-service ───────────────────────────────────────────────────────────
 
 const createExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-15',
+    reqId: 'SERV-16',
     tcCount: 3,
     statement: 'ExerciseService.createExercise(data) – Creates a new exercise. Returns the created Exercise on success. Throws ConflictError if an exercise with the same name already exists.',
     data: 'Input: CreateExerciseInput { name, ...other fields }',
@@ -2036,7 +2069,7 @@ const createExerciseSvcBbt: BbtDescriptor = {
 };
 
 const getExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-16',
+    reqId: 'SERV-17',
     tcCount: 5,
     statement: 'ExerciseService.getExercise(id) – Retrieves an exercise by ID. Returns the Exercise on success. Throws NotFoundError if no exercise exists with the given ID.',
     data: 'Input: id: string',
@@ -2104,7 +2137,7 @@ const getExerciseSvcBbt: BbtDescriptor = {
     ],
 };
 const listExercisesSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-17',
+    reqId: 'SERV-18',
     tcCount: 26,
     statement: 'ExerciseService.listExercises(options) – Returns a paginated list of exercises. Supports optional filtering by search term, muscle group, and active status. Results are ordered by name ascending. By default only active exercises are returned.',
     data: 'Input: ExerciseListOptions { search?: string, muscleGroup?: MuscleGroup, includeInactive?: boolean, page?: number, pageSize?: number }',
@@ -2450,7 +2483,7 @@ const listExercisesSvcBbt: BbtDescriptor = {
     ],
 };
 const updateExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-18',
+    reqId: 'SERV-19',
     tcCount: 24,
     statement: 'ExerciseService.updateExercise(id, data) – Updates an existing exercise. Returns the updated Exercise on success. Throws NotFoundError if no exercise exists with the given ID. Throws ConflictError if the new name is already in use by another exercise.',
     data: 'Input: id: string, data: UpdateExerciseInput { name?, description?, muscleGroup?, equipmentNeeded? }',
@@ -2798,7 +2831,7 @@ const updateExerciseSvcBbt: BbtDescriptor = {
 };
 
 const archiveExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-19',
+    reqId: 'SERV-20',
     tcCount: 5,
     statement: 'ExerciseService.archiveExercise(id) – Sets the exercise\'s active status to false. Returns the updated Exercise on success. Throws NotFoundError if no exercise exists with the given ID.',
     data: 'Input: id: string',
@@ -2883,7 +2916,7 @@ const archiveExerciseSvcBbt: BbtDescriptor = {
 };
 
 const unarchiveExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-20',
+    reqId: 'SERV-21',
     tcCount: 5,
     statement: 'ExerciseService.unarchiveExercise(id) – Sets the exercise\'s active status to true. Returns the updated Exercise on success. Throws NotFoundError if no exercise exists with the given ID.',
     data: 'Input: id: string',
@@ -2968,7 +3001,7 @@ const unarchiveExerciseSvcBbt: BbtDescriptor = {
 };
 
 const deleteExerciseSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-21',
+    reqId: 'SERV-22',
     tcCount: 8,
     statement: 'ExerciseService.deleteExercise(id) – Deletes an exercise by ID. Resolves with void if the exercise exists and is not referenced. Throws NotFoundError if no exercise exists. Throws ConflictError if the exercise is referenced by workout sessions.',
     data: 'Input: id: string',
@@ -3096,7 +3129,7 @@ const deleteExerciseSvcBbt: BbtDescriptor = {
 
 // ── workout-session-service ────────────────────────────────────────────────────
 const createWorkoutSessionSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-22',
+    reqId: 'SERV-23',
     tcCount: 9,
     statement: 'WorkoutSessionService.createWorkoutSession(data, exercises) – Creates a new workout session with the provided exercises. Returns the created WorkoutSessionWithExercises on success. Throws WorkoutSessionRequiresExercisesError if exercises array is empty. Throws NotFoundError if member is not found. Throws TransactionError if the DB write fails.',
     data: 'Input: data: CreateWorkoutSessionInput, exercises: WorkoutSessionExerciseInput[]',
@@ -3268,7 +3301,7 @@ const createWorkoutSessionSvcBbt: BbtDescriptor = {
 };
 
 const getWorkoutSessionSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-23',
+    reqId: 'SERV-24',
     tcCount: 5,
     statement: 'WorkoutSessionService.getWorkoutSession(id) – Retrieves a workout session with its exercises by ID. Returns the WorkoutSessionWithExercises on success. Throws NotFoundError if no session exists with the given ID.',
     data: 'Input: id: string',
@@ -3352,7 +3385,7 @@ const getWorkoutSessionSvcBbt: BbtDescriptor = {
     ],
 };
 const listMemberWorkoutSessionsSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-24',
+    reqId: 'SERV-25',
     tcCount: 14,
     statement: 'WorkoutSessionService.listMemberWorkoutSessions(memberId, options) – Returns a paginated list of workout sessions for a member. Supports optional filtering by start/end date and pagination. Results may be ordered by date ascending or descending.',
     data: 'Input: memberId: string, options?: WorkoutSessionListOptions { startDate?, endDate?, page?, pageSize? }',
@@ -3608,7 +3641,7 @@ const listMemberWorkoutSessionsSvcBbt: BbtDescriptor = {
 };
 
 const updateWorkoutSessionSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-25',
+    reqId: 'SERV-26',
     tcCount: 5,
     statement: 'WorkoutSessionService.updateWorkoutSession(id, data) – Updates an existing workout session. Returns the updated WorkoutSession on success. Throws NotFoundError if no session exists with the given ID.',
     data: 'Input: id: string, data: UpdateWorkoutSessionInput',
@@ -3702,7 +3735,7 @@ const updateWorkoutSessionSvcBbt: BbtDescriptor = {
     ],
 };
 const updateWorkoutSessionWithExercisesSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-26',
+    reqId: 'SERV-27',
     tcCount: 9,
     statement: 'WorkoutSessionService.updateWorkoutSessionWithExercises(id, data, exercises) – Updates a workout session and its exercises atomically. Returns the updated WorkoutSessionWithExercises on success. Throws WorkoutSessionRequiresExercisesError if exercises array is empty. Throws NotFoundError if no session exists with the given ID. Throws TransactionError if the DB write fails.',
     data: 'Input: id: string, data: UpdateWorkoutSessionInput, exercises: WorkoutSessionExerciseUpdateInput[]',
@@ -3874,7 +3907,7 @@ const updateWorkoutSessionWithExercisesSvcBbt: BbtDescriptor = {
 };
 
 const deleteWorkoutSessionSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-27',
+    reqId: 'SERV-28',
     tcCount: 5,
     statement: 'WorkoutSessionService.deleteWorkoutSession(id) – Deletes a workout session by ID. Resolves with void on success. Throws NotFoundError if no session exists with the given ID.',
     data: 'Input: id: string',
@@ -3950,7 +3983,7 @@ const deleteWorkoutSessionSvcBbt: BbtDescriptor = {
 
 // ── report-service ─────────────────────────────────────────────────────────────
 const getMemberProgressReportSvcBbt: BbtDescriptor = {
-    reqId: 'SERV-28',
+    reqId: 'SERV-29',
     tcCount: 12,
     statement: 'ReportService.getMemberProgressReport(memberId, startDate, endDate) – Generates a progress report for a member over a date range. Returns a report with memberId, memberName, totalSessions, totalVolume, averageSessionDuration, exerciseBreakdown (sorted by totalVolume DESC), sessionDetails, startDate, and endDate. Throws NotFoundError if the member does not exist.',
     data: 'Input: memberId: string, startDate: Date, endDate: Date',
@@ -4170,6 +4203,7 @@ async function main() {
 
     await writeBbt(loginBbt, path.join(AUTH_SVC, 'login-bbt-form.xlsx'));
     await writeBbt(createMemberSvcBbt, path.join(USER_SVC, 'createMember-bbt-form.xlsx'));
+    await writeBbt(generateTempPasswordBbt, path.join(USER_SVC, 'generateTempPassword-bbt-form.xlsx'));
     await writeBbt(createMemberWithTempPwdBbt, path.join(USER_SVC, 'createMemberWithTempPassword-bbt-form.xlsx'));
     await writeBbt(createAdminSvcBbt, path.join(USER_SVC, 'createAdmin-bbt-form.xlsx'));
     await writeBbt(getMemberSvcBbt, path.join(USER_SVC, 'getMember-bbt-form.xlsx'));

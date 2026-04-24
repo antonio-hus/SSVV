@@ -317,8 +317,144 @@ async function writeBbt(descriptor: BbtDescriptor, outputPath: string): Promise<
 
 const BASE = path.join(ROOT, 'lib', 'schema', '__tests__', 'bbt');
 
-const createMemberSchemaBbt: BbtDescriptor = {
+const createUserSchemaBbt: BbtDescriptor = {
     reqId: 'SCHEMA-01',
+    tcCount: 38,
+    statement: 'createUserSchema – Validates the input for creating a user using Zod safeParse. Returns { success: true, data } when all fields satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field on any violation. Required fields: email (valid email format), fullName (8–64 characters after trimming, not whitespace-only), phone (E.164 format: +[1-9]\\d{1,14}), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character). Surrounding whitespace is trimmed from fullName, email, and phone before validation.',
+    data: 'Input: { email: string, fullName: string, phone: string, dateOfBirth: string, password: string }',
+    precondition: 'Input is passed directly to createUserSchema.safeParse(). fullName rules: 8–64 characters after trim, not whitespace-only. password rules: 8–64 characters with at least one uppercase letter, one digit, and one special character. dateOfBirth: YYYY-MM-DD, strictly before today (yesterday is valid, today is not).',
+    results: 'Output: { success: boolean, data?: CreateUserInput, error?: ZodError }',
+    postcondition: 'On success: parsed data matches the (trimmed) input. On failure: error.issues[0].path contains the name of the offending field.',
+    ecRows: [
+        { number: 1,  condition: 'Input validity',       validEc: 'All fields valid → success: true, parsed data equals input', invalidEc: '' },
+        { number: 2,  condition: 'email presence',       validEc: '', invalidEc: 'email omitted → success: false, error path contains "email"' },
+        { number: 3,  condition: 'fullName presence',    validEc: '', invalidEc: 'fullName omitted → success: false, error path contains "fullName"' },
+        { number: 4,  condition: 'phone presence',       validEc: '', invalidEc: 'phone omitted → success: false, error path contains "phone"' },
+        { number: 5,  condition: 'dateOfBirth presence', validEc: '', invalidEc: 'dateOfBirth omitted → success: false, error path contains "dateOfBirth"' },
+        { number: 6,  condition: 'password presence',    validEc: '', invalidEc: 'password omitted → success: false, error path contains "password"' },
+        { number: 7,  condition: 'email format',         validEc: '', invalidEc: 'email: "invalidemail.com" (missing @) → success: false, error path contains "email"' },
+        { number: 8,  condition: 'password uppercase',   validEc: '', invalidEc: 'password: "secure1@pass" (no uppercase letter) → success: false, error path contains "password"' },
+        { number: 9,  condition: 'password digit',       validEc: '', invalidEc: 'password: "SecureP@ss" (no digit) → success: false, error path contains "password"' },
+        { number: 10, condition: 'password special char',validEc: '', invalidEc: 'password: "SecurePass1" (no special character) → success: false, error path contains "password"' },
+        { number: 11, condition: 'phone format',         validEc: '', invalidEc: 'phone: "0712345678" (no country code prefix) → success: false, error path contains "phone"' },
+        { number: 12, condition: 'dateOfBirth format',   validEc: '', invalidEc: 'dateOfBirth: "15-01-1990" (DD-MM-YYYY, wrong format) → success: false, error path contains "dateOfBirth"' },
+        { number: 13, condition: 'dateOfBirth value',    validEc: '', invalidEc: 'dateOfBirth: "2099-01-01" (future date) → success: false, error path contains "dateOfBirth"' },
+        { number: 14, condition: 'fullName content',     validEc: 'fullName: "  John Doe Test  " (surrounding whitespace) → success: true, parsed fullName is "John Doe Test"', invalidEc: 'fullName: "         " (whitespace-only) → success: false, error path contains "fullName"' },
+        { number: 15, condition: 'email whitespace',     validEc: 'email: "  john.doe@example.com  " (surrounding whitespace) → success: true, parsed email is "john.doe@example.com"', invalidEc: '' },
+        { number: 16, condition: 'phone whitespace',     validEc: 'phone: "  +40712345678  " (surrounding whitespace) → success: true, parsed phone is "+40712345678"', invalidEc: '' },
+    ],
+    epTcRows: [
+        { noTc: 1,  ec: 'EC-1',  inputData: 'all required fields provided with valid values',                                                                          expected: 'success: true, parsed data equals input' },
+        { noTc: 2,  ec: 'EC-2',  inputData: 'valid user data with email field omitted',                                                                                expected: 'success: false, error path contains "email"' },
+        { noTc: 3,  ec: 'EC-3',  inputData: 'valid user data with fullName field omitted',                                                                             expected: 'success: false, error path contains "fullName"' },
+        { noTc: 4,  ec: 'EC-4',  inputData: 'valid user data with phone field omitted',                                                                                expected: 'success: false, error path contains "phone"' },
+        { noTc: 5,  ec: 'EC-5',  inputData: 'valid user data with dateOfBirth field omitted',                                                                          expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 6,  ec: 'EC-6',  inputData: 'valid user data with password field omitted',                                                                             expected: 'success: false, error path contains "password"' },
+        { noTc: 7,  ec: 'EC-7',  inputData: 'valid user data with email: "invalidemail.com" (missing @)',                                                              expected: 'success: false, error path contains "email"' },
+        { noTc: 8,  ec: 'EC-8',  inputData: 'valid user data with password: "secure1@pass" (no uppercase letter)',                                                     expected: 'success: false, error path contains "password"' },
+        { noTc: 9,  ec: 'EC-9',  inputData: 'valid user data with password: "SecureP@ss" (no digit)',                                                                  expected: 'success: false, error path contains "password"' },
+        { noTc: 10, ec: 'EC-10', inputData: 'valid user data with password: "SecurePass1" (no special character)',                                                     expected: 'success: false, error path contains "password"' },
+        { noTc: 11, ec: 'EC-11', inputData: 'valid user data with phone: "0712345678" (no country code prefix)',                                                       expected: 'success: false, error path contains "phone"' },
+        { noTc: 12, ec: 'EC-12', inputData: 'valid user data with dateOfBirth: "15-01-1990" (DD-MM-YYYY, wrong format)',                                               expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 13, ec: 'EC-13', inputData: 'valid user data with dateOfBirth: "2099-01-01" (future date)',                                                            expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 14, ec: 'EC-14', inputData: 'valid user data with fullName: "         " (whitespace-only)',                                                            expected: 'success: false, error path contains "fullName"' },
+        { noTc: 15, ec: 'EC-14', inputData: 'valid user data with fullName: "  John Doe Test  " (surrounding whitespace)',                                             expected: 'success: true, parsed fullName is "John Doe Test"' },
+        { noTc: 16, ec: 'EC-15', inputData: 'valid user data with email: "  john.doe@example.com  " (surrounding whitespace)',                                         expected: 'success: true, parsed email is "john.doe@example.com"' },
+        { noTc: 17, ec: 'EC-16', inputData: 'valid user data with phone: "  +40712345678  " (surrounding whitespace)',                                                 expected: 'success: true, parsed phone is "+40712345678"' },
+    ],
+    bvaRows: [
+        // ── fullName length ───────────────────────────────────────────────────
+        { number: 1,  condition: 'fullName length', testCase: 'fullName: "A".repeat(7) (min - 1): below minimum → success: false' },
+        { number: 2,  condition: 'fullName length', testCase: 'fullName: "A".repeat(8) (min): at minimum → success: true, parsed fullName is "A".repeat(8)' },
+        { number: 3,  condition: 'fullName length', testCase: 'fullName: "A".repeat(9) (min + 1): above minimum → success: true, parsed fullName is "A".repeat(9)' },
+        { number: 4,  condition: 'fullName length', testCase: 'fullName: "A".repeat(63) (max - 1): below maximum → success: true, parsed fullName is "A".repeat(63)' },
+        { number: 5,  condition: 'fullName length', testCase: 'fullName: "A".repeat(64) (max): at maximum → success: true, parsed fullName is "A".repeat(64)' },
+        { number: 6,  condition: 'fullName length', testCase: 'fullName: "A".repeat(65) (max + 1): above maximum → success: false' },
+        // ── password length ───────────────────────────────────────────────────
+        { number: 7,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(4) (length 7, min - 1): below minimum → success: false' },
+        { number: 8,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(5) (length 8, min): at minimum → success: true' },
+        { number: 9,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(6) (length 9, min + 1): above minimum → success: true' },
+        { number: 10, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(60) (length 63, max - 1): below maximum → success: true' },
+        { number: 11, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(61) (length 64, max): at maximum → success: true' },
+        { number: 12, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(62) (length 65, max + 1): above maximum → success: false' },
+        // ── dateOfBirth boundary ──────────────────────────────────────────────
+        { number: 13, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: yesterday (one day before today, YYYY-MM-DD): strictly before today → success: true' },
+        { number: 14, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: today (YYYY-MM-DD): not before today → success: false' },
+        { number: 15, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: tomorrow (one day after today, YYYY-MM-DD): future → success: false' },
+        // ── fullName whitespace + trim ────────────────────────────────────────
+        { number: 16, condition: 'fullName whitespace + trim', testCase: 'fullName: " ".repeat(8) (8 whitespace chars, empty after trim): invalid → success: false' },
+        { number: 17, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(8) + " " (8 real chars after trim, at minimum): → success: true, parsed fullName is "A".repeat(8)' },
+        { number: 18, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(64) + " " (64 real chars after trim, at maximum): → success: true, parsed fullName is "A".repeat(64)' },
+        { number: 19, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(65) + " " (65 real chars after trim, above maximum): → success: false' },
+    ],
+    bvaTcRows: [
+        { noTc: 1,  bva: 'BVA-1  (fullName=7)',    inputData: 'valid user data with fullName: "A".repeat(7) (7 characters)',                                         expected: 'success: false, error path contains "fullName"' },
+        { noTc: 2,  bva: 'BVA-2  (fullName=8)',    inputData: 'valid user data with fullName: "A".repeat(8) (8 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 3,  bva: 'BVA-3  (fullName=9)',    inputData: 'valid user data with fullName: "A".repeat(9) (9 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(9)' },
+        { noTc: 4,  bva: 'BVA-4  (fullName=63)',   inputData: 'valid user data with fullName: "A".repeat(63) (63 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(63)' },
+        { noTc: 5,  bva: 'BVA-5  (fullName=64)',   inputData: 'valid user data with fullName: "A".repeat(64) (64 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 6,  bva: 'BVA-6  (fullName=65)',   inputData: 'valid user data with fullName: "A".repeat(65) (65 characters)',                                       expected: 'success: false, error path contains "fullName"' },
+        { noTc: 7,  bva: 'BVA-7  (pwd=7)',         inputData: 'valid user data with password: "P1@" + "a".repeat(4) (7 characters, meets all rules except minimum length)', expected: 'success: false, error path contains "password"' },
+        { noTc: 8,  bva: 'BVA-8  (pwd=8)',         inputData: 'valid user data with password: "P1@" + "a".repeat(5) (8 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 9,  bva: 'BVA-9  (pwd=9)',         inputData: 'valid user data with password: "P1@" + "a".repeat(6) (9 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 10, bva: 'BVA-10 (pwd=63)',        inputData: 'valid user data with password: "P1@" + "a".repeat(60) (63 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 11, bva: 'BVA-11 (pwd=64)',        inputData: 'valid user data with password: "P1@" + "a".repeat(61) (64 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 12, bva: 'BVA-12 (pwd=65)',        inputData: 'valid user data with password: "P1@" + "a".repeat(62) (65 characters)',                               expected: 'success: false, error path contains "password"' },
+        { noTc: 13, bva: 'BVA-13 (dob=yest)',      inputData: 'valid user data with dateOfBirth set to yesterday (one day before today, YYYY-MM-DD)',                 expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 14, bva: 'BVA-14 (dob=today)',     inputData: 'valid user data with dateOfBirth set to today (YYYY-MM-DD)',                                          expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 15, bva: 'BVA-15 (dob=tmrw)',      inputData: 'valid user data with dateOfBirth set to tomorrow (one day after today, YYYY-MM-DD)',                   expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 16, bva: 'BVA-16 (ws=8)',          inputData: 'valid user data with fullName: " ".repeat(8) (8 whitespace characters, empty after trim)',             expected: 'success: false, error path contains "fullName"' },
+        { noTc: 17, bva: 'BVA-17 (pad→8)',         inputData: 'valid user data with fullName: " " + "A".repeat(8) + " " (8 real characters after trim)',             expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 18, bva: 'BVA-18 (pad→64)',        inputData: 'valid user data with fullName: " " + "A".repeat(64) + " " (64 real characters after trim)',           expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 19, bva: 'BVA-19 (pad→65)',        inputData: 'valid user data with fullName: " " + "A".repeat(65) + " " (65 real characters after trim)',           expected: 'success: false, error path contains "fullName"' },
+    ],
+    finalTcRows: [
+        // ── From EC ──────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 1,  fromEc: 'EC-1',  fromBva: '', inputData: 'all required fields provided with valid values',                                                        expected: 'success: true, parsed data equals input' },
+        { noTc: 2,  fromEc: 'EC-2',  fromBva: '', inputData: 'valid user data with email field omitted',                                                              expected: 'success: false, error path contains "email"' },
+        { noTc: 3,  fromEc: 'EC-3',  fromBva: '', inputData: 'valid user data with fullName field omitted',                                                           expected: 'success: false, error path contains "fullName"' },
+        { noTc: 4,  fromEc: 'EC-4',  fromBva: '', inputData: 'valid user data with phone field omitted',                                                              expected: 'success: false, error path contains "phone"' },
+        { noTc: 5,  fromEc: 'EC-5',  fromBva: '', inputData: 'valid user data with dateOfBirth field omitted',                                                        expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 6,  fromEc: 'EC-6',  fromBva: '', inputData: 'valid user data with password field omitted',                                                           expected: 'success: false, error path contains "password"' },
+        { noTc: 7,  fromEc: 'EC-7',  fromBva: '', inputData: 'valid user data with email: "invalidemail.com" (missing @)',                                            expected: 'success: false, error path contains "email"' },
+        { noTc: 8,  fromEc: 'EC-8',  fromBva: '', inputData: 'valid user data with password: "secure1@pass" (no uppercase letter)',                                   expected: 'success: false, error path contains "password"' },
+        { noTc: 9,  fromEc: 'EC-9',  fromBva: '', inputData: 'valid user data with password: "SecureP@ss" (no digit)',                                                expected: 'success: false, error path contains "password"' },
+        { noTc: 10, fromEc: 'EC-10', fromBva: '', inputData: 'valid user data with password: "SecurePass1" (no special character)',                                   expected: 'success: false, error path contains "password"' },
+        { noTc: 11, fromEc: 'EC-11', fromBva: '', inputData: 'valid user data with phone: "0712345678" (no country code prefix)',                                     expected: 'success: false, error path contains "phone"' },
+        { noTc: 12, fromEc: 'EC-12', fromBva: '', inputData: 'valid user data with dateOfBirth: "15-01-1990" (DD-MM-YYYY, wrong format)',                             expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 13, fromEc: 'EC-13', fromBva: '', inputData: 'valid user data with dateOfBirth: "2099-01-01" (future date)',                                          expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 14, fromEc: 'EC-14', fromBva: '', inputData: 'valid user data with fullName: "         " (whitespace-only)',                                          expected: 'success: false, error path contains "fullName"' },
+        { noTc: 15, fromEc: 'EC-14', fromBva: '', inputData: 'valid user data with fullName: "  John Doe Test  " (surrounding whitespace)',                           expected: 'success: true, parsed fullName is "John Doe Test"' },
+        { noTc: 16, fromEc: 'EC-15', fromBva: '', inputData: 'valid user data with email: "  john.doe@example.com  " (surrounding whitespace)',                       expected: 'success: true, parsed email is "john.doe@example.com"' },
+        { noTc: 17, fromEc: 'EC-16', fromBva: '', inputData: 'valid user data with phone: "  +40712345678  " (surrounding whitespace)',                               expected: 'success: true, parsed phone is "+40712345678"' },
+        // ── From BVA ─────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 18, fromEc: '', fromBva: 'BVA-1',  inputData: 'valid user data with fullName: "A".repeat(7) (7 characters)',                                         expected: 'success: false, error path contains "fullName"' },
+        { noTc: 19, fromEc: '', fromBva: 'BVA-2',  inputData: 'valid user data with fullName: "A".repeat(8) (8 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 20, fromEc: '', fromBva: 'BVA-3',  inputData: 'valid user data with fullName: "A".repeat(9) (9 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(9)' },
+        { noTc: 21, fromEc: '', fromBva: 'BVA-4',  inputData: 'valid user data with fullName: "A".repeat(63) (63 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(63)' },
+        { noTc: 22, fromEc: '', fromBva: 'BVA-5',  inputData: 'valid user data with fullName: "A".repeat(64) (64 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 23, fromEc: '', fromBva: 'BVA-6',  inputData: 'valid user data with fullName: "A".repeat(65) (65 characters)',                                       expected: 'success: false, error path contains "fullName"' },
+        { noTc: 24, fromEc: '', fromBva: 'BVA-7',  inputData: 'valid user data with password: "P1@" + "a".repeat(4) (7 characters, meets all rules except minimum length)', expected: 'success: false, error path contains "password"' },
+        { noTc: 25, fromEc: '', fromBva: 'BVA-8',  inputData: 'valid user data with password: "P1@" + "a".repeat(5) (8 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 26, fromEc: '', fromBva: 'BVA-9',  inputData: 'valid user data with password: "P1@" + "a".repeat(6) (9 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 27, fromEc: '', fromBva: 'BVA-10', inputData: 'valid user data with password: "P1@" + "a".repeat(60) (63 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 28, fromEc: '', fromBva: 'BVA-11', inputData: 'valid user data with password: "P1@" + "a".repeat(61) (64 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 29, fromEc: '', fromBva: 'BVA-12', inputData: 'valid user data with password: "P1@" + "a".repeat(62) (65 characters)',                               expected: 'success: false, error path contains "password"' },
+        { noTc: 30, fromEc: '', fromBva: 'BVA-13', inputData: 'valid user data with dateOfBirth set to yesterday (one day before today, YYYY-MM-DD)',                 expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 31, fromEc: '', fromBva: 'BVA-14', inputData: 'valid user data with dateOfBirth set to today (YYYY-MM-DD)',                                          expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 32, fromEc: '', fromBva: 'BVA-15', inputData: 'valid user data with dateOfBirth set to tomorrow (one day after today, YYYY-MM-DD)',                   expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 33, fromEc: '', fromBva: 'BVA-16', inputData: 'valid user data with fullName: " ".repeat(8) (8 whitespace characters, empty after trim)',             expected: 'success: false, error path contains "fullName"' },
+        { noTc: 34, fromEc: '', fromBva: 'BVA-17', inputData: 'valid user data with fullName: " " + "A".repeat(8) + " " (8 real characters after trim)',             expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 35, fromEc: '', fromBva: 'BVA-18', inputData: 'valid user data with fullName: " " + "A".repeat(64) + " " (64 real characters after trim)',           expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 36, fromEc: '', fromBva: 'BVA-19', inputData: 'valid user data with fullName: " " + "A".repeat(65) + " " (65 real characters after trim)',           expected: 'success: false, error path contains "fullName"' },
+        // ── Deduplicated (BVA-13–15 overlap with EC-13 on dateOfBirth) ───────
+        // BVA-13/14/15 are already included above as noTc 30–32;
+        // no separate EC row for dateOfBirth boundary existed, so no deduplication needed.
+    ],
+};
+
+const createMemberSchemaBbt: BbtDescriptor = {
+    reqId: 'SCHEMA-02',
     tcCount: 39,
     statement: 'createMemberSchema – Validates the input for creating a gym member using Zod safeParse. Returns { success: true, data } when all fields satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field on any violation. Required fields: email (valid email format), fullName (8–64 characters after trimming, not whitespace-only), phone (E.164 format: +[1-9]\\d{1,14}), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character), membershipStart (YYYY-MM-DD; future dates accepted). Surrounding whitespace is trimmed from fullName, email, and phone before validation.',
     data: 'Input: { email: string, fullName: string, phone: string, dateOfBirth: string, password: string, membershipStart: string }',
@@ -460,7 +596,7 @@ const createMemberSchemaBbt: BbtDescriptor = {
 };
 
 const createMemberWithTempPasswordSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-02',
+    reqId: 'SCHEMA-03',
     tcCount: 27,
     statement: 'createMemberWithTempPasswordSchema – Validates the input for creating a member whose password is auto-generated. Returns { success: true, data } when all required fields satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field on any violation. Required fields: email (valid email format), fullName (8–64 characters after trimming, not whitespace-only), phone (E.164 format: +[1-9]\\d{1,14}), dateOfBirth (YYYY-MM-DD, strictly before today), membershipStart (YYYY-MM-DD; future dates accepted). The password field is not required and is stripped from the parsed output if supplied. Surrounding whitespace is trimmed from fullName, email, and phone before validation.',
     data: 'Input: { email: string, fullName: string, phone: string, dateOfBirth: string, membershipStart: string, password?: string (ignored) }',
@@ -565,7 +701,7 @@ const createMemberWithTempPasswordSchemaBbt: BbtDescriptor = {
 };
 
 const loginUserSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-03',
+    reqId: 'SCHEMA-04',
     tcCount: 15,
     statement: 'loginUserSchema – Validates login credentials using Zod safeParse. Returns { success: true, data } when both fields satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field on any violation. Required fields: email (valid email format; surrounding whitespace is trimmed), password (8–64 characters with at least one uppercase letter, one digit, and one special character; must not be empty).',
     data: 'Input: { email: string, password: string }',
@@ -632,7 +768,7 @@ const loginUserSchemaBbt: BbtDescriptor = {
 };
 
 const createAdminSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-04',
+    reqId: 'SCHEMA-05',
     tcCount: 36,
     statement: 'createAdminSchema – Validates the input for creating a gym administrator account using Zod safeParse. Returns { success: true, data } when all fields satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field on any violation. Required fields: email (valid email format; surrounding whitespace is trimmed), fullName (8–64 characters after trimming, not whitespace-only; surrounding whitespace is trimmed), phone (E.164 format: +[1-9]\\d{1,14}; surrounding whitespace is trimmed), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character).',
     data: 'Input: { email: string, fullName: string, phone: string, dateOfBirth: string, password: string }',
@@ -764,8 +900,132 @@ const createAdminSchemaBbt: BbtDescriptor = {
     ],
 };
 
+const updateUserSchemaBbt: BbtDescriptor = {
+    reqId: 'SCHEMA-06',
+    tcCount: 34,
+    statement: 'updateUserSchema – Validates a partial update for a user using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: email (valid email format; surrounding whitespace trimmed), fullName (8–64 characters after trimming, not whitespace-only; surrounding whitespace trimmed), phone (E.164 format: +[1-9]\\d{1,14}; surrounding whitespace trimmed), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character).',
+    data: 'Input: Partial<{ email: string, fullName: string, phone: string, dateOfBirth: string, password: string }>',
+    precondition: 'Input is passed directly to updateUserSchema.safeParse(). All fields are optional. When a field is present it is subject to the same constraints as in createUserSchema. fullName: 8–64 characters after trim, not whitespace-only. password: 8–64 characters, at least one uppercase letter, one digit, one special character. dateOfBirth: YYYY-MM-DD, strictly before today.',
+    results: 'Output: { success: boolean, data?: UpdateUserInput, error?: ZodError }',
+    postcondition: 'On success: parsed data contains only the supplied (trimmed) fields. On failure: error.issues[0].path contains the name of the offending field.',
+    ecRows: [
+        { number: 1,  condition: 'Empty input',           validEc: 'Empty object {} → success: true, parsed data is {}', invalidEc: '' },
+        { number: 2,  condition: 'email value',           validEc: 'email: "new@example.com" → success: true, parsed email matches input', invalidEc: 'email: "bad-email" (missing @) → success: false, error path contains "email"' },
+        { number: 3,  condition: 'fullName value',        validEc: 'fullName: "Updated Name Test" (valid length) → success: true, parsed fullName matches input', invalidEc: '' },
+        { number: 4,  condition: 'phone value',           validEc: 'phone: "+40712345678" (valid E.164) → success: true, parsed phone matches input', invalidEc: 'phone: "0712345678" (no country code prefix) → success: false, error path contains "phone"' },
+        { number: 5,  condition: 'password uppercase',    validEc: '', invalidEc: 'password: "secure1@pass" (no uppercase letter) → success: false, error path contains "password"' },
+        { number: 6,  condition: 'password digit',        validEc: '', invalidEc: 'password: "SecureP@ss" (no digit) → success: false, error path contains "password"' },
+        { number: 7,  condition: 'password special char', validEc: 'password: "NewP@ss1" (meets all rules) → success: true, parsed password matches input', invalidEc: 'password: "SecurePass1" (no special character) → success: false, error path contains "password"' },
+        { number: 8,  condition: 'dateOfBirth value',     validEc: 'dateOfBirth: yesterday (YYYY-MM-DD, strictly before today) → success: true, parsed dateOfBirth matches input', invalidEc: '' },
+        { number: 9,  condition: 'fullName content',      validEc: 'fullName: "  Updated Name Test  " (surrounding whitespace) → success: true, parsed fullName is "Updated Name Test"', invalidEc: 'fullName: "         " (whitespace-only) → success: false, error path contains "fullName"' },
+        { number: 10, condition: 'email whitespace',      validEc: 'email: "  new@example.com  " (surrounding whitespace) → success: true, parsed email is "new@example.com"', invalidEc: '' },
+        { number: 11, condition: 'phone whitespace',      validEc: 'phone: "  +40712345678  " (surrounding whitespace) → success: true, parsed phone is "+40712345678"', invalidEc: '' },
+    ],
+    epTcRows: [
+        { noTc: 1,  ec: 'EC-1',  inputData: 'empty object {}',                                                                                  expected: 'success: true, parsed data is {}' },
+        { noTc: 2,  ec: 'EC-2',  inputData: 'object with only email: "new@example.com"',                                                        expected: 'success: true, parsed email is "new@example.com"' },
+        { noTc: 3,  ec: 'EC-3',  inputData: 'object with only fullName: "Updated Name Test"',                                                   expected: 'success: true, parsed fullName is "Updated Name Test"' },
+        { noTc: 4,  ec: 'EC-4',  inputData: 'object with only phone: "+40712345678"',                                                           expected: 'success: true, parsed phone is "+40712345678"' },
+        { noTc: 5,  ec: 'EC-7',  inputData: 'object with only password: "NewP@ss1" (meets all rules)',                                          expected: 'success: true, parsed password is "NewP@ss1"' },
+        { noTc: 6,  ec: 'EC-8',  inputData: 'object with only dateOfBirth set to yesterday (YYYY-MM-DD)',                                       expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 7,  ec: 'EC-2',  inputData: 'object with only email: "bad-email" (missing @)',                                                  expected: 'success: false, error path contains "email"' },
+        { noTc: 8,  ec: 'EC-4',  inputData: 'object with only phone: "0712345678" (no country code prefix)',                                    expected: 'success: false, error path contains "phone"' },
+        { noTc: 9,  ec: 'EC-5',  inputData: 'object with only password: "secure1@pass" (no uppercase letter)',                                  expected: 'success: false, error path contains "password"' },
+        { noTc: 10, ec: 'EC-6',  inputData: 'object with only password: "SecureP@ss" (no digit)',                                               expected: 'success: false, error path contains "password"' },
+        { noTc: 11, ec: 'EC-7',  inputData: 'object with only password: "SecurePass1" (no special character)',                                  expected: 'success: false, error path contains "password"' },
+        { noTc: 12, ec: 'EC-9',  inputData: 'object with only fullName: "         " (whitespace-only)',                                         expected: 'success: false, error path contains "fullName"' },
+        { noTc: 13, ec: 'EC-9',  inputData: 'object with only fullName: "  Updated Name Test  " (surrounding whitespace)',                      expected: 'success: true, parsed fullName is "Updated Name Test"' },
+        { noTc: 14, ec: 'EC-10', inputData: 'object with only email: "  new@example.com  " (surrounding whitespace)',                           expected: 'success: true, parsed email is "new@example.com"' },
+        { noTc: 15, ec: 'EC-11', inputData: 'object with only phone: "  +40712345678  " (surrounding whitespace)',                              expected: 'success: true, parsed phone is "+40712345678"' },
+    ],
+    bvaRows: [
+        // ── fullName length ───────────────────────────────────────────────────
+        { number: 1,  condition: 'fullName length', testCase: 'fullName: "A".repeat(7) (min - 1): below minimum → success: false' },
+        { number: 2,  condition: 'fullName length', testCase: 'fullName: "A".repeat(8) (min): at minimum → success: true, parsed fullName is "A".repeat(8)' },
+        { number: 3,  condition: 'fullName length', testCase: 'fullName: "A".repeat(9) (min + 1): above minimum → success: true, parsed fullName is "A".repeat(9)' },
+        { number: 4,  condition: 'fullName length', testCase: 'fullName: "A".repeat(63) (max - 1): below maximum → success: true, parsed fullName is "A".repeat(63)' },
+        { number: 5,  condition: 'fullName length', testCase: 'fullName: "A".repeat(64) (max): at maximum → success: true, parsed fullName is "A".repeat(64)' },
+        { number: 6,  condition: 'fullName length', testCase: 'fullName: "A".repeat(65) (max + 1): above maximum → success: false' },
+        // ── password length ───────────────────────────────────────────────────
+        { number: 7,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(4) (length 7, min - 1): below minimum → success: false' },
+        { number: 8,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(5) (length 8, min): at minimum → success: true' },
+        { number: 9,  condition: 'password length', testCase: 'password: "P1@" + "a".repeat(6) (length 9, min + 1): above minimum → success: true' },
+        { number: 10, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(60) (length 63, max - 1): below maximum → success: true' },
+        { number: 11, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(61) (length 64, max): at maximum → success: true' },
+        { number: 12, condition: 'password length', testCase: 'password: "P1@" + "a".repeat(62) (length 65, max + 1): above maximum → success: false' },
+        // ── dateOfBirth boundary ──────────────────────────────────────────────
+        { number: 13, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: yesterday (one day before today, YYYY-MM-DD): strictly before today → success: true' },
+        { number: 14, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: today (YYYY-MM-DD): not before today → success: false' },
+        { number: 15, condition: 'dateOfBirth boundary', testCase: 'dateOfBirth: tomorrow (one day after today, YYYY-MM-DD): future → success: false' },
+        // ── fullName whitespace + trim ────────────────────────────────────────
+        { number: 16, condition: 'fullName whitespace + trim', testCase: 'fullName: " ".repeat(8) (8 whitespace chars, empty after trim) → success: false' },
+        { number: 17, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(8) + " " (8 real chars after trim, at minimum) → success: true, parsed fullName is "A".repeat(8)' },
+        { number: 18, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(64) + " " (64 real chars after trim, at maximum) → success: true, parsed fullName is "A".repeat(64)' },
+        { number: 19, condition: 'fullName whitespace + trim', testCase: 'fullName: " " + "A".repeat(65) + " " (65 real chars after trim, above maximum) → success: false' },
+    ],
+    bvaTcRows: [
+        { noTc: 1,  bva: 'BVA-1  (fullName=7)',    inputData: 'object with only fullName: "A".repeat(7) (7 characters)',                                          expected: 'success: false, error path contains "fullName"' },
+        { noTc: 2,  bva: 'BVA-2  (fullName=8)',    inputData: 'object with only fullName: "A".repeat(8) (8 characters)',                                          expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 3,  bva: 'BVA-3  (fullName=9)',    inputData: 'object with only fullName: "A".repeat(9) (9 characters)',                                          expected: 'success: true, parsed fullName is "A".repeat(9)' },
+        { noTc: 4,  bva: 'BVA-4  (fullName=63)',   inputData: 'object with only fullName: "A".repeat(63) (63 characters)',                                        expected: 'success: true, parsed fullName is "A".repeat(63)' },
+        { noTc: 5,  bva: 'BVA-5  (fullName=64)',   inputData: 'object with only fullName: "A".repeat(64) (64 characters)',                                        expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 6,  bva: 'BVA-6  (fullName=65)',   inputData: 'object with only fullName: "A".repeat(65) (65 characters)',                                        expected: 'success: false, error path contains "fullName"' },
+        { noTc: 7,  bva: 'BVA-7  (pwd=7)',         inputData: 'object with only password: "P1@" + "a".repeat(4) (7 characters, meets all rules except minimum length)', expected: 'success: false, error path contains "password"' },
+        { noTc: 8,  bva: 'BVA-8  (pwd=8)',         inputData: 'object with only password: "P1@" + "a".repeat(5) (8 characters, meets all rules)',                 expected: 'success: true, parsed password matches input' },
+        { noTc: 9,  bva: 'BVA-9  (pwd=9)',         inputData: 'object with only password: "P1@" + "a".repeat(6) (9 characters, meets all rules)',                 expected: 'success: true, parsed password matches input' },
+        { noTc: 10, bva: 'BVA-10 (pwd=63)',        inputData: 'object with only password: "P1@" + "a".repeat(60) (63 characters, meets all rules)',               expected: 'success: true, parsed password matches input' },
+        { noTc: 11, bva: 'BVA-11 (pwd=64)',        inputData: 'object with only password: "P1@" + "a".repeat(61) (64 characters, meets all rules)',               expected: 'success: true, parsed password matches input' },
+        { noTc: 12, bva: 'BVA-12 (pwd=65)',        inputData: 'object with only password: "P1@" + "a".repeat(62) (65 characters)',                                expected: 'success: false, error path contains "password"' },
+        { noTc: 13, bva: 'BVA-13 (dob=yest)',      inputData: 'object with only dateOfBirth set to yesterday (one day before today, YYYY-MM-DD)',                  expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 14, bva: 'BVA-14 (dob=today)',     inputData: 'object with only dateOfBirth set to today (YYYY-MM-DD)',                                           expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 15, bva: 'BVA-15 (dob=tmrw)',      inputData: 'object with only dateOfBirth set to tomorrow (one day after today, YYYY-MM-DD)',                    expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 16, bva: 'BVA-16 (ws=8)',          inputData: 'object with only fullName: " ".repeat(8) (8 whitespace characters, empty after trim)',              expected: 'success: false, error path contains "fullName"' },
+        { noTc: 17, bva: 'BVA-17 (pad→8)',         inputData: 'object with only fullName: " " + "A".repeat(8) + " " (8 real characters after trim)',              expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 18, bva: 'BVA-18 (pad→64)',        inputData: 'object with only fullName: " " + "A".repeat(64) + " " (64 real characters after trim)',            expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 19, bva: 'BVA-19 (pad→65)',        inputData: 'object with only fullName: " " + "A".repeat(65) + " " (65 real characters after trim)',            expected: 'success: false, error path contains "fullName"' },
+    ],
+    finalTcRows: [
+        // ── From EC ──────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 1,  fromEc: 'EC-1',  fromBva: '', inputData: 'empty object {}',                                                                                   expected: 'success: true, parsed data is {}' },
+        { noTc: 2,  fromEc: 'EC-2',  fromBva: '', inputData: 'object with only email: "new@example.com"',                                                         expected: 'success: true, parsed email is "new@example.com"' },
+        { noTc: 3,  fromEc: 'EC-3',  fromBva: '', inputData: 'object with only fullName: "Updated Name Test"',                                                    expected: 'success: true, parsed fullName is "Updated Name Test"' },
+        { noTc: 4,  fromEc: 'EC-4',  fromBva: '', inputData: 'object with only phone: "+40712345678"',                                                            expected: 'success: true, parsed phone is "+40712345678"' },
+        { noTc: 5,  fromEc: 'EC-7',  fromBva: '', inputData: 'object with only password: "NewP@ss1" (meets all rules)',                                           expected: 'success: true, parsed password is "NewP@ss1"' },
+        { noTc: 6,  fromEc: 'EC-8',  fromBva: '', inputData: 'object with only dateOfBirth set to yesterday (YYYY-MM-DD)',                                        expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 7,  fromEc: 'EC-2',  fromBva: '', inputData: 'object with only email: "bad-email" (missing @)',                                                   expected: 'success: false, error path contains "email"' },
+        { noTc: 8,  fromEc: 'EC-4',  fromBva: '', inputData: 'object with only phone: "0712345678" (no country code prefix)',                                     expected: 'success: false, error path contains "phone"' },
+        { noTc: 9,  fromEc: 'EC-5',  fromBva: '', inputData: 'object with only password: "secure1@pass" (no uppercase letter)',                                   expected: 'success: false, error path contains "password"' },
+        { noTc: 10, fromEc: 'EC-6',  fromBva: '', inputData: 'object with only password: "SecureP@ss" (no digit)',                                                expected: 'success: false, error path contains "password"' },
+        { noTc: 11, fromEc: 'EC-7',  fromBva: '', inputData: 'object with only password: "SecurePass1" (no special character)',                                   expected: 'success: false, error path contains "password"' },
+        { noTc: 12, fromEc: 'EC-9',  fromBva: '', inputData: 'object with only fullName: "         " (whitespace-only)',                                          expected: 'success: false, error path contains "fullName"' },
+        { noTc: 13, fromEc: 'EC-9',  fromBva: '', inputData: 'object with only fullName: "  Updated Name Test  " (surrounding whitespace)',                       expected: 'success: true, parsed fullName is "Updated Name Test"' },
+        { noTc: 14, fromEc: 'EC-10', fromBva: '', inputData: 'object with only email: "  new@example.com  " (surrounding whitespace)',                            expected: 'success: true, parsed email is "new@example.com"' },
+        { noTc: 15, fromEc: 'EC-11', fromBva: '', inputData: 'object with only phone: "  +40712345678  " (surrounding whitespace)',                               expected: 'success: true, parsed phone is "+40712345678"' },
+        // ── From BVA ─────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 16, fromEc: '', fromBva: 'BVA-1',  inputData: 'object with only fullName: "A".repeat(7) (7 characters)',                                         expected: 'success: false, error path contains "fullName"' },
+        { noTc: 17, fromEc: '', fromBva: 'BVA-2',  inputData: 'object with only fullName: "A".repeat(8) (8 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 18, fromEc: '', fromBva: 'BVA-3',  inputData: 'object with only fullName: "A".repeat(9) (9 characters)',                                         expected: 'success: true, parsed fullName is "A".repeat(9)' },
+        { noTc: 19, fromEc: '', fromBva: 'BVA-4',  inputData: 'object with only fullName: "A".repeat(63) (63 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(63)' },
+        { noTc: 20, fromEc: '', fromBva: 'BVA-5',  inputData: 'object with only fullName: "A".repeat(64) (64 characters)',                                       expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 21, fromEc: '', fromBva: 'BVA-6',  inputData: 'object with only fullName: "A".repeat(65) (65 characters)',                                       expected: 'success: false, error path contains "fullName"' },
+        { noTc: 22, fromEc: '', fromBva: 'BVA-7',  inputData: 'object with only password: "P1@" + "a".repeat(4) (7 characters)',                                 expected: 'success: false, error path contains "password"' },
+        { noTc: 23, fromEc: '', fromBva: 'BVA-8',  inputData: 'object with only password: "P1@" + "a".repeat(5) (8 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 24, fromEc: '', fromBva: 'BVA-9',  inputData: 'object with only password: "P1@" + "a".repeat(6) (9 characters, meets all rules)',                expected: 'success: true, parsed password matches input' },
+        { noTc: 25, fromEc: '', fromBva: 'BVA-10', inputData: 'object with only password: "P1@" + "a".repeat(60) (63 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 26, fromEc: '', fromBva: 'BVA-11', inputData: 'object with only password: "P1@" + "a".repeat(61) (64 characters, meets all rules)',              expected: 'success: true, parsed password matches input' },
+        { noTc: 27, fromEc: '', fromBva: 'BVA-12', inputData: 'object with only password: "P1@" + "a".repeat(62) (65 characters)',                               expected: 'success: false, error path contains "password"' },
+        { noTc: 28, fromEc: '', fromBva: 'BVA-13', inputData: 'object with only dateOfBirth set to yesterday (one day before today, YYYY-MM-DD)',                 expected: 'success: true, parsed dateOfBirth is yesterday\'s date string' },
+        { noTc: 29, fromEc: '', fromBva: 'BVA-14', inputData: 'object with only dateOfBirth set to today (YYYY-MM-DD)',                                          expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 30, fromEc: '', fromBva: 'BVA-15', inputData: 'object with only dateOfBirth set to tomorrow (one day after today, YYYY-MM-DD)',                   expected: 'success: false, error path contains "dateOfBirth"' },
+        { noTc: 31, fromEc: '', fromBva: 'BVA-16', inputData: 'object with only fullName: " ".repeat(8) (8 whitespace characters, empty after trim)',             expected: 'success: false, error path contains "fullName"' },
+        { noTc: 32, fromEc: '', fromBva: 'BVA-17', inputData: 'object with only fullName: " " + "A".repeat(8) + " " (8 real characters after trim)',             expected: 'success: true, parsed fullName is "A".repeat(8)' },
+        { noTc: 33, fromEc: '', fromBva: 'BVA-18', inputData: 'object with only fullName: " " + "A".repeat(64) + " " (64 real characters after trim)',           expected: 'success: true, parsed fullName is "A".repeat(64)' },
+        { noTc: 34, fromEc: '', fromBva: 'BVA-19', inputData: 'object with only fullName: " " + "A".repeat(65) + " " (65 real characters after trim)',           expected: 'success: false, error path contains "fullName"' },
+    ],
+};
+
 const updateMemberSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-05',
+    reqId: 'SCHEMA-07',
     tcCount: 36,
     statement: 'updateMemberSchema – Validates a partial update for a member using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: email (valid email format; surrounding whitespace trimmed), fullName (8–64 characters after trimming, not whitespace-only; surrounding whitespace trimmed), phone (E.164 format: +[1-9]\\d{1,14}; surrounding whitespace trimmed), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character), membershipStart (YYYY-MM-DD; future dates accepted).',
     data: 'Input: Partial<{ email: string, fullName: string, phone: string, dateOfBirth: string, password: string, membershipStart: string }>',
@@ -894,7 +1154,7 @@ const updateMemberSchemaBbt: BbtDescriptor = {
 };
 
 const updateAdminSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-06',
+    reqId: 'SCHEMA-08',
     tcCount: 34,
     statement: 'updateAdminSchema – Validates a partial update for an admin using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: email (valid email format; surrounding whitespace trimmed), fullName (8–64 characters after trimming, not whitespace-only; surrounding whitespace trimmed), phone (E.164 format: +[1-9]\\d{1,14}; surrounding whitespace trimmed), dateOfBirth (YYYY-MM-DD, strictly before today), password (8–64 characters with at least one uppercase letter, one digit, and one special character). Note: updateAdminSchema has no membershipStart field.',
     data: 'Input: Partial<{ email: string, fullName: string, phone: string, dateOfBirth: string, password: string }>',
@@ -1018,7 +1278,7 @@ const updateAdminSchemaBbt: BbtDescriptor = {
 };
 
 const createExerciseSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-07',
+    reqId: 'SCHEMA-09',
     tcCount: 30,
     statement: 'createExerciseSchema – Validates input for creating a new exercise using Zod safeParse. Returns { success: true, data } when all required fields are present and satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field when any constraint is violated. name is required (8–64 characters after trimming, not whitespace-only; surrounding whitespace trimmed; empty string rejected). description is optional; when absent the field is undefined; when present it accepts an empty string, a whitespace-only string (trimmed to ""), or a non-empty string up to 1024 characters after trimming; surrounding whitespace trimmed. muscleGroup is required and must be a valid MuscleGroup enum value. equipmentNeeded is required and must be a valid Equipment enum value.',
     data: 'Input: CreateExerciseInput { name: string, description?: string, muscleGroup: MuscleGroup, equipmentNeeded: Equipment }',
@@ -1132,7 +1392,7 @@ const createExerciseSchemaBbt: BbtDescriptor = {
 };
 
 const updateExerciseSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-08',
+    reqId: 'SCHEMA-10',
     tcCount: 28,
     statement: 'updateExerciseSchema – Validates a partial update for an exercise using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: name (8–64 characters after trimming, not whitespace-only; surrounding whitespace trimmed), description (optional; when present accepts an empty string, a whitespace-only string trimmed to "", or a non-empty string up to 1024 characters after trimming; surrounding whitespace trimmed), muscleGroup (must be a valid MuscleGroup enum member), equipmentNeeded (must be a valid Equipment enum member).',
     data: 'Input: Partial<{ name: string, description: string, muscleGroup: MuscleGroup, equipmentNeeded: Equipment }>',
@@ -1238,7 +1498,7 @@ const updateExerciseSchemaBbt: BbtDescriptor = {
 };
 
 const createWorkoutSessionSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-09',
+    reqId: 'SCHEMA-11',
     tcCount: 27,
     statement: 'createWorkoutSessionSchema – Validates input for creating a workout session using Zod safeParse. Returns { success: true, data } when all required fields are present and satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field when any constraint is violated. memberId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). date is required and must be in YYYY-MM-DD format. duration is required and must be an integer in the range 0–180 inclusive. notes is optional; when present it accepts an empty string, a whitespace-only string trimmed to "", or a non-empty string up to 1024 characters after trimming; surrounding whitespace trimmed.',
     data: 'Input: CreateWorkoutSessionInput { memberId: string, date: string, duration: number, notes?: string }',
@@ -1342,8 +1602,10 @@ const createWorkoutSessionSchemaBbt: BbtDescriptor = {
         { noTc: 26, fromEc: '', fromBva: 'BVA-15', inputData: 'valid session data with memberId: " A " (1 real character after trim)',                          expected: 'success: true, parsed memberId is "A"' },
         { noTc: 27, fromEc: '', fromBva: 'BVA-16', inputData: 'valid session data with notes: " " + "A".repeat(1024) + " " (1024 real characters after trim)', expected: 'success: true, parsed notes is "A".repeat(1024)' },
     ],
-};const workoutSessionExercisesSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-10',
+};
+
+const workoutSessionExercisesSchemaBbt: BbtDescriptor = {
+    reqId: 'SCHEMA-12',
     tcCount: 28,
     statement: 'workoutSessionExercisesSchema – Validates an array of workout session exercise entries using Zod safeParse. Returns { success: true, data } when the array contains at least one entry and every entry satisfies its field constraints. Returns { success: false, error } when the array is empty or any entry violates a constraint. Array constraints: minimum length 1. Per-entry constraints: exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be an integer in the range 0–6 inclusive. reps is required and must be an integer in the range 0–30 inclusive. weight is required and must be a number in the range 0.0–500.0 inclusive.',
     data: 'Input: Array<WorkoutSessionExerciseInput { exerciseId: string, sets: number, reps: number, weight: number }>',
@@ -1453,7 +1715,7 @@ const createWorkoutSessionSchemaBbt: BbtDescriptor = {
 };
 
 const updateWorkoutSessionSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-11',
+    reqId: 'SCHEMA-13',
     tcCount: 19,
     statement: 'updateWorkoutSessionSchema – Validates a partial update for a workout session using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: date must be in YYYY-MM-DD format. duration must be an integer in the range 0–180 inclusive. notes accepts an empty string, a whitespace-only string trimmed to "", or a non-empty string up to 1024 characters after trimming; surrounding whitespace trimmed.',
     data: 'Input: Partial<{ date: string, duration: number, notes: string }>',
@@ -1533,7 +1795,7 @@ const updateWorkoutSessionSchemaBbt: BbtDescriptor = {
 };
 
 const workoutSessionExercisesUpdateSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-12',
+    reqId: 'SCHEMA-14',
     tcCount: 24,
     statement: 'workoutSessionExercisesUpdateSchema – Validates an array of workout session exercise entries for an update operation using Zod safeParse. Identical to workoutSessionExercisesSchema except each entry may optionally include an id field. Returns { success: true, data } when the array contains at least one entry and every entry satisfies its field constraints. Returns { success: false, error } when the array is empty or any entry violates a constraint. Array constraints: minimum length 1. Per-entry constraints: id is optional (when present, any non-empty string is accepted). exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be an integer in the range 0–6 inclusive. reps is required and must be an integer in the range 0–30 inclusive. weight is required and must be a number in the range 0.0–500.0 inclusive.',
     data: 'Input: Array<WorkoutSessionExerciseUpdateInput { id?: string, exerciseId: string, sets: number, reps: number, weight: number }>',
@@ -1631,7 +1893,7 @@ const workoutSessionExercisesUpdateSchemaBbt: BbtDescriptor = {
 };
 
 const memberProgressReportSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-13',
+    reqId: 'SCHEMA-15',
     tcCount: 12,
     statement: 'memberProgressReportSchema – Validates query parameters for a member progress report using Zod safeParse. Returns { success: true, data } when all required fields are present and satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field when any constraint is violated. memberId is required (at least 1 character, not whitespace-only). startDate is required and must be in YYYY-MM-DD format. endDate is required and must be in YYYY-MM-DD format. The schema does not enforce date ordering; startDate equal to or after endDate is accepted.',
     data: 'Input: MemberProgressReportInput { memberId: string, startDate: string, endDate: string }',
@@ -1688,7 +1950,7 @@ const memberProgressReportSchemaBbt: BbtDescriptor = {
 };
 
 const isoDateRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-14',
+    reqId: 'SCHEMA-16',
     tcCount: 22,
     statement: 'isoDateRegex – Tests whether a string matches the pattern /^\\d{4}-\\d{2}-\\d{2}$/. Returns true when the input is exactly four digits, a hyphen, two digits, a hyphen, and two digits with no additional characters. Returns false for any other format. The regex validates structure only; it does not validate calendar correctness (e.g. month 99 or day 00 pass the format check).',
     data: 'Input: string s passed to isoDateRegex.test(s)',
@@ -1768,7 +2030,7 @@ const isoDateRegexBbt: BbtDescriptor = {
 };
 
 const e164PhoneRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-15',
+    reqId: 'SCHEMA-17',
     tcCount: 16,
     statement: 'e164PhoneRegex – Tests whether a string matches the pattern /^\\+?[1-9]\\d{1,14}$/. Returns true for strings that optionally start with "+", begin with a non-zero digit, and contain between 2 and 15 digits in total (excluding the optional "+"). Returns false for strings that start with "0", contain spaces, dashes, parentheses, or non-digit characters, consist of "+" alone, or are empty.',
     data: 'Input: string s passed to e164PhoneRegex.test(s)',
@@ -1831,7 +2093,7 @@ const e164PhoneRegexBbt: BbtDescriptor = {
 };
 
 const emailRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-16',
+    reqId: 'SCHEMA-18',
     tcCount: 17,
     statement: 'emailRegex – Tests whether a string matches the pattern /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/. Returns true when the string contains exactly one "@" separating a non-empty local part from a domain that itself contains at least one "." with non-empty segments on both sides, and no whitespace anywhere. Returns false for any deviation: missing "@", empty local part, missing or empty domain, no "." in domain, trailing dot, spaces, multiple "@" symbols, or empty input.',
     data: 'Input: string s passed to emailRegex.test(s)',
@@ -1902,10 +2164,12 @@ const emailRegexBbt: BbtDescriptor = {
 (async () => {
     console.log('Generating BBT form Excel files…\n');
 
+    await writeBbt(createUserSchemaBbt, path.join(BASE, 'user-schema', 'createUserSchema-bbt-form.xlsx'));
     await writeBbt(createMemberSchemaBbt, path.join(BASE, 'user-schema', 'createMemberSchema-bbt-form.xlsx'));
     await writeBbt(createMemberWithTempPasswordSchemaBbt, path.join(BASE, 'user-schema', 'createMemberWithTempPasswordSchema-bbt-form.xlsx'));
     await writeBbt(loginUserSchemaBbt, path.join(BASE, 'user-schema', 'loginUserSchema-bbt-form.xlsx'));
     await writeBbt(createAdminSchemaBbt, path.join(BASE, 'user-schema', 'createAdminSchema-bbt-form.xlsx'));
+    await writeBbt(updateUserSchemaBbt, path.join(BASE, 'user-schema', 'updateUserSchema-bbt-form.xlsx'));
     await writeBbt(updateMemberSchemaBbt, path.join(BASE, 'user-schema', 'updateMemberSchema-bbt-form.xlsx'));
     await writeBbt(updateAdminSchemaBbt, path.join(BASE, 'user-schema', 'updateAdminSchema-bbt-form.xlsx'));
     await writeBbt(createExerciseSchemaBbt, path.join(BASE, 'exercise-schema', 'createExerciseSchema-bbt-form.xlsx'));
