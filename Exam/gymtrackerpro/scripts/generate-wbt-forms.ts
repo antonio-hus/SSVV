@@ -152,12 +152,14 @@ function readPngDims(buf: Buffer): { w: number; h: number } {
 }
 
 async function renderDotToSvg(dotSource: string): Promise<string> {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { instance } = require('@viz-js/viz');
     const viz = await instance();
     return viz.renderString(dotSource, { format: 'svg' });
 }
 
 async function svgToPngBuffer(svg: string): Promise<Buffer> {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { Resvg } = require('@resvg/resvg-js');
     const resvg = new Resvg(svg, {
         font: { loadSystemFonts: true },
@@ -224,6 +226,8 @@ function autoFitWorksheet(ws: ExcelJS.Worksheet, skipCols: number[] = [], minWid
         const colNum = i + 1;
         if (skipCols.includes(colNum)) return;
         let maxLen = minWidth;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         col.eachCell({ includeEmpty: true }, cell => {
             if (cell.value && !cell.isMerged) {
                 const content = cell.value.toString();
@@ -242,7 +246,7 @@ function autoFitWorksheet(ws: ExcelJS.Worksheet, skipCols: number[] = [], minWid
                 const lines = content.split('\n').length;
                 
                 // Get available width for the cell, considering merges
-                let availableWidth = ws.getColumn(colNum).width || 10;
+                const availableWidth = ws.getColumn(colNum).width || 10;
                 
                 // ExcelJS cell.master check for merged ranges
                 if (cell.isMerged && cell.address !== cell.master.address) {
@@ -319,6 +323,8 @@ async function addCfgSheet(wb: ExcelJS.Workbook, d: WbtDescriptor): Promise<void
         startColStats = Math.max(14, Math.ceil(logicalW / PX_PER_COL) + 2);
         for (let r = 1; r <= imageRows; r++) ws.getRow(r).height = ROW_H_PT;
         for (let c = 1; c < startColStats; c++) ws.getColumn(c).width = COL_WIDTH;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         const imgId = wb.addImage({ buffer: cfgImg.buffer, extension: cfgImg.extension });
         ws.addImage(imgId, { tl: { col: 0, row: 0 }, ext: { width: logicalW, height: logicalH }, editAs: 'oneCell' });
     } else {

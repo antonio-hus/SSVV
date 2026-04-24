@@ -3,9 +3,12 @@ import {
     updateWorkoutSessionSchema,
     workoutSessionExerciseSchema,
     workoutSessionExercisesSchema,
+    workoutSessionExerciseUpdateSchema,
+    workoutSessionExercisesUpdateSchema,
     CreateWorkoutSessionInput,
     UpdateWorkoutSessionInput,
     WorkoutSessionExerciseInput,
+    WorkoutSessionExerciseUpdateInput,
 } from '@/lib/schema/workout-session-schema';
 
 const VALID_EXERCISE: WorkoutSessionExerciseInput = {
@@ -631,6 +634,339 @@ describe('workoutSessionExercisesSchema', () => {
             const inputData: WorkoutSessionExerciseInput[] = Array(6).fill(VALID_EXERCISE);
 
             const result = workoutSessionExercisesSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+    });
+
+});
+
+describe('workoutSessionExerciseUpdateSchema', () => {
+
+    describe('Independent Paths', () => {
+
+        it('workoutSessionExerciseUpdateSchema_Path1_idAbsent_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path2_idNotString_returnsError', () => {
+            const inputData = {
+                id: 123,
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('id');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path3_idIsString_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                id: 'existing-row-id',
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path4_exerciseIdNotString_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 123 as never,
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path5_exerciseIdWhitespaceOnly_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: '   ',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+                expect(result.error.issues[0].message).toBe('Exercise is required');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path6_setsNotCoercible_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 'abc' as never,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path7_setsBelowMin_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: -1,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+                expect(result.error.issues[0].message).toBe('Sets must be greater or equal to 0');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path8_setsAboveMax_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 7,
+                reps: 10,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+                expect(result.error.issues[0].message).toBe('Sets must be at most 6');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path9_repsNotCoercible_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 'abc' as never,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path10_repsBelowMin_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: -1,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+                expect(result.error.issues[0].message).toBe('Reps must be greater or equal to 0');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path11_repsAboveMax_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 31,
+                weight: 50,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+                expect(result.error.issues[0].message).toBe('Reps must be at most 30');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path12_weightNotCoercible_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 'abc' as never,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path13_weightBelowMin_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: -1,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+                expect(result.error.issues[0].message).toBe('Weight must be greater or equal to 0.0');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_Path14_weightAboveMax_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 501,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+                expect(result.error.issues[0].message).toBe('Weight must be at most 500.0');
+            }
+        });
+
+    });
+
+});
+
+describe('workoutSessionExercisesUpdateSchema', () => {
+
+    describe('Independent Paths', () => {
+
+        it('workoutSessionExercisesUpdateSchema_Path1_oneValidEntry_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = [{
+                id: 'row-1',
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            }];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Path2_notAnArray_returnsError', () => {
+            const inputData = 'not-an-array';
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Path3_emptyArray_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = [];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].message).toBe('At least one exercise is required');
+            }
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Path4_oneInvalidEntry_returnsError', () => {
+            const inputData = [{exerciseId: '', sets: 3, reps: 10, weight: 50}];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+    });
+
+    describe('Loop Coverage', () => {
+
+        it('workoutSessionExercisesUpdateSchema_Loop_no_emptyArray_returnsError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = [];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Loop_once_oneValidEntry_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = [
+                {exerciseId: 'exercise-1', sets: 3, reps: 10, weight: 50},
+            ];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Loop_twice_twoValidEntries_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = [
+                {exerciseId: 'exercise-1', sets: 3, reps: 10, weight: 50},
+                {id: 'row-2', exerciseId: 'exercise-2', sets: 4, reps: 12, weight: 60},
+            ];
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+        });
+
+        it('workoutSessionExercisesUpdateSchema_Loop_n_sixValidEntries_returnsSuccess', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput[] = Array(6).fill({
+                exerciseId: 'exercise-1',
+                sets: 3,
+                reps: 10,
+                weight: 50,
+            });
+
+            const result = workoutSessionExercisesUpdateSchema.safeParse(inputData);
 
             expect(result.success).toBe(true);
         });

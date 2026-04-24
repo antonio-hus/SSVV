@@ -1604,8 +1604,112 @@ const createWorkoutSessionSchemaBbt: BbtDescriptor = {
     ],
 };
 
-const workoutSessionExercisesSchemaBbt: BbtDescriptor = {
+const workoutSessionExerciseSchemaBbt: BbtDescriptor = {
     reqId: 'SCHEMA-12',
+    tcCount: 26,
+    statement: 'workoutSessionExerciseSchema – Validates a single workout session exercise entry using Zod safeParse. Returns { success: true, data } when all fields are valid. Returns { success: false, error } when any field violates a constraint. exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be coercible to a number in the range 0–6 inclusive. reps is required and must be coercible to a number in the range 0–30 inclusive. weight is required and must be coercible to a number in the range 0.0–500.0 inclusive.',
+    data: 'Input: WorkoutSessionExerciseInput { exerciseId: string, sets: number, reps: number, weight: number }',
+    precondition: 'Input is passed directly to workoutSessionExerciseSchema.safeParse(). exerciseId: required, at least 1 character after trim, not whitespace-only, surrounding whitespace trimmed. sets: required, coercible to number, 0 ≤ sets ≤ 6. reps: required, coercible to number, 0 ≤ reps ≤ 30. weight: required, coercible to number, 0.0 ≤ weight ≤ 500.0.',
+    results: 'Output: { success: boolean, data?: WorkoutSessionExerciseInput, error?: ZodError }',
+    postcondition: 'On success: parsed data contains the supplied fields with exerciseId trimmed. On failure: error.issues[0].path contains the name of the offending field.',
+    ecRows: [
+        { number: 1, condition: 'All fields valid',      validEc: 'All required fields present with valid values → success: true, parsed data matches the input', invalidEc: '' },
+        { number: 2, condition: 'exerciseId presence',   validEc: '', invalidEc: 'exerciseId field absent → success: false, error path contains "exerciseId"' },
+        { number: 3, condition: 'exerciseId value',      validEc: '', invalidEc: 'exerciseId: "   " (whitespace-only) → success: false, error path contains "exerciseId"' },
+        { number: 4, condition: 'exerciseId whitespace', validEc: 'exerciseId: "  exercise-123  " (surrounding whitespace) → success: true, parsed exerciseId is "exercise-123"', invalidEc: '' },
+        { number: 5, condition: 'sets type',             validEc: '', invalidEc: 'sets: "invalid" (string not coercible to number) → success: false, error path contains "sets"' },
+        { number: 6, condition: 'reps type',             validEc: '', invalidEc: 'reps: "invalid" (string not coercible to number) → success: false, error path contains "reps"' },
+        { number: 7, condition: 'weight type',           validEc: '', invalidEc: 'weight: "invalid" (string not coercible to number) → success: false, error path contains "weight"' },
+    ],
+    epTcRows: [
+        { noTc: 1, ec: 'EC-1', inputData: 'all fields valid: exerciseId "exercise-123", sets 3, reps 10, weight 80.5', expected: 'success: true, parsed data matches the input' },
+        { noTc: 2, ec: 'EC-2', inputData: 'exerciseId field absent: { sets: 3, reps: 10, weight: 80.5 }',               expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 3, ec: 'EC-3', inputData: 'exerciseId: "   " (whitespace-only)',                                         expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 4, ec: 'EC-4', inputData: 'exerciseId: "  exercise-123  " (surrounding whitespace)',                     expected: 'success: true, parsed exerciseId is "exercise-123"' },
+        { noTc: 5, ec: 'EC-5', inputData: 'sets: "invalid" (string not coercible)',                                      expected: 'success: false, error path contains "sets"' },
+        { noTc: 6, ec: 'EC-6', inputData: 'reps: "invalid" (string not coercible)',                                      expected: 'success: false, error path contains "reps"' },
+        { noTc: 7, ec: 'EC-7', inputData: 'weight: "invalid" (string not coercible)',                                    expected: 'success: false, error path contains "weight"' },
+    ],
+    bvaRows: [
+        // ── sets range ────────────────────────────────────────────────────────
+        { number: 1,  condition: 'sets range', testCase: 'sets: -1 (min - 1): below minimum → success: false' },
+        { number: 2,  condition: 'sets range', testCase: 'sets: 0 (min): at minimum → success: true, parsed sets is 0' },
+        { number: 3,  condition: 'sets range', testCase: 'sets: 1 (min + 1): above minimum → success: true, parsed sets is 1' },
+        { number: 4,  condition: 'sets range', testCase: 'sets: 5 (max - 1): below maximum → success: true, parsed sets is 5' },
+        { number: 5,  condition: 'sets range', testCase: 'sets: 6 (max): at maximum → success: true, parsed sets is 6' },
+        { number: 6,  condition: 'sets range', testCase: 'sets: 7 (max + 1): above maximum → success: false' },
+        // ── reps range ────────────────────────────────────────────────────────
+        { number: 7,  condition: 'reps range', testCase: 'reps: -1 (min - 1): below minimum → success: false' },
+        { number: 8,  condition: 'reps range', testCase: 'reps: 0 (min): at minimum → success: true, parsed reps is 0' },
+        { number: 9,  condition: 'reps range', testCase: 'reps: 1 (min + 1): above minimum → success: true, parsed reps is 1' },
+        { number: 10, condition: 'reps range', testCase: 'reps: 29 (max - 1): below maximum → success: true, parsed reps is 29' },
+        { number: 11, condition: 'reps range', testCase: 'reps: 30 (max): at maximum → success: true, parsed reps is 30' },
+        { number: 12, condition: 'reps range', testCase: 'reps: 31 (max + 1): above maximum → success: false' },
+        // ── weight range ──────────────────────────────────────────────────────
+        { number: 13, condition: 'weight range', testCase: 'weight: -0.1 (min - 0.1): below minimum → success: false' },
+        { number: 14, condition: 'weight range', testCase: 'weight: 0.0 (min): at minimum → success: true, parsed weight is 0' },
+        { number: 15, condition: 'weight range', testCase: 'weight: 0.1 (min + 0.1): above minimum → success: true, parsed weight is 0.1' },
+        { number: 16, condition: 'weight range', testCase: 'weight: 499.9 (max - 0.1): below maximum → success: true, parsed weight is 499.9' },
+        { number: 17, condition: 'weight range', testCase: 'weight: 500.0 (max): at maximum → success: true, parsed weight is 500' },
+        { number: 18, condition: 'weight range', testCase: 'weight: 500.1 (max + 0.1): above maximum → success: false' },
+        // ── exerciseId whitespace + trim ──────────────────────────────────────
+        { number: 19, condition: 'exerciseId whitespace + trim', testCase: 'exerciseId: " E " (1 real character after trim, at minimum) → success: true, parsed exerciseId is "E"' },
+    ],
+    bvaTcRows: [
+        { noTc: 1,  bva: 'BVA-1  (sets=-1)',   inputData: 'entry with sets: -1',                                                    expected: 'success: false, error path contains "sets"' },
+        { noTc: 2,  bva: 'BVA-2  (sets=0)',    inputData: 'entry with sets: 0',                                                     expected: 'success: true, parsed sets is 0' },
+        { noTc: 3,  bva: 'BVA-3  (sets=1)',    inputData: 'entry with sets: 1',                                                     expected: 'success: true, parsed sets is 1' },
+        { noTc: 4,  bva: 'BVA-4  (sets=5)',    inputData: 'entry with sets: 5',                                                     expected: 'success: true, parsed sets is 5' },
+        { noTc: 5,  bva: 'BVA-5  (sets=6)',    inputData: 'entry with sets: 6',                                                     expected: 'success: true, parsed sets is 6' },
+        { noTc: 6,  bva: 'BVA-6  (sets=7)',    inputData: 'entry with sets: 7',                                                     expected: 'success: false, error path contains "sets"' },
+        { noTc: 7,  bva: 'BVA-7  (reps=-1)',   inputData: 'entry with reps: -1',                                                    expected: 'success: false, error path contains "reps"' },
+        { noTc: 8,  bva: 'BVA-8  (reps=0)',    inputData: 'entry with reps: 0',                                                     expected: 'success: true, parsed reps is 0' },
+        { noTc: 9,  bva: 'BVA-9  (reps=1)',    inputData: 'entry with reps: 1',                                                     expected: 'success: true, parsed reps is 1' },
+        { noTc: 10, bva: 'BVA-10 (reps=29)',   inputData: 'entry with reps: 29',                                                    expected: 'success: true, parsed reps is 29' },
+        { noTc: 11, bva: 'BVA-11 (reps=30)',   inputData: 'entry with reps: 30',                                                    expected: 'success: true, parsed reps is 30' },
+        { noTc: 12, bva: 'BVA-12 (reps=31)',   inputData: 'entry with reps: 31',                                                    expected: 'success: false, error path contains "reps"' },
+        { noTc: 13, bva: 'BVA-13 (wt=-0.1)',   inputData: 'entry with weight: -0.1',                                                expected: 'success: false, error path contains "weight"' },
+        { noTc: 14, bva: 'BVA-14 (wt=0)',      inputData: 'entry with weight: 0',                                                   expected: 'success: true, parsed weight is 0' },
+        { noTc: 15, bva: 'BVA-15 (wt=0.1)',    inputData: 'entry with weight: 0.1',                                                 expected: 'success: true, parsed weight is 0.1' },
+        { noTc: 16, bva: 'BVA-16 (wt=499.9)',  inputData: 'entry with weight: 499.9',                                               expected: 'success: true, parsed weight is 499.9' },
+        { noTc: 17, bva: 'BVA-17 (wt=500)',    inputData: 'entry with weight: 500',                                                 expected: 'success: true, parsed weight is 500' },
+        { noTc: 18, bva: 'BVA-18 (wt=500.1)',  inputData: 'entry with weight: 500.1',                                               expected: 'success: false, error path contains "weight"' },
+        { noTc: 19, bva: 'BVA-19 (pad→1)',     inputData: 'entry with exerciseId: " E " (1 real character after trim)',              expected: 'success: true, parsed exerciseId is "E"' },
+    ],
+    finalTcRows: [
+        // ── From EC ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 1,  fromEc: 'EC-1', fromBva: '', inputData: 'all fields valid: exerciseId "exercise-123", sets 3, reps 10, weight 80.5', expected: 'success: true, parsed data matches the input' },
+        { noTc: 2,  fromEc: 'EC-2', fromBva: '', inputData: 'exerciseId field absent: { sets: 3, reps: 10, weight: 80.5 }',               expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 3,  fromEc: 'EC-3', fromBva: '', inputData: 'exerciseId: "   " (whitespace-only)',                                         expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 4,  fromEc: 'EC-4', fromBva: '', inputData: 'exerciseId: "  exercise-123  " (surrounding whitespace)',                     expected: 'success: true, parsed exerciseId is "exercise-123"' },
+        { noTc: 5,  fromEc: 'EC-5', fromBva: '', inputData: 'sets: "invalid" (string not coercible)',                                      expected: 'success: false, error path contains "sets"' },
+        { noTc: 6,  fromEc: 'EC-6', fromBva: '', inputData: 'reps: "invalid" (string not coercible)',                                      expected: 'success: false, error path contains "reps"' },
+        { noTc: 7,  fromEc: 'EC-7', fromBva: '', inputData: 'weight: "invalid" (string not coercible)',                                    expected: 'success: false, error path contains "weight"' },
+        // ── From BVA ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 8,  fromEc: '', fromBva: 'BVA-1',  inputData: 'entry with sets: -1',    expected: 'success: false, error path contains "sets"' },
+        { noTc: 9,  fromEc: '', fromBva: 'BVA-2',  inputData: 'entry with sets: 0',     expected: 'success: true, parsed sets is 0' },
+        { noTc: 10, fromEc: '', fromBva: 'BVA-3',  inputData: 'entry with sets: 1',     expected: 'success: true, parsed sets is 1' },
+        { noTc: 11, fromEc: '', fromBva: 'BVA-4',  inputData: 'entry with sets: 5',     expected: 'success: true, parsed sets is 5' },
+        { noTc: 12, fromEc: '', fromBva: 'BVA-5',  inputData: 'entry with sets: 6',     expected: 'success: true, parsed sets is 6' },
+        { noTc: 13, fromEc: '', fromBva: 'BVA-6',  inputData: 'entry with sets: 7',     expected: 'success: false, error path contains "sets"' },
+        { noTc: 14, fromEc: '', fromBva: 'BVA-7',  inputData: 'entry with reps: -1',    expected: 'success: false, error path contains "reps"' },
+        { noTc: 15, fromEc: '', fromBva: 'BVA-8',  inputData: 'entry with reps: 0',     expected: 'success: true, parsed reps is 0' },
+        { noTc: 16, fromEc: '', fromBva: 'BVA-9',  inputData: 'entry with reps: 1',     expected: 'success: true, parsed reps is 1' },
+        { noTc: 17, fromEc: '', fromBva: 'BVA-10', inputData: 'entry with reps: 29',    expected: 'success: true, parsed reps is 29' },
+        { noTc: 18, fromEc: '', fromBva: 'BVA-11', inputData: 'entry with reps: 30',    expected: 'success: true, parsed reps is 30' },
+        { noTc: 19, fromEc: '', fromBva: 'BVA-12', inputData: 'entry with reps: 31',    expected: 'success: false, error path contains "reps"' },
+        { noTc: 20, fromEc: '', fromBva: 'BVA-13', inputData: 'entry with weight: -0.1',   expected: 'success: false, error path contains "weight"' },
+        { noTc: 21, fromEc: '', fromBva: 'BVA-14', inputData: 'entry with weight: 0',      expected: 'success: true, parsed weight is 0' },
+        { noTc: 22, fromEc: '', fromBva: 'BVA-15', inputData: 'entry with weight: 0.1',    expected: 'success: true, parsed weight is 0.1' },
+        { noTc: 23, fromEc: '', fromBva: 'BVA-16', inputData: 'entry with weight: 499.9',  expected: 'success: true, parsed weight is 499.9' },
+        { noTc: 24, fromEc: '', fromBva: 'BVA-17', inputData: 'entry with weight: 500',    expected: 'success: true, parsed weight is 500' },
+        { noTc: 25, fromEc: '', fromBva: 'BVA-18', inputData: 'entry with weight: 500.1',  expected: 'success: false, error path contains "weight"' },
+        { noTc: 26, fromEc: '', fromBva: 'BVA-19', inputData: 'entry with exerciseId: " E " (1 real character after trim)', expected: 'success: true, parsed exerciseId is "E"' },
+    ],
+};
+
+const workoutSessionExercisesSchemaBbt: BbtDescriptor = {
+    reqId: 'SCHEMA-13',
     tcCount: 28,
     statement: 'workoutSessionExercisesSchema – Validates an array of workout session exercise entries using Zod safeParse. Returns { success: true, data } when the array contains at least one entry and every entry satisfies its field constraints. Returns { success: false, error } when the array is empty or any entry violates a constraint. Array constraints: minimum length 1. Per-entry constraints: exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be an integer in the range 0–6 inclusive. reps is required and must be an integer in the range 0–30 inclusive. weight is required and must be a number in the range 0.0–500.0 inclusive.',
     data: 'Input: Array<WorkoutSessionExerciseInput { exerciseId: string, sets: number, reps: number, weight: number }>',
@@ -1715,7 +1819,7 @@ const workoutSessionExercisesSchemaBbt: BbtDescriptor = {
 };
 
 const updateWorkoutSessionSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-13',
+    reqId: 'SCHEMA-14',
     tcCount: 19,
     statement: 'updateWorkoutSessionSchema – Validates a partial update for a workout session using Zod safeParse. All fields are optional; an empty object is valid. Returns { success: true, data } when every supplied field satisfies its constraint. Returns { success: false, error } with a path pointing to the offending field when any supplied field violates its constraint. Field constraints when present: date must be in YYYY-MM-DD format. duration must be an integer in the range 0–180 inclusive. notes accepts an empty string, a whitespace-only string trimmed to "", or a non-empty string up to 1024 characters after trimming; surrounding whitespace trimmed.',
     data: 'Input: Partial<{ date: string, duration: number, notes: string }>',
@@ -1794,8 +1898,118 @@ const updateWorkoutSessionSchemaBbt: BbtDescriptor = {
     ],
 };
 
+const workoutSessionExerciseUpdateSchemaBbt: BbtDescriptor = {
+    reqId: 'SCHEMA-15',
+    tcCount: 28,
+    statement: 'workoutSessionExerciseUpdateSchema – Validates a single workout session exercise update entry using Zod safeParse. Returns { success: true, data } when all fields are valid. Returns { success: false, error } when any field violates a constraint. id is optional (when present, must be a string). exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be coercible to a number in the range 0–6 inclusive. reps is required and must be coercible to a number in the range 0–30 inclusive. weight is required and must be coercible to a number in the range 0.0–500.0 inclusive.',
+    data: 'Input: WorkoutSessionExerciseUpdateInput { id?: string, exerciseId: string, sets: number, reps: number, weight: number }',
+    precondition: 'Input is passed directly to workoutSessionExerciseUpdateSchema.safeParse(). id: optional; when present, must be a string. exerciseId: required, at least 1 character after trim, not whitespace-only, surrounding whitespace trimmed. sets: required, coercible to number, 0 ≤ sets ≤ 6. reps: required, coercible to number, 0 ≤ reps ≤ 30. weight: required, coercible to number, 0.0 ≤ weight ≤ 500.0.',
+    results: 'Output: { success: boolean, data?: WorkoutSessionExerciseUpdateInput, error?: ZodError }',
+    postcondition: 'On success: parsed data contains the supplied fields with exerciseId trimmed; id is present when supplied. On failure: error.issues[0].path contains the name of the offending field.',
+    ecRows: [
+        { number: 1, condition: 'id field presence',     validEc: 'Entry without id field (id omitted) → success: true, parsed data matches the input', invalidEc: '' },
+        { number: 2, condition: 'id field presence',     validEc: 'Entry with id: "uuid-123" (id present, string) → success: true, parsed id is "uuid-123"', invalidEc: '' },
+        { number: 3, condition: 'id field type',         validEc: '', invalidEc: 'Entry with id: 123 (number, not a string) → success: false, error path contains "id"' },
+        { number: 4, condition: 'exerciseId presence',   validEc: '', invalidEc: 'Entry with exerciseId field absent → success: false, error path contains "exerciseId"' },
+        { number: 5, condition: 'exerciseId value',      validEc: '', invalidEc: 'Entry with exerciseId: "   " (whitespace-only) → success: false, error path contains "exerciseId"' },
+        { number: 6, condition: 'exerciseId whitespace', validEc: 'Entry with exerciseId: "  exercise-123  " (surrounding whitespace) → success: true, parsed exerciseId is "exercise-123"', invalidEc: '' },
+        { number: 7, condition: 'sets type',             validEc: '', invalidEc: 'Entry with sets: "invalid" (string not coercible to number) → success: false, error path contains "sets"' },
+        { number: 8, condition: 'reps type',             validEc: '', invalidEc: 'Entry with reps: "invalid" (string not coercible to number) → success: false, error path contains "reps"' },
+        { number: 9, condition: 'weight type',           validEc: '', invalidEc: 'Entry with weight: "invalid" (string not coercible to number) → success: false, error path contains "weight"' },
+    ],
+    epTcRows: [
+        { noTc: 1, ec: 'EC-1', inputData: 'entry with all fields valid and no id: exerciseId "exercise-123", sets 3, reps 10, weight 80.5', expected: 'success: true, parsed data matches the input' },
+        { noTc: 2, ec: 'EC-2', inputData: 'entry with id: "uuid-123", exerciseId "exercise-123", sets 3, reps 10, weight 80.5',             expected: 'success: true, parsed id is "uuid-123"' },
+        { noTc: 3, ec: 'EC-3', inputData: 'entry with id: 123 (number, not a string)',                                                       expected: 'success: false, error path contains "id"' },
+        { noTc: 4, ec: 'EC-4', inputData: 'entry with exerciseId field absent: { sets: 3, reps: 10, weight: 80.5 }',                         expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 5, ec: 'EC-5', inputData: 'entry with exerciseId: "   " (whitespace-only)',                                                  expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 6, ec: 'EC-6', inputData: 'entry with exerciseId: "  exercise-123  " (surrounding whitespace)',                              expected: 'success: true, parsed exerciseId is "exercise-123"' },
+        { noTc: 7, ec: 'EC-7', inputData: 'entry with sets: "invalid" (string not coercible)',                                               expected: 'success: false, error path contains "sets"' },
+        { noTc: 8, ec: 'EC-8', inputData: 'entry with reps: "invalid" (string not coercible)',                                               expected: 'success: false, error path contains "reps"' },
+        { noTc: 9, ec: 'EC-9', inputData: 'entry with weight: "invalid" (string not coercible)',                                             expected: 'success: false, error path contains "weight"' },
+    ],
+    bvaRows: [
+        // ── sets range ────────────────────────────────────────────────────────
+        { number: 1,  condition: 'sets range', testCase: 'sets: -1 (min - 1): below minimum → success: false' },
+        { number: 2,  condition: 'sets range', testCase: 'sets: 0 (min): at minimum → success: true, parsed sets is 0' },
+        { number: 3,  condition: 'sets range', testCase: 'sets: 1 (min + 1): above minimum → success: true, parsed sets is 1' },
+        { number: 4,  condition: 'sets range', testCase: 'sets: 5 (max - 1): below maximum → success: true, parsed sets is 5' },
+        { number: 5,  condition: 'sets range', testCase: 'sets: 6 (max): at maximum → success: true, parsed sets is 6' },
+        { number: 6,  condition: 'sets range', testCase: 'sets: 7 (max + 1): above maximum → success: false' },
+        // ── reps range ────────────────────────────────────────────────────────
+        { number: 7,  condition: 'reps range', testCase: 'reps: -1 (min - 1): below minimum → success: false' },
+        { number: 8,  condition: 'reps range', testCase: 'reps: 0 (min): at minimum → success: true, parsed reps is 0' },
+        { number: 9,  condition: 'reps range', testCase: 'reps: 1 (min + 1): above minimum → success: true, parsed reps is 1' },
+        { number: 10, condition: 'reps range', testCase: 'reps: 29 (max - 1): below maximum → success: true, parsed reps is 29' },
+        { number: 11, condition: 'reps range', testCase: 'reps: 30 (max): at maximum → success: true, parsed reps is 30' },
+        { number: 12, condition: 'reps range', testCase: 'reps: 31 (max + 1): above maximum → success: false' },
+        // ── weight range ──────────────────────────────────────────────────────
+        { number: 13, condition: 'weight range', testCase: 'weight: -0.1 (min - 0.1): below minimum → success: false' },
+        { number: 14, condition: 'weight range', testCase: 'weight: 0.0 (min): at minimum → success: true, parsed weight is 0' },
+        { number: 15, condition: 'weight range', testCase: 'weight: 0.1 (min + 0.1): above minimum → success: true, parsed weight is 0.1' },
+        { number: 16, condition: 'weight range', testCase: 'weight: 499.9 (max - 0.1): below maximum → success: true, parsed weight is 499.9' },
+        { number: 17, condition: 'weight range', testCase: 'weight: 500.0 (max): at maximum → success: true, parsed weight is 500' },
+        { number: 18, condition: 'weight range', testCase: 'weight: 500.1 (max + 0.1): above maximum → success: false' },
+        // ── exerciseId whitespace + trim ──────────────────────────────────────
+        { number: 19, condition: 'exerciseId whitespace + trim', testCase: 'exerciseId: " E " (1 real character after trim, at minimum) → success: true, parsed exerciseId is "E"' },
+    ],
+    bvaTcRows: [
+        { noTc: 1,  bva: 'BVA-1  (sets=-1)',   inputData: 'entry with sets: -1',                                                    expected: 'success: false, error path contains "sets"' },
+        { noTc: 2,  bva: 'BVA-2  (sets=0)',    inputData: 'entry with sets: 0',                                                     expected: 'success: true, parsed sets is 0' },
+        { noTc: 3,  bva: 'BVA-3  (sets=1)',    inputData: 'entry with sets: 1',                                                     expected: 'success: true, parsed sets is 1' },
+        { noTc: 4,  bva: 'BVA-4  (sets=5)',    inputData: 'entry with sets: 5',                                                     expected: 'success: true, parsed sets is 5' },
+        { noTc: 5,  bva: 'BVA-5  (sets=6)',    inputData: 'entry with sets: 6',                                                     expected: 'success: true, parsed sets is 6' },
+        { noTc: 6,  bva: 'BVA-6  (sets=7)',    inputData: 'entry with sets: 7',                                                     expected: 'success: false, error path contains "sets"' },
+        { noTc: 7,  bva: 'BVA-7  (reps=-1)',   inputData: 'entry with reps: -1',                                                    expected: 'success: false, error path contains "reps"' },
+        { noTc: 8,  bva: 'BVA-8  (reps=0)',    inputData: 'entry with reps: 0',                                                     expected: 'success: true, parsed reps is 0' },
+        { noTc: 9,  bva: 'BVA-9  (reps=1)',    inputData: 'entry with reps: 1',                                                     expected: 'success: true, parsed reps is 1' },
+        { noTc: 10, bva: 'BVA-10 (reps=29)',   inputData: 'entry with reps: 29',                                                    expected: 'success: true, parsed reps is 29' },
+        { noTc: 11, bva: 'BVA-11 (reps=30)',   inputData: 'entry with reps: 30',                                                    expected: 'success: true, parsed reps is 30' },
+        { noTc: 12, bva: 'BVA-12 (reps=31)',   inputData: 'entry with reps: 31',                                                    expected: 'success: false, error path contains "reps"' },
+        { noTc: 13, bva: 'BVA-13 (wt=-0.1)',   inputData: 'entry with weight: -0.1',                                                expected: 'success: false, error path contains "weight"' },
+        { noTc: 14, bva: 'BVA-14 (wt=0)',      inputData: 'entry with weight: 0',                                                   expected: 'success: true, parsed weight is 0' },
+        { noTc: 15, bva: 'BVA-15 (wt=0.1)',    inputData: 'entry with weight: 0.1',                                                 expected: 'success: true, parsed weight is 0.1' },
+        { noTc: 16, bva: 'BVA-16 (wt=499.9)',  inputData: 'entry with weight: 499.9',                                               expected: 'success: true, parsed weight is 499.9' },
+        { noTc: 17, bva: 'BVA-17 (wt=500)',    inputData: 'entry with weight: 500',                                                 expected: 'success: true, parsed weight is 500' },
+        { noTc: 18, bva: 'BVA-18 (wt=500.1)',  inputData: 'entry with weight: 500.1',                                               expected: 'success: false, error path contains "weight"' },
+        { noTc: 19, bva: 'BVA-19 (pad→1)',     inputData: 'entry with exerciseId: " E " (1 real character after trim)',              expected: 'success: true, parsed exerciseId is "E"' },
+    ],
+    finalTcRows: [
+        // ── From EC ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 1,  fromEc: 'EC-1', fromBva: '', inputData: 'entry with all fields valid and no id: exerciseId "exercise-123", sets 3, reps 10, weight 80.5', expected: 'success: true, parsed data matches the input' },
+        { noTc: 2,  fromEc: 'EC-2', fromBva: '', inputData: 'entry with id: "uuid-123", exerciseId "exercise-123", sets 3, reps 10, weight 80.5',             expected: 'success: true, parsed id is "uuid-123"' },
+        { noTc: 3,  fromEc: 'EC-3', fromBva: '', inputData: 'entry with id: 123 (number, not a string)',                                                       expected: 'success: false, error path contains "id"' },
+        { noTc: 4,  fromEc: 'EC-4', fromBva: '', inputData: 'entry with exerciseId field absent: { sets: 3, reps: 10, weight: 80.5 }',                         expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 5,  fromEc: 'EC-5', fromBva: '', inputData: 'entry with exerciseId: "   " (whitespace-only)',                                                  expected: 'success: false, error path contains "exerciseId"' },
+        { noTc: 6,  fromEc: 'EC-6', fromBva: '', inputData: 'entry with exerciseId: "  exercise-123  " (surrounding whitespace)',                              expected: 'success: true, parsed exerciseId is "exercise-123"' },
+        { noTc: 7,  fromEc: 'EC-7', fromBva: '', inputData: 'entry with sets: "invalid" (string not coercible)',                                               expected: 'success: false, error path contains "sets"' },
+        { noTc: 8,  fromEc: 'EC-8', fromBva: '', inputData: 'entry with reps: "invalid" (string not coercible)',                                               expected: 'success: false, error path contains "reps"' },
+        { noTc: 9,  fromEc: 'EC-9', fromBva: '', inputData: 'entry with weight: "invalid" (string not coercible)',                                             expected: 'success: false, error path contains "weight"' },
+        // ── From BVA ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+        { noTc: 10, fromEc: '', fromBva: 'BVA-1',  inputData: 'entry with sets: -1',    expected: 'success: false, error path contains "sets"' },
+        { noTc: 11, fromEc: '', fromBva: 'BVA-2',  inputData: 'entry with sets: 0',     expected: 'success: true, parsed sets is 0' },
+        { noTc: 12, fromEc: '', fromBva: 'BVA-3',  inputData: 'entry with sets: 1',     expected: 'success: true, parsed sets is 1' },
+        { noTc: 13, fromEc: '', fromBva: 'BVA-4',  inputData: 'entry with sets: 5',     expected: 'success: true, parsed sets is 5' },
+        { noTc: 14, fromEc: '', fromBva: 'BVA-5',  inputData: 'entry with sets: 6',     expected: 'success: true, parsed sets is 6' },
+        { noTc: 15, fromEc: '', fromBva: 'BVA-6',  inputData: 'entry with sets: 7',     expected: 'success: false, error path contains "sets"' },
+        { noTc: 16, fromEc: '', fromBva: 'BVA-7',  inputData: 'entry with reps: -1',    expected: 'success: false, error path contains "reps"' },
+        { noTc: 17, fromEc: '', fromBva: 'BVA-8',  inputData: 'entry with reps: 0',     expected: 'success: true, parsed reps is 0' },
+        { noTc: 18, fromEc: '', fromBva: 'BVA-9',  inputData: 'entry with reps: 1',     expected: 'success: true, parsed reps is 1' },
+        { noTc: 19, fromEc: '', fromBva: 'BVA-10', inputData: 'entry with reps: 29',    expected: 'success: true, parsed reps is 29' },
+        { noTc: 20, fromEc: '', fromBva: 'BVA-11', inputData: 'entry with reps: 30',    expected: 'success: true, parsed reps is 30' },
+        { noTc: 21, fromEc: '', fromBva: 'BVA-12', inputData: 'entry with reps: 31',    expected: 'success: false, error path contains "reps"' },
+        { noTc: 22, fromEc: '', fromBva: 'BVA-13', inputData: 'entry with weight: -0.1',   expected: 'success: false, error path contains "weight"' },
+        { noTc: 23, fromEc: '', fromBva: 'BVA-14', inputData: 'entry with weight: 0',      expected: 'success: true, parsed weight is 0' },
+        { noTc: 24, fromEc: '', fromBva: 'BVA-15', inputData: 'entry with weight: 0.1',    expected: 'success: true, parsed weight is 0.1' },
+        { noTc: 25, fromEc: '', fromBva: 'BVA-16', inputData: 'entry with weight: 499.9',  expected: 'success: true, parsed weight is 499.9' },
+        { noTc: 26, fromEc: '', fromBva: 'BVA-17', inputData: 'entry with weight: 500',    expected: 'success: true, parsed weight is 500' },
+        { noTc: 27, fromEc: '', fromBva: 'BVA-18', inputData: 'entry with weight: 500.1',  expected: 'success: false, error path contains "weight"' },
+        { noTc: 28, fromEc: '', fromBva: 'BVA-19', inputData: 'entry with exerciseId: " E " (1 real character after trim)', expected: 'success: true, parsed exerciseId is "E"' },
+    ],
+};
+
 const workoutSessionExercisesUpdateSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-14',
+    reqId: 'SCHEMA-16',
     tcCount: 24,
     statement: 'workoutSessionExercisesUpdateSchema – Validates an array of workout session exercise entries for an update operation using Zod safeParse. Identical to workoutSessionExercisesSchema except each entry may optionally include an id field. Returns { success: true, data } when the array contains at least one entry and every entry satisfies its field constraints. Returns { success: false, error } when the array is empty or any entry violates a constraint. Array constraints: minimum length 1. Per-entry constraints: id is optional (when present, any non-empty string is accepted). exerciseId is required (at least 1 character after trimming, not whitespace-only; surrounding whitespace trimmed). sets is required and must be an integer in the range 0–6 inclusive. reps is required and must be an integer in the range 0–30 inclusive. weight is required and must be a number in the range 0.0–500.0 inclusive.',
     data: 'Input: Array<WorkoutSessionExerciseUpdateInput { id?: string, exerciseId: string, sets: number, reps: number, weight: number }>',
@@ -1893,7 +2107,7 @@ const workoutSessionExercisesUpdateSchemaBbt: BbtDescriptor = {
 };
 
 const memberProgressReportSchemaBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-15',
+    reqId: 'SCHEMA-17',
     tcCount: 12,
     statement: 'memberProgressReportSchema – Validates query parameters for a member progress report using Zod safeParse. Returns { success: true, data } when all required fields are present and satisfy their constraints. Returns { success: false, error } with a path pointing to the offending field when any constraint is violated. memberId is required (at least 1 character, not whitespace-only). startDate is required and must be in YYYY-MM-DD format. endDate is required and must be in YYYY-MM-DD format. The schema does not enforce date ordering; startDate equal to or after endDate is accepted.',
     data: 'Input: MemberProgressReportInput { memberId: string, startDate: string, endDate: string }',
@@ -1950,7 +2164,7 @@ const memberProgressReportSchemaBbt: BbtDescriptor = {
 };
 
 const isoDateRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-16',
+    reqId: 'SCHEMA-18',
     tcCount: 22,
     statement: 'isoDateRegex – Tests whether a string matches the pattern /^\\d{4}-\\d{2}-\\d{2}$/. Returns true when the input is exactly four digits, a hyphen, two digits, a hyphen, and two digits with no additional characters. Returns false for any other format. The regex validates structure only; it does not validate calendar correctness (e.g. month 99 or day 00 pass the format check).',
     data: 'Input: string s passed to isoDateRegex.test(s)',
@@ -2030,7 +2244,7 @@ const isoDateRegexBbt: BbtDescriptor = {
 };
 
 const e164PhoneRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-17',
+    reqId: 'SCHEMA-19',
     tcCount: 16,
     statement: 'e164PhoneRegex – Tests whether a string matches the pattern /^\\+?[1-9]\\d{1,14}$/. Returns true for strings that optionally start with "+", begin with a non-zero digit, and contain between 2 and 15 digits in total (excluding the optional "+"). Returns false for strings that start with "0", contain spaces, dashes, parentheses, or non-digit characters, consist of "+" alone, or are empty.',
     data: 'Input: string s passed to e164PhoneRegex.test(s)',
@@ -2093,7 +2307,7 @@ const e164PhoneRegexBbt: BbtDescriptor = {
 };
 
 const emailRegexBbt: BbtDescriptor = {
-    reqId: 'SCHEMA-18',
+    reqId: 'SCHEMA-20',
     tcCount: 17,
     statement: 'emailRegex – Tests whether a string matches the pattern /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/. Returns true when the string contains exactly one "@" separating a non-empty local part from a domain that itself contains at least one "." with non-empty segments on both sides, and no whitespace anywhere. Returns false for any deviation: missing "@", empty local part, missing or empty domain, no "." in domain, trailing dot, spaces, multiple "@" symbols, or empty input.',
     data: 'Input: string s passed to emailRegex.test(s)',
@@ -2175,8 +2389,10 @@ const emailRegexBbt: BbtDescriptor = {
     await writeBbt(createExerciseSchemaBbt, path.join(BASE, 'exercise-schema', 'createExerciseSchema-bbt-form.xlsx'));
     await writeBbt(updateExerciseSchemaBbt, path.join(BASE, 'exercise-schema', 'updateExerciseSchema-bbt-form.xlsx'));
     await writeBbt(createWorkoutSessionSchemaBbt, path.join(BASE, 'workout-session-schema', 'createWorkoutSessionSchema-bbt-form.xlsx'));
+    await writeBbt(workoutSessionExerciseSchemaBbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExerciseSchema-bbt-form.xlsx'));
     await writeBbt(workoutSessionExercisesSchemaBbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExercisesSchema-bbt-form.xlsx'));
     await writeBbt(updateWorkoutSessionSchemaBbt, path.join(BASE, 'workout-session-schema', 'updateWorkoutSessionSchema-bbt-form.xlsx'));
+    await writeBbt(workoutSessionExerciseUpdateSchemaBbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExerciseUpdateSchema-bbt-form.xlsx'));
     await writeBbt(workoutSessionExercisesUpdateSchemaBbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExercisesUpdateSchema-bbt-form.xlsx'));
     await writeBbt(memberProgressReportSchemaBbt, path.join(BASE, 'report-schema', 'memberProgressReportSchema-bbt-form.xlsx'));
     await writeBbt(isoDateRegexBbt, path.join(BASE, 'utils', 'isoDateRegex-bbt-form.xlsx'));

@@ -3081,8 +3081,417 @@ const workoutSessionExercisesSchemaWbt: WbtDescriptor = {
     coveragePercent: '100%',
 };
 
-const isoDateRegexWbt: WbtDescriptor = {
+const workoutSessionExerciseUpdateSchemaWbt: WbtDescriptor = {
     reqId: 'SCHEMA-16',
+    statement: 'workoutSessionExerciseUpdateSchema.safeParse(inputData) - validates a single exercise update entry; id is optional, all exercise metric fields are required.',
+    data: 'Input: any',
+    precondition: 'inputData is an object that may contain an optional id string plus exercise metric fields.',
+    results: 'Output: SafeParseSuccess<WorkoutSessionExerciseUpdateInput> | SafeParseError<WorkoutSessionExerciseUpdateInput>',
+    postcondition: 'Return success result if id is absent or a string and all exercise fields are valid; otherwise return error result.',
+    cfgDot: `digraph CFG {
+  rankdir=TB;
+  splines=polyline;
+  node [fontname="Helvetica" fontsize=11 margin="0.2,0.1"];
+  edge [fontname="Helvetica" fontsize=10 arrowsize=0.8];
+
+  start    [label="" shape=circle width=0.25 style=filled fillcolor=black];
+  exit     [label="" shape=circle width=0.25 style=filled fillcolor=black];
+  retErr   [label="return {success: false, error}" shape=box];
+  retOk    [label="return {success: true, data}"  shape=box];
+  D0a      [label="id absent?" shape=diamond];
+  D0b      [label="id is string?" shape=diamond];
+  m0       [label="" shape=circle width=0.18 style=filled fillcolor=black];
+  D1       [label="exerciseId is string?" shape=diamond];
+  S1       [label="exerciseId = exerciseId.trim()" shape=box];
+  D2       [label="exerciseId length >= 1?" shape=diamond];
+  D3       [label="sets coercible to number?" shape=diamond];
+  D4       [label="sets >= 0?" shape=diamond];
+  D5       [label="sets <= 6?" shape=diamond];
+  D6       [label="reps coercible to number?" shape=diamond];
+  D7       [label="reps >= 0?" shape=diamond];
+  D8       [label="reps <= 30?" shape=diamond];
+  D9       [label="weight coercible to number?" shape=diamond];
+  D10      [label="weight >= 0?" shape=diamond];
+  D11      [label="weight <= 500?" shape=diamond];
+  mFail    [label="" shape=circle width=0.18 style=filled fillcolor=black];
+  mExit    [label="" shape=circle width=0.18 style=filled fillcolor=black];
+
+  start    -> D0a:n;
+  D0a:w    -> m0:nw     [label="True"];
+  D0a:e    -> D0b:n     [label="False"];
+  D0b:w    -> m0:ne     [label="True"];
+  D0b:e    -> mFail:ne  [label="False"];
+  m0       -> D1:n;
+  D1:w     -> S1:n      [label="True"];
+  D1:e     -> mFail:ne  [label="False"];
+  S1:s     -> D2:n;
+  D2:w     -> D3:n      [label="True"];
+  D2:e     -> mFail:ne  [label="False"];
+  D3:w     -> D4:n      [label="True"];
+  D3:e     -> mFail:ne  [label="False"];
+  D4:w     -> D5:n      [label="True"];
+  D4:e     -> mFail:ne  [label="False"];
+  D5:w     -> D6:n      [label="True"];
+  D5:e     -> mFail:ne  [label="False"];
+  D6:w     -> D7:n      [label="True"];
+  D6:e     -> mFail:ne  [label="False"];
+  D7:w     -> D8:n      [label="True"];
+  D7:e     -> mFail:ne  [label="False"];
+  D8:w     -> D9:n      [label="True"];
+  D8:e     -> mFail:ne  [label="False"];
+  D9:w     -> D10:n     [label="True"];
+  D9:e     -> mFail:ne  [label="False"];
+  D10:w    -> D11:n     [label="True"];
+  D10:e    -> mFail:ne  [label="False"];
+  D11:w    -> retOk:n   [label="True"];
+  D11:e    -> mFail:ne  [label="False"];
+  mFail    -> retErr:n;
+  retOk:s  -> mExit:nw;
+  retErr:s -> mExit:ne;
+  mExit    -> exit;
+}`,
+    cfgSourceCode: [
+        'export const workoutSessionExerciseUpdateSchema = z.object({',
+        '    id: z.string().optional(),',
+        '    exerciseId: z.string().trim().min(1, \'Exercise is required\'),',
+        '    sets: z.coerce.number().min(0, \'Sets must be greater or equal to 0\').max(6, \'Sets must be at most 6\'),',
+        '    reps: z.coerce.number().min(0, \'Reps must be greater or equal to 0\').max(30, \'Reps must be at most 30\'),',
+        '    weight: z.coerce.number().min(0, \'Weight must be greater or equal to 0.0\').max(500, \'Weight must be at most 500.0\'),',
+        '});',
+    ],
+    cyclomaticComplexity: { cc1Regions: 14, cc2EdgeNodePlus2: 14, cc3PredicatePlus1: 14 },
+    predicates: [
+        'id absent (D0a)',
+        'id is string (D0b)',
+        'exerciseId is string (D1)',
+        'exerciseId length >= 1 after trim (D2)',
+        'sets coercible to number (D3)',
+        'sets >= 0 (D4)',
+        'sets <= 6 (D5)',
+        'reps coercible to number (D6)',
+        'reps >= 0 (D7)',
+        'reps <= 30 (D8)',
+        'weight coercible to number (D9)',
+        'weight >= 0 (D10)',
+        'weight <= 500 (D11)',
+    ],
+    paths: [
+        { id: '1',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(T) -> D9(T) -> D10(T) -> D11(T) -> retOk -> mExit -> exit' },
+        { id: '2',  description: 'start -> D0a(F) -> D0b(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '3',  description: 'start -> D0a(F) -> D0b(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(T) -> D9(T) -> D10(T) -> D11(T) -> retOk -> mExit -> exit' },
+        { id: '4',  description: 'start -> D0a(T) -> m0 -> D1(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '5',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '6',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '7',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '8',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '9',  description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '10', description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '11', description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '12', description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(T) -> D9(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '13', description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(T) -> D9(T) -> D10(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '14', description: 'start -> D0a(T) -> m0 -> D1(T) -> S1 -> D2(T) -> D3(T) -> D4(T) -> D5(T) -> D6(T) -> D7(T) -> D8(T) -> D9(T) -> D10(T) -> D11(F) -> mFail -> retErr -> mExit -> exit' },
+    ],
+    hasLoopCoverage: false,
+    tcRows: [
+        {
+            noTc: '1',
+            inputData: 'No id field, exerciseId="exercise-1", sets=3, reps=10, weight=50 (id absent)',
+            expected: 'success: true',
+            statementCoverage: true,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [true, false], [true, false], [true, false], [true, false],
+            ],
+            pathCoverage: [true, false, false, false, false, false, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '2',
+            inputData: 'id=123 (not a string)',
+            expected: 'success: false, error on id',
+            statementCoverage: true,
+            conditionDecision: [
+                [false, true], [false, true], [false, false], [false, false], [false, false], [false, false],
+                [false, false], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, true, false, false, false, false, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '3',
+            inputData: 'id="existing-row-id", exerciseId="exercise-1", sets=3, reps=10, weight=50 (id is string)',
+            expected: 'success: true',
+            statementCoverage: false,
+            conditionDecision: [
+                [false, true], [true, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [true, false], [true, false], [true, false], [true, false],
+            ],
+            pathCoverage: [false, false, true, false, false, false, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '4',
+            inputData: 'exerciseId=123 (not a string), no id',
+            expected: 'success: false, error on exerciseId',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [false, true], [false, false], [false, false], [false, false],
+                [false, false], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, true, false, false, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '5',
+            inputData: 'exerciseId="   " (whitespace-only, trims to empty)',
+            expected: 'success: false, error on exerciseId',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [false, true], [false, false], [false, false],
+                [false, false], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, true, false, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '6',
+            inputData: 'sets="abc" (not coercible to number)',
+            expected: 'success: false, error on sets',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [false, true], [false, false],
+                [false, false], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, true, false, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '7',
+            inputData: 'sets=-1 (below min 0)',
+            expected: 'success: false, error on sets',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [false, true],
+                [false, false], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, true, false, false, false, false, false, false, false],
+        },
+        {
+            noTc: '8',
+            inputData: 'sets=7 (above max 6)',
+            expected: 'success: false, error on sets',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [false, true], [false, false], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, true, false, false, false, false, false, false],
+        },
+        {
+            noTc: '9',
+            inputData: 'reps="abc" (not coercible to number)',
+            expected: 'success: false, error on reps',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [false, true], [false, false], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, true, false, false, false, false, false],
+        },
+        {
+            noTc: '10',
+            inputData: 'reps=-1 (below min 0)',
+            expected: 'success: false, error on reps',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [false, true], [false, false], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, false, true, false, false, false, false],
+        },
+        {
+            noTc: '11',
+            inputData: 'reps=31 (above max 30)',
+            expected: 'success: false, error on reps',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [false, true], [false, false], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, false, false, true, false, false, false],
+        },
+        {
+            noTc: '12',
+            inputData: 'weight="abc" (not coercible to number)',
+            expected: 'success: false, error on weight',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [true, false], [false, true], [false, false], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, false, false, false, true, false, false],
+        },
+        {
+            noTc: '13',
+            inputData: 'weight=-1 (below min 0)',
+            expected: 'success: false, error on weight',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [true, false], [true, false], [false, true], [false, false],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, false, false, false, false, true, false],
+        },
+        {
+            noTc: '14',
+            inputData: 'weight=501 (above max 500)',
+            expected: 'success: false, error on weight',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, false], [true, false], [true, false], [true, false], [true, false],
+                [true, false], [true, false], [true, false], [true, false], [true, false], [true, false], [false, true],
+            ],
+            pathCoverage: [false, false, false, false, false, false, false, false, false, false, false, false, false, true],
+        },
+    ],
+    remarks: [
+        '1) statementCoverage is true for TC1 (first to reach retOk via D0a=True, executing S1) and TC2 (first to reach retErr via D0b=False → mFail).',
+        '2) D0 is split into two separate diamonds: D0a ("id absent?") and D0b ("id is string?"). D0a=True skips id validation and merges directly into D1 via m0. D0a=False evaluates D0b; D0b=True merges into D1 via m0; D0b=False routes to mFail.',
+        '3) All three predicate combinations are covered: TC1 (D0a=T), TC2 (D0a=F, D0b=F), TC3 (D0a=F, D0b=T). TC3 is an independent path in its own right because it exercises the distinct D0a→D0b→m0 edge sequence.',
+        '4) TC4–TC14 all reach mFail and retErr, already covered by TC2; statementCoverage is false for those TCs.',
+    ],
+    tcsFailed: 0,
+    bugsFound: 0,
+    coveragePercent: '100%',
+};
+
+const workoutSessionExercisesUpdateSchemaWbt: WbtDescriptor = {
+    reqId: 'SCHEMA-17',
+    statement: 'workoutSessionExercisesUpdateSchema.safeParse(inputData) - validates a list of exercise update entries, requiring at least one.',
+    data: 'Input: any',
+    precondition: 'inputData is an array of exercise update entry objects.',
+    results: 'Output: SafeParseSuccess<WorkoutSessionExerciseUpdateInput[]> | SafeParseError<WorkoutSessionExerciseUpdateInput[]>',
+    postcondition: 'Return success result if the array has at least one valid entry; otherwise return error result.',
+    cfgDot: `digraph CFG {
+  rankdir=TB;
+  splines=polyline;
+  node [fontname="Helvetica" fontsize=11 margin="0.2,0.1"];
+  edge [fontname="Helvetica" fontsize=10 arrowsize=0.8];
+
+  start    [label="" shape=circle width=0.25 style=filled fillcolor=black];
+  exit     [label="" shape=circle width=0.25 style=filled fillcolor=black];
+  retErr   [label="return {success: false, error}" shape=box];
+  retOk    [label="return {success: true, data}"  shape=box];
+  D1       [label="input is array?" shape=diamond];
+  D2       [label="array length >= 1?" shape=diamond];
+  D3       [label="all items valid per workoutSessionExerciseUpdateSchema?" shape=diamond];
+  mFail    [label="" shape=circle width=0.18 style=filled fillcolor=black];
+  mExit    [label="" shape=circle width=0.18 style=filled fillcolor=black];
+
+  start    -> D1:n;
+  D1:w     -> D2:n      [label="True"];
+  D1:e     -> mFail:ne  [label="False"];
+  D2:w     -> D3:n      [label="True"];
+  D2:e     -> mFail:ne  [label="False"];
+  D3:w     -> retOk:n   [label="True"];
+  D3:e     -> mFail:ne  [label="False"];
+  mFail    -> retErr:n;
+  retOk:s  -> mExit:nw;
+  retErr:s -> mExit:ne;
+  mExit    -> exit;
+}`,
+    cfgSourceCode: [
+        'export const workoutSessionExercisesUpdateSchema = z',
+        '    .array(workoutSessionExerciseUpdateSchema)',
+        '    .min(1, \'At least one exercise is required\');',
+    ],
+    cyclomaticComplexity: { cc1Regions: 4, cc2EdgeNodePlus2: 4, cc3PredicatePlus1: 4 },
+    predicates: [
+        'input is array (D1)',
+        'array length >= 1 (D2)',
+        'all items valid per workoutSessionExerciseUpdateSchema (D3)',
+    ],
+    paths: [
+        { id: '1', description: 'start -> D1(T) -> D2(T) -> D3(T) -> retOk -> mExit -> exit' },
+        { id: '2', description: 'start -> D1(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '3', description: 'start -> D1(T) -> D2(F) -> mFail -> retErr -> mExit -> exit' },
+        { id: '4', description: 'start -> D1(T) -> D2(T) -> D3(F) -> mFail -> retErr -> mExit -> exit' },
+    ],
+    hasLoopCoverage: true,
+    tcRows: [
+        {
+            noTc: '1',
+            inputData: '[{id="row-1", exerciseId="exercise-1", sets=3, reps=10, weight=50}] (one valid entry with id)',
+            expected: 'success: true',
+            statementCoverage: true,
+            conditionDecision: [
+                [true, false], [true, false], [true, false],
+            ],
+            pathCoverage: [true, false, false, false],
+            loopCoverage: { once: true },
+        },
+        {
+            noTc: '2',
+            inputData: '"not-an-array" (non-array primitive)',
+            expected: 'success: false',
+            statementCoverage: true,
+            conditionDecision: [
+                [false, true], [false, false], [false, false],
+            ],
+            pathCoverage: [false, true, false, false],
+            loopCoverage: { no: true },
+        },
+        {
+            noTc: '3',
+            inputData: '[] (empty array)',
+            expected: 'success: false',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [false, true], [false, false],
+            ],
+            pathCoverage: [false, false, true, false],
+            loopCoverage: { no: true },
+        },
+        {
+            noTc: '4',
+            inputData: '[{exerciseId="", sets=3, reps=10, weight=50}] (one invalid entry — empty exerciseId)',
+            expected: 'success: false',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [true, false], [false, true],
+            ],
+            pathCoverage: [false, false, false, true],
+            loopCoverage: { once: true },
+        },
+        {
+            noTc: '5',
+            inputData: 'Two valid entries',
+            expected: 'success: true',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [true, false], [true, false],
+            ],
+            pathCoverage: [true, false, false, false],
+            loopCoverage: { twice: true },
+        },
+        {
+            noTc: '6',
+            inputData: 'Six valid entries',
+            expected: 'success: true',
+            statementCoverage: false,
+            conditionDecision: [
+                [true, false], [true, false], [true, false],
+            ],
+            pathCoverage: [true, false, false, false],
+            loopCoverage: { n: true },
+        },
+    ],
+    remarks: [
+        '1) statementCoverage is true for TC1 and TC2 as they are the first to reach retOk and retErr respectively.',
+        '2) The array schema iterates internally over each element via the Zod engine — the CFG models this as a single D3 predicate node. The loop coverage TCs (once, twice, n) exercise different iteration counts through that internal loop.',
+        '3) n is set to 6 as a practical upper bound matching the max sets value in workoutSessionExerciseUpdateSchema. The schema imposes no upper bound on array length so nMinus1 and nPlus1 variants exercise no new CFG edges and are omitted.',
+    ],
+    tcsFailed: 0,
+    bugsFound: 0,
+    coveragePercent: '100%',
+};
+
+const isoDateRegexWbt: WbtDescriptor = {
+    reqId: 'SCHEMA-18',
     statement: 'isoDateRegex.test(input) - validates that a string matches the YYYY-MM-DD ISO date format.',
     data: 'Input: string',
     precondition: 'input is any string value.',
@@ -3181,7 +3590,7 @@ const isoDateRegexWbt: WbtDescriptor = {
 };
 
 const e164PhoneRegexWbt: WbtDescriptor = {
-    reqId: 'SCHEMA-17',
+    reqId: 'SCHEMA-19',
     statement: 'e164PhoneRegex.test(input) - validates that a string matches the E.164 phone number format.',
     data: 'Input: string',
     precondition: 'input is any string value.',
@@ -3288,7 +3697,7 @@ const e164PhoneRegexWbt: WbtDescriptor = {
 };
 
 const emailRegexWbt: WbtDescriptor = {
-    reqId: 'SCHEMA-18',
+    reqId: 'SCHEMA-20',
     statement: 'emailRegex.test(input) - validates that a string matches the simplified RFC 5321 email format.',
     data: 'Input: string',
     precondition: 'input is any string value.',
@@ -3427,6 +3836,8 @@ async function main(): Promise<void> {
     await writeWbt(updateWorkoutSessionSchemaWbt, path.join(BASE, 'workout-session-schema', 'updateWorkoutSessionSchema-wbt-form.xlsx'));
     await writeWbt(workoutSessionExerciseSchemaWbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExerciseSchema-wbt-form.xlsx'));
     await writeWbt(workoutSessionExercisesSchemaWbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExercisesSchema-wbt-form.xlsx'));
+    await writeWbt(workoutSessionExerciseUpdateSchemaWbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExerciseUpdateSchema-wbt-form.xlsx'));
+    await writeWbt(workoutSessionExercisesUpdateSchemaWbt, path.join(BASE, 'workout-session-schema', 'workoutSessionExercisesUpdateSchema-wbt-form.xlsx'));
     await writeWbt(isoDateRegexWbt, path.join(BASE, 'utils', 'isoDateRegexWbt-wbt-form.xlsx'));
     await writeWbt(e164PhoneRegexWbt, path.join(BASE, 'utils', 'e164PhoneRegexWbt-wbt-form.xlsx'));
     await writeWbt(emailRegexWbt, path.join(BASE, 'utils', 'emailRegexWbt-wbt-form.xlsx'));

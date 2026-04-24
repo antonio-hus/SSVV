@@ -4,8 +4,10 @@ import {
     UpdateWorkoutSessionInput,
     updateWorkoutSessionSchema,
     WorkoutSessionExerciseInput,
+    workoutSessionExerciseSchema,
     workoutSessionExercisesSchema,
     WorkoutSessionExerciseUpdateInput,
+    workoutSessionExerciseUpdateSchema,
     workoutSessionExercisesUpdateSchema,
 } from '@/lib/schema/workout-session-schema';
 
@@ -403,6 +405,313 @@ describe('createWorkoutSessionSchema', () => {
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe('A'.repeat(1024));
+            }
+        });
+    });
+});
+
+describe('workoutSessionExerciseSchema', () => {
+    describe('Equivalence Classes', () => {
+        it('workoutSessionExerciseSchema_EC_allFieldsValid_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {
+                exerciseId: 'exercise-123',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputData);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_missingExerciseId_returnsValidationError', () => {
+            const inputData = {sets: 3, reps: 10, weight: 80.5};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_exerciseIdWhitespace_returnsValidationError', () => {
+            const inputData: WorkoutSessionExerciseInput = {
+                exerciseId: '   ',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_exerciseIdWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {
+                exerciseId: '  exercise-123  ',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseId).toBe('exercise-123');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_invalidSetsType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 'invalid', reps: 10, weight: 80.5};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_invalidRepsType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 3, reps: 'invalid', weight: 80.5};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_EC_invalidWeightType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 3, reps: 10, weight: 'invalid'};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
+        });
+    });
+
+    describe('Boundary Value Analysis', () => {
+        it('workoutSessionExerciseSchema_BVA_setsMinus1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, sets: -1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_sets0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, sets: 0};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_sets1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, sets: 1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(1);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_sets5_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, sets: 5};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(5);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_sets6_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, sets: 6};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(6);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_sets7_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, sets: 7};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_exerciseIdPadded1CharAfterTrim_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, exerciseId: ' E '};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseId).toBe('E');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_repsMinus1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, reps: -1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_reps0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, reps: 0};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_reps1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, reps: 1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(1);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_reps29_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, reps: 29};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(29);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_reps30_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, reps: 30};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(30);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_reps31_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, reps: 31};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weightMinus0point1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, weight: -0.1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weight0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, weight: 0};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weight0point1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, weight: 0.1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(0.1);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weight499point9_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, weight: 499.9};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(499.9);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weight500_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseInput = {...VALID_EXERCISE, weight: 500};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(500);
+            }
+        });
+
+        it('workoutSessionExerciseSchema_BVA_weight500point1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, weight: 500.1};
+
+            const result = workoutSessionExerciseSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
             }
         });
     });
@@ -1022,6 +1331,347 @@ describe('updateWorkoutSessionSchema', () => {
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe('A'.repeat(1024));
+            }
+        });
+    });
+});
+
+describe('workoutSessionExerciseUpdateSchema', () => {
+    describe('Equivalence Classes', () => {
+        it('workoutSessionExerciseUpdateSchema_EC_idAbsent_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: 'exercise-123',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data).toEqual(inputData);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_idPresent_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                id: 'uuid-123',
+                exerciseId: 'exercise-123',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.id).toBe('uuid-123');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_idNotString_returnsValidationError', () => {
+            const inputData = {
+                id: 123,
+                exerciseId: 'exercise-123',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('id');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_missingExerciseId_returnsValidationError', () => {
+            const inputData = {sets: 3, reps: 10, weight: 80.5};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_exerciseIdWhitespace_returnsValidationError', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: '   ',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('exerciseId');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_exerciseIdWithSurroundingWhitespace_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {
+                exerciseId: '  exercise-123  ',
+                sets: 3,
+                reps: 10,
+                weight: 80.5,
+            };
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseId).toBe('exercise-123');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_invalidSetsType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 'invalid', reps: 10, weight: 80.5};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_invalidRepsType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 3, reps: 'invalid', weight: 80.5};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_EC_invalidWeightType_returnsValidationError', () => {
+            const inputData = {exerciseId: 'exercise-123', sets: 3, reps: 10, weight: 'invalid'};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
+        });
+    });
+
+    describe('Boundary Value Analysis', () => {
+        it('workoutSessionExerciseUpdateSchema_BVA_setsMinus1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, sets: -1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_sets0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, sets: 0};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_sets1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, sets: 1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(1);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_sets5_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, sets: 5};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(5);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_sets6_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, sets: 6};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.sets).toBe(6);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_sets7_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, sets: 7};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('sets');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_exerciseIdPadded1CharAfterTrim_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, exerciseId: ' E '};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.exerciseId).toBe('E');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_repsMinus1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, reps: -1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_reps0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, reps: 0};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_reps1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, reps: 1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(1);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_reps29_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, reps: 29};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(29);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_reps30_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, reps: 30};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.reps).toBe(30);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_reps31_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, reps: 31};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('reps');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weightMinus0point1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, weight: -0.1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weight0_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, weight: 0};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(0);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weight0point1_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, weight: 0.1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(0.1);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weight499point9_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, weight: 499.9};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(499.9);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weight500_parsesSuccessfully', () => {
+            const inputData: WorkoutSessionExerciseUpdateInput = {...VALID_EXERCISE, weight: 500};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.weight).toBe(500);
+            }
+        });
+
+        it('workoutSessionExerciseUpdateSchema_BVA_weight500point1_returnsValidationError', () => {
+            const inputData = {...VALID_EXERCISE, weight: 500.1};
+
+            const result = workoutSessionExerciseUpdateSchema.safeParse(inputData);
+
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.issues[0].path).toContain('weight');
             }
         });
     });
