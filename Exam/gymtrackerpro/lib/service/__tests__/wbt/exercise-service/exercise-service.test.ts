@@ -167,3 +167,33 @@ describe('deleteExercise', () => {
     });
 
 });
+
+/**
+ * Singleton creation check.
+ * Provided for enhanced coverage.
+ * Not included in the scope of GymTrackerPro testing.
+ */
+describe('getInstance', () => {
+
+    it('getInstance_Path1_returnsValidInstance', () => {
+        const instance = ExerciseService.getInstance(mockExerciseRepo);
+
+        expect(instance).toBeDefined();
+        expect(instance).toBeInstanceOf(ExerciseService);
+    });
+
+    it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        const firstCall = ExerciseService.getInstance(mockExerciseRepo);
+
+        const secondRepo = mock<ExerciseRepositoryInterface>();
+        const secondCall = ExerciseService.getInstance(secondRepo);
+
+        expect(secondCall).toBe(firstCall);
+
+        const internalRepo = (secondCall as unknown as { exerciseRepository: unknown }).exerciseRepository;
+
+        expect(internalRepo).toBe(mockExerciseRepo);
+        expect(internalRepo).not.toBe(secondRepo);
+    });
+
+});

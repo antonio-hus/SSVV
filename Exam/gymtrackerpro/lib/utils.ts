@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import {clsx, type ClassValue} from "clsx"
+import {twMerge} from "tailwind-merge"
 
 /**
  * Merges Tailwind CSS class names, resolving conflicts via `tailwind-merge`
@@ -9,7 +9,7 @@ import { twMerge } from "tailwind-merge"
  * @returns A single merged class string with conflicting Tailwind classes resolved.
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+    return twMerge(clsx(inputs))
 }
 
 /**
@@ -25,5 +25,5 @@ export function cn(...inputs: ClassValue[]) {
  * @returns The escaped string, safe for use in Prisma string-filter operators.
  */
 export function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, '\\$&')
+    return value.replace(/[\\%_]/g, '\\$&')
 }

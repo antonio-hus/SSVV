@@ -390,3 +390,33 @@ describe('deleteAdmin', () => {
     });
 
 });
+
+/**
+ * Singleton creation check.
+ * Provided for enhanced coverage.
+ * Not included in the scope of GymTrackerPro testing.
+ */
+describe('getInstance', () => {
+
+    it('getInstance_Path1_returnsValidInstance', () => {
+        const instance = UserService.getInstance(mockUserRepo);
+
+        expect(instance).toBeDefined();
+        expect(instance).toBeInstanceOf(UserService);
+    });
+
+    it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        const firstCall = UserService.getInstance(mockUserRepo);
+
+        const secondRepo = mock<UserRepositoryInterface>();
+        const secondCall = UserService.getInstance(secondRepo);
+
+        expect(secondCall).toBe(firstCall);
+
+        const internalRepo = (secondCall as unknown as { userRepository: unknown }).userRepository;
+
+        expect(internalRepo).toBe(mockUserRepo);
+        expect(internalRepo).not.toBe(secondRepo);
+    });
+
+});

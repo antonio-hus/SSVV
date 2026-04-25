@@ -336,3 +336,31 @@ describe('delete', () => {
     });
 
 });
+
+/**
+ * Singleton creation check.
+ * Provided for enhanced coverage.
+ * Not included in the scope of GymTrackerPro testing.
+ */
+describe('getInstance', () => {
+
+    it('getInstance_Path1_returnsValidInstance', () => {
+        const instance = ExerciseRepository.getInstance(prismaMock);
+
+        expect(instance).toBeDefined();
+        expect(instance).toBeInstanceOf(ExerciseRepository);
+    });
+
+    it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        const firstCall = ExerciseRepository.getInstance(prismaMock);
+        const secondPrismaMock = mockDeep<PrismaClient>();
+        const secondCall = ExerciseRepository.getInstance(secondPrismaMock);
+
+        expect(secondCall).toBe(firstCall);
+
+        const internalClient = (secondCall as unknown as { database: unknown }).database;
+        expect(internalClient).toBe(prismaMock);
+        expect(internalClient).not.toBe(secondPrismaMock);
+    });
+
+});

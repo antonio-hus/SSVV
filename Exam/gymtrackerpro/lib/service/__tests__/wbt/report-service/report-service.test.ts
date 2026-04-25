@@ -833,3 +833,37 @@ describe('getMemberProgressReport', () => {
     });
 
 });
+
+/**
+ * Singleton creation check.
+ * Provided for enhanced coverage.
+ * Not included in the scope of GymTrackerPro testing.
+ */
+describe('getInstance', () => {
+
+    it('getInstance_Path1_returnsValidInstance', () => {
+        const instance = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+        expect(instance).toBeDefined();
+        expect(instance).toBeInstanceOf(ReportService);
+    });
+
+    it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        const firstCall = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+        const secondWsRepo = mock<WorkoutSessionRepositoryInterface>();
+        const secondUserRepo = mock<UserRepositoryInterface>();
+        const secondCall = ReportService.getInstance(secondWsRepo, secondUserRepo);
+
+        expect(secondCall).toBe(firstCall);
+
+        const internalWsRepo = (secondCall as unknown as { workoutSessionRepository: unknown }).workoutSessionRepository;
+        const internalUserRepo = (secondCall as unknown as { userRepository: unknown }).userRepository;
+
+        expect(internalWsRepo).toBe(mockWorkoutSessionRepo);
+        expect(internalUserRepo).toBe(mockUserRepo);
+        expect(internalWsRepo).not.toBe(secondWsRepo);
+        expect(internalUserRepo).not.toBe(secondUserRepo);
+    });
+
+});

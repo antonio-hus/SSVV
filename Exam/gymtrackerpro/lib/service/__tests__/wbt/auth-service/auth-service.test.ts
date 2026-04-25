@@ -140,3 +140,33 @@ describe('login', () => {
     });
 
 });
+
+/**
+ * Singleton creation check.
+ * Provided for enhanced coverage.
+ * Not included in the scope of GymTrackerPro testing.
+ */
+describe('getInstance', () => {
+
+    it('getInstance_Path1_returnsValidInstance', () => {
+        const instance = AuthService.getInstance(mockUserRepo);
+
+        expect(instance).toBeDefined();
+        expect(instance).toBeInstanceOf(AuthService);
+    });
+
+    it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        const firstCall = AuthService.getInstance(mockUserRepo);
+
+        const secondUserRepo = mock<UserRepositoryInterface>();
+        const secondCall = AuthService.getInstance(secondUserRepo);
+
+        expect(secondCall).toBe(firstCall);
+
+        const internalRepo = (secondCall as unknown as { userRepository: unknown }).userRepository;
+
+        expect(internalRepo).toBe(mockUserRepo);
+        expect(internalRepo).not.toBe(secondUserRepo);
+    });
+
+});

@@ -1,4 +1,4 @@
-import {escapeLike} from '@/lib/utils';
+import {cn, escapeLike} from '@/lib/utils';
 
 describe('escapeLike', () => {
 
@@ -54,4 +54,13 @@ describe('escapeLike', () => {
 
     });
 
+});
+
+/**
+ * Frontend test for TailwindCSS.
+ */
+describe('cn utility', () => {
+    it('merges tailwind classes correctly', () => {
+        expect(cn('bg-red-500', 'bg-blue-500')).toBe('bg-blue-500');
+    });
 });
