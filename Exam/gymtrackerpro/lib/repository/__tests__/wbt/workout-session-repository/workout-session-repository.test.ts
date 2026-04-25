@@ -1,8 +1,10 @@
 import {mockDeep, mockReset} from 'jest-mock-extended';
 import {PrismaClient} from '@/prisma/generated/prisma/client';
 import {MuscleGroup, Equipment} from '@/lib/domain/exercise';
-import {WorkoutSession, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
-import {
+import type {Member} from '@/lib/domain/user';
+import type {Exercise} from '@/lib/domain/exercise';
+import type {WorkoutSession, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
+import type {
     CreateWorkoutSessionInput,
     UpdateWorkoutSessionInput,
     WorkoutSessionExerciseInput,
@@ -19,14 +21,14 @@ const EXERCISE_ID: string = 'exercise-uuid-001';
 const WSE_ID: string = 'wse-uuid-001';
 const NONEXISTENT_ID: string = 'nonexistent-id';
 
-const MOCK_MEMBER = {
+const MOCK_MEMBER: Member = {
     id: MEMBER_ID,
     userId: 'user-uuid-001',
     membershipStart: new Date('2024-01-01'),
     isActive: true,
 };
 
-const MOCK_EXERCISE = {
+const MOCK_EXERCISE: Exercise = {
     id: EXERCISE_ID,
     name: 'Bicep Curls',
     description: 'Standard dumbbell curls',

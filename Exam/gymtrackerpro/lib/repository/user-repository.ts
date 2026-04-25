@@ -248,9 +248,6 @@ export class UserRepository implements UserRepositoryInterface {
                 include: {user: true},
             });
         } catch (error) {
-            if (error instanceof NotFoundError || error instanceof ConflictError) {
-                throw error;
-            }
             throw new TransactionError(`Failed to update member: ${(error as Error).message}`);
         }
     }
@@ -307,9 +304,6 @@ export class UserRepository implements UserRepositoryInterface {
                 include: {user: true},
             });
         } catch (error) {
-            if (error instanceof NotFoundError || error instanceof ConflictError) {
-                throw error;
-            }
             throw new TransactionError(`Failed to update admin: ${(error as Error).message}`);
         }
     }
