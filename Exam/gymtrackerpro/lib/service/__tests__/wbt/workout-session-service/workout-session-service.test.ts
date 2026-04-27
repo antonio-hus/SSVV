@@ -10,7 +10,7 @@ import {Exercise} from '@/lib/domain/exercise';
 import {PageResult} from '@/lib/domain/pagination';
 import {WorkoutSessionRepositoryInterface} from '@/lib/repository/workout-session-repository-interface';
 import {WorkoutSessionService} from '@/lib/service/workout-session-service';
-import {Equipment, MuscleGroup} from "@/prisma/generated/prisma/enums";
+import {Equipment, MuscleGroup} from "@/prisma/generated/prisma/client";
 
 const mockWorkoutSessionRepo = mock<WorkoutSessionRepositoryInterface>();
 

@@ -8,9 +8,9 @@ import {ExerciseService} from '@/lib/service/exercise-service';
 import {WorkoutSessionService} from '@/lib/service/workout-session-service';
 import {ReportService} from '@/lib/service/report-service';
 
-const userRepository = UserRepository.getInstance(prisma);
-const exerciseRepository = ExerciseRepository.getInstance(prisma);
-const workoutSessionRepository = WorkoutSessionRepository.getInstance(prisma);
+export const userRepository = UserRepository.getInstance(prisma);
+export const exerciseRepository = ExerciseRepository.getInstance(prisma);
+export const workoutSessionRepository = WorkoutSessionRepository.getInstance(prisma);
 
 export const authService = AuthService.getInstance(userRepository);
 export const userService = UserService.getInstance(userRepository);

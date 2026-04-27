@@ -121,7 +121,8 @@ describe('getMemberProgressReport', () => {
 
             expect(result.totalSessions).toBe(2);
             expect(result.averageSessionDuration).toBe(75);
-            expect(result.totalVolume).toBe(3000); // (3*10*50) * 2
+            expect(result.exerciseBreakdown[0].totalReps).toBe(60);
+            expect(result.totalVolume).toBe(3000);
             expect(result.exerciseBreakdown).toHaveLength(1);
             expect(result.exerciseBreakdown[0].exerciseId).toBe(EXERCISE_ID);
             expect(result.exerciseBreakdown[0].sessionCount).toBe(2);
@@ -164,7 +165,9 @@ describe('getMemberProgressReport', () => {
             const bench = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-a');
             const ohp = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-b');
             expect(bench?.totalVolume).toBe(1500);
+            expect(bench?.totalReps).toBe(30);
             expect(ohp?.totalVolume).toBe(1920);
+            expect(ohp?.totalReps).toBe(48);
             expect(result.totalVolume).toBe(1500 + 1920);
         });
 

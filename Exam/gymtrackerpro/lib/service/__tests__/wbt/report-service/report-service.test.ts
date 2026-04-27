@@ -140,7 +140,7 @@ describe('getMemberProgressReport', () => {
             expect(result.exerciseBreakdown).toHaveLength(1);
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex_s1_1');
             expect(result.exerciseBreakdown[0].totalSets).toBe(2);
-            expect(result.exerciseBreakdown[0].totalReps).toBe(5);
+            expect(result.exerciseBreakdown[0].totalReps).toBe(10);
             expect(result.exerciseBreakdown[0].totalVolume).toBe(VOL_ONE);
             expect(result.exerciseBreakdown[0].sessionCount).toBe(1);
             expect(result.sessionDetails).toHaveLength(1);
@@ -195,7 +195,7 @@ describe('getMemberProgressReport', () => {
             expect(result.exerciseBreakdown).toHaveLength(1);
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex_s1_1');
             expect(result.exerciseBreakdown[0].totalSets).toBe(5);
-            expect(result.exerciseBreakdown[0].totalReps).toBe(18);
+            expect(result.exerciseBreakdown[0].totalReps).toBe(46);
             expect(result.exerciseBreakdown[0].totalVolume).toBe(VOL_SAME_TWICE);
             expect(result.exerciseBreakdown[0].sessionCount).toBe(1);
             expect(result.sessionDetails).toHaveLength(1);

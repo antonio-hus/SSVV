@@ -4,7 +4,7 @@ import {getSession} from '@/lib/session';
 import {getMember} from '@/lib/controller/user-controller';
 import {LogoutButton} from '@/components/auth/logout-button';
 import {MemberNav} from './_components/member-nav';
-import {Role} from "@/prisma/generated/prisma/enums";
+import {Role} from "@/prisma/generated/prisma/client";
 import {redirect} from "next/navigation";
 
 export default async function MemberLayout({children}: { children: React.ReactNode }) {

@@ -188,7 +188,7 @@ const reportServiceGetMemberProgressReportWbt: WbtDescriptor = {
   m1         [label="" shape=circle width=0.18 style=filled fillcolor=black];
   S15        [label="stats = exerciseStatsMap.get(entry.exerciseId)" shape=box];
   S16        [label="stats.totalSets += entry.sets" shape=box];
-  S17        [label="stats.totalReps += entry.reps" shape=box];
+  S17        [label="stats.totalReps += entry.sets * entry.reps" shape=box];
   S18        [label="stats.totalVolume += volume" shape=box];
   S19        [label="exerciseSessionSets.get(entry.exerciseId).add(session.id)" shape=box];
   S20        [label="exerciseDetails.push({ exerciseId, exerciseName, sets, reps, weight, volume })" shape=box];
@@ -298,7 +298,7 @@ const reportServiceGetMemberProgressReportWbt: WbtDescriptor = {
         '            }',
         '            const stats = exerciseStatsMap.get(entry.exerciseId)!;',
         '            stats.totalSets   += entry.sets;',
-        '            stats.totalReps   += entry.reps;',
+        '            stats.totalReps   += entry.sets * entry.reps;',
         '            stats.totalVolume += volume;',
         '            exerciseSessionSets.get(entry.exerciseId)!.add(session.id);',
         '            return { exerciseId: entry.exerciseId, exerciseName: entry.exercise.name,',

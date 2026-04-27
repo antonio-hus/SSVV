@@ -29,7 +29,7 @@ import {
     updateWorkoutSessionWithExercises,
     deleteWorkoutSession,
 } from '@/lib/controller/workout-session-controller';
-import {Equipment, MuscleGroup} from "@/prisma/generated/prisma/enums";
+import {Equipment, MuscleGroup} from "@/prisma/generated/prisma/client";
 
 const workoutSessionServiceMock = workoutSessionService as unknown as {
     createWorkoutSession: jest.Mock;

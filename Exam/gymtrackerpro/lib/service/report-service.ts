@@ -63,7 +63,7 @@ export class ReportService implements ReportServiceInterface {
 
                 const stats = exerciseStatsMap.get(entry.exerciseId)!;
                 stats.totalSets += entry.sets;
-                stats.totalReps += entry.reps;
+                stats.totalReps += entry.sets * entry.reps;
                 stats.totalVolume += volume;
                 exerciseSessionSets.get(entry.exerciseId)!.add(session.id);
 
