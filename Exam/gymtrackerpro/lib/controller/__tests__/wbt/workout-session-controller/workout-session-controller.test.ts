@@ -11,7 +11,21 @@ jest.mock('@/lib/di', () => ({
     },
 }));
 
+jest.mock('@/lib/schema/workout-session-schema', () => ({
+    createWorkoutSessionSchema: {safeParse: jest.fn()},
+    updateWorkoutSessionSchema: {safeParse: jest.fn()},
+    workoutSessionExercisesSchema: {safeParse: jest.fn()},
+    workoutSessionExercisesUpdateSchema: {safeParse: jest.fn()},
+}));
+
+import {z} from 'zod';
 import {workoutSessionService} from '@/lib/di';
+import {
+    createWorkoutSessionSchema,
+    updateWorkoutSessionSchema,
+    workoutSessionExercisesSchema,
+    workoutSessionExercisesUpdateSchema,
+} from '@/lib/schema/workout-session-schema';
 import {WorkoutSession, WorkoutSessionListOptions, WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import {
     CreateWorkoutSessionInput,
@@ -38,6 +52,13 @@ const workoutSessionServiceMock = workoutSessionService as unknown as {
     updateWorkoutSession: jest.Mock;
     updateWorkoutSessionWithExercises: jest.Mock;
     deleteWorkoutSession: jest.Mock;
+};
+
+const createWorkoutSessionSchemaMock = createWorkoutSessionSchema as unknown as { safeParse: jest.Mock };
+const updateWorkoutSessionSchemaMock = updateWorkoutSessionSchema as unknown as { safeParse: jest.Mock };
+const workoutSessionExercisesSchemaMock = workoutSessionExercisesSchema as unknown as { safeParse: jest.Mock };
+const workoutSessionExercisesUpdateSchemaMock = workoutSessionExercisesUpdateSchema as unknown as {
+    safeParse: jest.Mock
 };
 
 const SESSION_ID: string = 'session-uuid-001';
@@ -96,6 +117,24 @@ const VALID_UPDATE_EXERCISES: WorkoutSessionExerciseUpdateInput[] = [
     {id: WSE_ID, exerciseId: EXERCISE_ID, sets: 4, reps: 12, weight: 22.5},
 ];
 
+// Session field-level validation failure — produces fieldErrors, used by z.flattenError().fieldErrors
+const MOCK_ZOD_ERROR_SESSION = (
+    z.object({date: z.string().min(100)}).safeParse({}) as { success: false; error: z.ZodError }
+).error;
+
+// Exercises array-level failure — produces formErrors[0] = 'At least one exercise is required'
+const MOCK_ZOD_ERROR_EXERCISES_FORM = (
+    z.array(z.string()).min(1, 'At least one exercise is required').safeParse([]) as {
+        success: false;
+        error: z.ZodError
+    }
+).error;
+
+// Exercises item-level failure — produces no formErrors, falls back to 'Invalid exercises'
+const MOCK_ZOD_ERROR_EXERCISES_FIELD = (
+    z.object({exerciseId: z.string().min(1)}).safeParse({exerciseId: ''}) as { success: false; error: z.ZodError }
+).error;
+
 beforeEach(() => {
     jest.resetAllMocks();
 });
@@ -107,17 +146,22 @@ describe('createWorkoutSession', () => {
         it('createWorkoutSession_Path1_validInputServiceSucceeds_returnsSessionWithExercises', async () => {
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
             const result = await createWorkoutSession(inputData, inputExercises);
 
             expect(result).toEqual({success: true, data: MOCK_SESSION_WITH_EXERCISES});
+            expect(createWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
+            expect(workoutSessionExercisesSchemaMock.safeParse).toHaveBeenCalledWith(inputExercises);
             expect(workoutSessionServiceMock.createWorkoutSession).toHaveBeenCalledWith(inputData, inputExercises);
         });
 
         it('createWorkoutSession_Path2_invalidSessionData_returnsValidationError', async () => {
             const inputData: CreateWorkoutSessionInput = {memberId: MEMBER_ID, date: 'not-a-date', duration: 60};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
             const result = await createWorkoutSession(inputData, inputExercises);
 
@@ -132,6 +176,11 @@ describe('createWorkoutSession', () => {
         it('createWorkoutSession_Path3_emptyExercisesArray_returnsArrayLevelErrorMessage', async () => {
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({
+                success: false,
+                error: MOCK_ZOD_ERROR_EXERCISES_FORM
+            });
 
             const result = await createWorkoutSession(inputData, inputExercises);
 
@@ -144,6 +193,11 @@ describe('createWorkoutSession', () => {
             const inputExercises: WorkoutSessionExerciseInput[] = [
                 {exerciseId: '', sets: 3, reps: 10, weight: 20},
             ];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({
+                success: false,
+                error: MOCK_ZOD_ERROR_EXERCISES_FIELD
+            });
 
             const result = await createWorkoutSession(inputData, inputExercises);
 
@@ -154,6 +208,8 @@ describe('createWorkoutSession', () => {
         it('createWorkoutSession_Path5_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(
                 new NotFoundError(`Member not found: ${MEMBER_ID}`),
             );
@@ -166,6 +222,8 @@ describe('createWorkoutSession', () => {
         it('createWorkoutSession_Path6_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
+            createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
             const result = await createWorkoutSession(inputData, inputExercises);
@@ -268,17 +326,20 @@ describe('updateWorkoutSession', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const updatedSession: WorkoutSession = {...MOCK_SESSION, notes: 'Updated notes'};
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(updatedSession);
 
             const result = await updateWorkoutSession(inputId, inputData);
 
             expect(result).toEqual({success: true, data: updatedSession});
+            expect(updateWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalledWith(inputId, inputData);
         });
 
         it('updateWorkoutSession_Path2_invalidSessionData_returnsValidationError', async () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {date: 'not-a-valid-date'};
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
             const result = await updateWorkoutSession(inputId, inputData);
 
@@ -293,6 +354,7 @@ describe('updateWorkoutSession', () => {
         it('updateWorkoutSession_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionServiceMock.updateWorkoutSession.mockRejectedValue(
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
@@ -305,6 +367,7 @@ describe('updateWorkoutSession', () => {
         it('updateWorkoutSession_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionServiceMock.updateWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
             const result = await updateWorkoutSession(inputId, inputData);
@@ -324,11 +387,15 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
             expect(result).toEqual({success: true, data: MOCK_SESSION_WITH_EXERCISES});
+            expect(updateWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
+            expect(workoutSessionExercisesUpdateSchemaMock.safeParse).toHaveBeenCalledWith(inputExercises);
             expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).toHaveBeenCalledWith(
                 inputId, inputData, inputExercises,
             );
@@ -338,6 +405,7 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {date: 'not-a-valid-date'};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
@@ -353,6 +421,11 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({
+                success: false,
+                error: MOCK_ZOD_ERROR_EXERCISES_FORM
+            });
 
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
@@ -366,6 +439,11 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [
                 {exerciseId: '', sets: 4, reps: 12, weight: 22.5},
             ];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({
+                success: false,
+                error: MOCK_ZOD_ERROR_EXERCISES_FIELD
+            });
 
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
@@ -377,6 +455,8 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockRejectedValue(
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
@@ -390,6 +470,8 @@ describe('updateWorkoutSessionWithExercises', () => {
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
+            updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
+            workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockRejectedValue(new Error('Database failure'));
 
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);

@@ -68,8 +68,11 @@ const authServiceLoginIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     AuthorizationError;
+    NotFoundError -> AppError [label="extends"];
+    AuthorizationError -> AppError [label="extends"];
   }
 
   method      -> findByEmail        [label="look up by email"];
@@ -153,7 +156,9 @@ const exerciseServiceCreateExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
+    ConflictError -> AppError [label="extends"];
   }
 
   method     -> repoCreate    [label="delegate"];
@@ -227,7 +232,9 @@ const exerciseServiceGetExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method   -> findById      [label="delegate"];
@@ -292,10 +299,18 @@ const exerciseServiceListExercisesIt: ItDescriptor = {
     count       [label="exercise\\n.count()"];
   }
 
+  subgraph cluster_errors {
+    label="domain/errors";
+    AppError;
+    NotFoundError;
+    NotFoundError -> AppError [label="extends"];
+  }
+
   method  -> findAll      [label="delegate"];
   findAll -> transaction  [label="atomic read"];
   transaction -> findMany [label="paginated rows"];
   transaction -> count    [label="total count"];
+  method  -> AppError     [label="catches", style=dashed];
 }`,
 
     tcRows: [
@@ -421,8 +436,11 @@ const exerciseServiceUpdateExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
   }
 
   method     -> repoUpdate    [label="delegate"];
@@ -523,7 +541,9 @@ const exerciseServiceArchiveExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method    -> setActive     [label="delegate (false)"];
@@ -590,7 +610,9 @@ const exerciseServiceUnarchiveExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method    -> setActive     [label="delegate (true)"];
@@ -658,8 +680,11 @@ const exerciseServiceDeleteExerciseIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
   }
 
   method     -> repoDelete    [label="delegate"];
@@ -757,8 +782,11 @@ const createMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
     TransactionError;
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoCreate    [label="delegate"];
@@ -847,8 +875,11 @@ const createMemberWithTempPasswordIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
     TransactionError;
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> getRandomValues [label="generate temp password"];
@@ -923,8 +954,11 @@ const createAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
     TransactionError;
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoCreate    [label="delegate"];
@@ -1000,7 +1034,9 @@ const getMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method         -> findMemberById [label="delegate"];
@@ -1065,7 +1101,9 @@ const getAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method        -> findAdminById [label="delegate"];
@@ -1130,10 +1168,18 @@ const listMembersIt: ItDescriptor = {
     count       [label="member\\n.count()"];
   }
 
+  subgraph cluster_errors {
+    label="domain/errors";
+    AppError;
+    NotFoundError;
+    NotFoundError -> AppError [label="extends"];
+  }
+
   method      -> findMembers  [label="delegate"];
   findMembers -> transaction  [label="atomic read"];
   transaction -> findMany     [label="paginated rows"];
   transaction -> count        [label="total count"];
+  method      -> AppError     [label="catches", style=dashed];
 }`,
 
     tcRows: [
@@ -1233,10 +1279,18 @@ const listAdminsIt: ItDescriptor = {
     count       [label="admin\\n.count()"];
   }
 
+  subgraph cluster_errors {
+    label="domain/errors";
+    AppError;
+    NotFoundError;
+    NotFoundError -> AppError [label="extends"];
+  }
+
   method     -> findAdmins   [label="delegate"];
   findAdmins -> transaction  [label="atomic read"];
   transaction -> findMany    [label="paginated rows"];
   transaction -> count       [label="total count"];
+  method     -> AppError     [label="catches", style=dashed];
 }`,
 
     tcRows: [
@@ -1343,9 +1397,13 @@ const updateMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
     TransactionError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoUpdate       [label="delegate"];
@@ -1456,7 +1514,9 @@ const suspendMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method          -> setMemberActive [label="delegate (false)"];
@@ -1523,7 +1583,9 @@ const activateMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method          -> setMemberActive [label="delegate (true)"];
@@ -1596,9 +1658,13 @@ const updateAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
     TransactionError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoUpdate       [label="delegate"];
@@ -1711,7 +1777,9 @@ const deleteMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method     -> repoDelete       [label="delegate"];
@@ -1797,7 +1865,9 @@ const deleteAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method     -> repoDelete    [label="delegate"];
@@ -1928,7 +1998,9 @@ const getMemberProgressReportIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method         -> findMemberById [label="resolve member"];
@@ -2026,9 +2098,13 @@ const createWorkoutSessionIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
-    WsreError        [label="WorkoutSessionRequiresExercisesError"];
+    AppError;
+    WorkoutSessionRequiresExercisesError;
     NotFoundError;
     TransactionError;
+    WorkoutSessionRequiresExercisesError -> AppError [label="extends"];
+    NotFoundError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoCreate       [label="delegate"];
@@ -2120,7 +2196,9 @@ const getWorkoutSessionIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method   -> findById      [label="delegate"];
@@ -2188,10 +2266,18 @@ const listMemberWorkoutSessionsIt: ItDescriptor = {
     count       [label="workoutSession\\n.count()"];
   }
 
+  subgraph cluster_errors {
+    label="domain/errors";
+    AppError;
+    NotFoundError;
+    NotFoundError -> AppError [label="extends"];
+  }
+
   method  -> findAll      [label="delegate (memberId always set)"];
   findAll -> transaction  [label="atomic read"];
   transaction -> findMany [label="filtered + paginated rows"];
   transaction -> count    [label="total count"];
+  method  -> AppError     [label="catches", style=dashed];
 }`,
 
     tcRows: [
@@ -2319,7 +2405,9 @@ const updateWorkoutSessionIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method     -> repoUpdate    [label="delegate"];
@@ -2419,9 +2507,13 @@ const updateWorkoutSessionWithExercisesIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
-    WsreError        [label="WorkoutSessionRequiresExercisesError"];
+    AppError;
+    WorkoutSessionRequiresExercisesError;
     NotFoundError;
     TransactionError;
+    WorkoutSessionRequiresExercisesError -> AppError [label="extends"];
+    NotFoundError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method     -> repoUpdate      [label="delegate"];
@@ -2539,17 +2631,21 @@ const deleteWorkoutSessionIt: ItDescriptor = {
     label="PrismaClient";
     findUnique [label="workoutSession\\n.findUnique()"];
     deleteOp   [label="workoutSession\\n.delete()\\n(cascades to WSE)"];
+    deleteOpWSE   [label="workoutSession\\n(cascade)"];
   }
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method     -> repoDelete    [label="delegate"];
   repoDelete -> findUnique    [label="existence check"];
   repoDelete -> NotFoundError [label="throws (id missing)", style=dashed];
   repoDelete -> deleteOp      [label="remove row"];
+  deleteOp -> deleteOpWSE [label="cascades to"];
 }`,
 
     tcRows: [

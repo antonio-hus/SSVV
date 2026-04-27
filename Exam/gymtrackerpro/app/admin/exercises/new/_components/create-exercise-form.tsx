@@ -42,6 +42,7 @@ export const CreateExerciseForm = () => {
     }, [result]);
 
     const nameError = getFieldError('name');
+    const descriptionError = getFieldError('description');
     const muscleGroupError = getFieldError('muscleGroup');
     const equipmentNeededError = getFieldError('equipmentNeeded');
 
@@ -95,6 +96,7 @@ export const CreateExerciseForm = () => {
                     value={inputs.description}
                     onChange={handleChange}
                 />
+                {descriptionError && <p className="text-sm text-destructive">{descriptionError}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

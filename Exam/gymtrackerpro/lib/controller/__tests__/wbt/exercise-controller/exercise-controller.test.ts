@@ -10,7 +10,14 @@ jest.mock('@/lib/di', () => ({
     },
 }));
 
+jest.mock('@/lib/schema/exercise-schema', () => ({
+    createExerciseSchema: {safeParse: jest.fn()},
+    updateExerciseSchema: {safeParse: jest.fn()},
+}));
+
+import {z} from 'zod';
 import {exerciseService} from '@/lib/di';
+import {createExerciseSchema, updateExerciseSchema} from '@/lib/schema/exercise-schema';
 import {Exercise, ExerciseListOptions, MuscleGroup, Equipment} from '@/lib/domain/exercise';
 import {CreateExerciseInput, UpdateExerciseInput} from '@/lib/schema/exercise-schema';
 import {PageResult} from '@/lib/domain/pagination';
@@ -34,6 +41,9 @@ const exerciseServiceMock = exerciseService as unknown as {
     unarchiveExercise: jest.Mock;
     deleteExercise: jest.Mock;
 };
+
+const createExerciseSchemaMock = createExerciseSchema as unknown as {safeParse: jest.Mock};
+const updateExerciseSchemaMock = updateExerciseSchema as unknown as {safeParse: jest.Mock};
 
 const EXERCISE_ID: string = 'exercise-uuid-001';
 
@@ -59,6 +69,10 @@ const VALID_UPDATE_INPUT: UpdateExerciseInput = {
     description: 'Updated description',
 };
 
+const MOCK_ZOD_ERROR = (
+    z.object({name: z.string().min(100)}).safeParse({}) as {success: false; error: z.ZodError}
+).error;
+
 beforeEach(() => {
     jest.resetAllMocks();
 });
@@ -69,16 +83,19 @@ describe('createExercise', () => {
 
         it('createExercise_Path1_validInputServiceSucceeds_returnsCreatedExercise', async () => {
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
+            createExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.createExercise.mockResolvedValue(MOCK_EXERCISE);
 
             const result = await createExercise(inputData);
 
             expect(result).toEqual({success: true, data: MOCK_EXERCISE});
+            expect(createExerciseSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(exerciseServiceMock.createExercise).toHaveBeenCalledWith(inputData);
         });
 
         it('createExercise_Path2_invalidInput_returnsValidationError', async () => {
-            const inputData = {name: ''} as unknown as CreateExerciseInput;
+            const inputData = {} as CreateExerciseInput;
+            createExerciseSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await createExercise(inputData);
 
@@ -92,6 +109,7 @@ describe('createExercise', () => {
 
         it('createExercise_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
+            createExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.createExercise.mockRejectedValue(new ConflictError('Exercise name already in use: Bicep Curls'));
 
             const result = await createExercise(inputData);
@@ -101,6 +119,7 @@ describe('createExercise', () => {
 
         it('createExercise_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
+            createExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.createExercise.mockRejectedValue(new Error('Database failure'));
 
             const result = await createExercise(inputData);
@@ -193,17 +212,20 @@ describe('updateExercise', () => {
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {...VALID_UPDATE_INPUT};
             const updatedExercise: Exercise = {...MOCK_EXERCISE, description: 'Updated description'};
+            updateExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.updateExercise.mockResolvedValue(updatedExercise);
 
             const result = await updateExercise(inputId, inputData);
 
             expect(result).toEqual({success: true, data: updatedExercise});
+            expect(updateExerciseSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(exerciseServiceMock.updateExercise).toHaveBeenCalledWith(inputId, inputData);
         });
 
         it('updateExercise_Path2_invalidInput_returnsValidationError', async () => {
             const inputId: string = EXERCISE_ID;
-            const inputData = {name: ''} as unknown as UpdateExerciseInput;
+            const inputData = {} as UpdateExerciseInput;
+            updateExerciseSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await updateExercise(inputId, inputData);
 
@@ -218,6 +240,7 @@ describe('updateExercise', () => {
         it('updateExercise_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {...VALID_UPDATE_INPUT};
+            updateExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.updateExercise.mockRejectedValue(new ConflictError('Exercise name already in use: New Name'));
 
             const result = await updateExercise(inputId, inputData);
@@ -228,6 +251,7 @@ describe('updateExercise', () => {
         it('updateExercise_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {...VALID_UPDATE_INPUT};
+            updateExerciseSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             exerciseServiceMock.updateExercise.mockRejectedValue(new Error('Database failure'));
 
             const result = await updateExercise(inputId, inputData);

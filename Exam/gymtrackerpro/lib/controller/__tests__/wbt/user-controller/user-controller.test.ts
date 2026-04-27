@@ -16,7 +16,23 @@ jest.mock('@/lib/di', () => ({
     },
 }));
 
+jest.mock('@/lib/schema/user-schema', () => ({
+    createMemberSchema: {safeParse: jest.fn()},
+    createMemberWithTempPasswordSchema: {safeParse: jest.fn()},
+    createAdminSchema: {safeParse: jest.fn()},
+    updateMemberSchema: {safeParse: jest.fn()},
+    updateAdminSchema: {safeParse: jest.fn()},
+}));
+
+import {z} from 'zod';
 import {userService} from '@/lib/di';
+import {
+    createMemberSchema,
+    createMemberWithTempPasswordSchema,
+    createAdminSchema,
+    updateMemberSchema,
+    updateAdminSchema,
+} from '@/lib/schema/user-schema';
 import {
     AdminListOptions,
     AdminWithUser,
@@ -65,6 +81,14 @@ const userServiceMock = userService as unknown as {
     deleteMember: jest.Mock;
     deleteAdmin: jest.Mock;
 };
+
+const createMemberSchemaMock = createMemberSchema as unknown as { safeParse: jest.Mock };
+const createMemberWithTempPasswordSchemaMock = createMemberWithTempPasswordSchema as unknown as {
+    safeParse: jest.Mock
+};
+const createAdminSchemaMock = createAdminSchema as unknown as { safeParse: jest.Mock };
+const updateMemberSchemaMock = updateMemberSchema as unknown as { safeParse: jest.Mock };
+const updateAdminSchemaMock = updateAdminSchema as unknown as { safeParse: jest.Mock };
 
 const USER_ID: string = 'user-uuid-001';
 const MEMBER_ID: string = 'member-uuid-001';
@@ -142,6 +166,10 @@ const VALID_UPDATE_ADMIN_INPUT: UpdateAdminInput = {
     fullName: 'Admin Updated',
 };
 
+const MOCK_ZOD_ERROR = (
+    z.object({email: z.string().email()}).safeParse({}) as { success: false; error: z.ZodError }
+).error;
+
 beforeEach(() => {
     jest.resetAllMocks();
 });
@@ -152,16 +180,19 @@ describe('createMember', () => {
 
         it('createMember_Path1_validInputServiceSucceeds_returnsMemberWithUser', async () => {
             const inputData: CreateMemberInput = {...VALID_CREATE_MEMBER_INPUT};
+            createMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
             const result = await createMember(inputData);
 
             expect(result).toEqual({success: true, data: MOCK_MEMBER_WITH_USER});
+            expect(createMemberSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(userServiceMock.createMember).toHaveBeenCalledWith(inputData);
         });
 
         it('createMember_Path2_invalidInput_returnsValidationError', async () => {
-            const inputData = {email: 'not-an-email'} as unknown as CreateMemberInput;
+            const inputData = {} as CreateMemberInput;
+            createMemberSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await createMember(inputData);
 
@@ -175,6 +206,7 @@ describe('createMember', () => {
 
         it('createMember_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputData: CreateMemberInput = {...VALID_CREATE_MEMBER_INPUT};
+            createMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMember.mockRejectedValue(new ConflictError('Email already in use: member@example.com'));
 
             const result = await createMember(inputData);
@@ -184,6 +216,7 @@ describe('createMember', () => {
 
         it('createMember_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputData: CreateMemberInput = {...VALID_CREATE_MEMBER_INPUT};
+            createMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMember.mockRejectedValue(new Error('Database failure'));
 
             const result = await createMember(inputData);
@@ -201,16 +234,19 @@ describe('createMemberWithTempPassword', () => {
 
         it('createMemberWithTempPassword_Path1_validInputServiceSucceeds_returnsMemberWithTempPassword', async () => {
             const inputData: CreateMemberWithTempPasswordInput = {...VALID_CREATE_MEMBER_WITH_TEMP_PASSWORD_INPUT};
+            createMemberWithTempPasswordSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMemberWithTempPassword.mockResolvedValue(MOCK_MEMBER_WITH_TEMP_PASSWORD);
 
             const result = await createMemberWithTempPassword(inputData);
 
             expect(result).toEqual({success: true, data: MOCK_MEMBER_WITH_TEMP_PASSWORD});
+            expect(createMemberWithTempPasswordSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(userServiceMock.createMemberWithTempPassword).toHaveBeenCalledWith(inputData);
         });
 
         it('createMemberWithTempPassword_Path2_invalidInput_returnsValidationError', async () => {
-            const inputData = {email: 'not-an-email'} as unknown as CreateMemberWithTempPasswordInput;
+            const inputData = {} as CreateMemberWithTempPasswordInput;
+            createMemberWithTempPasswordSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await createMemberWithTempPassword(inputData);
 
@@ -224,6 +260,7 @@ describe('createMemberWithTempPassword', () => {
 
         it('createMemberWithTempPassword_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputData: CreateMemberWithTempPasswordInput = {...VALID_CREATE_MEMBER_WITH_TEMP_PASSWORD_INPUT};
+            createMemberWithTempPasswordSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMemberWithTempPassword.mockRejectedValue(new ConflictError('Email already in use: member@example.com'));
 
             const result = await createMemberWithTempPassword(inputData);
@@ -233,6 +270,7 @@ describe('createMemberWithTempPassword', () => {
 
         it('createMemberWithTempPassword_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputData: CreateMemberWithTempPasswordInput = {...VALID_CREATE_MEMBER_WITH_TEMP_PASSWORD_INPUT};
+            createMemberWithTempPasswordSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createMemberWithTempPassword.mockRejectedValue(new Error('Database failure'));
 
             const result = await createMemberWithTempPassword(inputData);
@@ -250,16 +288,19 @@ describe('createAdmin', () => {
 
         it('createAdmin_Path1_validInputServiceSucceeds_returnsAdminWithUser', async () => {
             const inputData: CreateAdminInput = {...VALID_CREATE_ADMIN_INPUT};
+            createAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
             const result = await createAdmin(inputData);
 
             expect(result).toEqual({success: true, data: MOCK_ADMIN_WITH_USER});
+            expect(createAdminSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(userServiceMock.createAdmin).toHaveBeenCalledWith(inputData);
         });
 
         it('createAdmin_Path2_invalidInput_returnsValidationError', async () => {
-            const inputData = {email: 'not-an-email'} as unknown as CreateAdminInput;
+            const inputData = {} as CreateAdminInput;
+            createAdminSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await createAdmin(inputData);
 
@@ -273,6 +314,7 @@ describe('createAdmin', () => {
 
         it('createAdmin_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputData: CreateAdminInput = {...VALID_CREATE_ADMIN_INPUT};
+            createAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createAdmin.mockRejectedValue(new ConflictError('Email already in use: admin@gymtrackerpro.com'));
 
             const result = await createAdmin(inputData);
@@ -282,6 +324,7 @@ describe('createAdmin', () => {
 
         it('createAdmin_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputData: CreateAdminInput = {...VALID_CREATE_ADMIN_INPUT};
+            createAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.createAdmin.mockRejectedValue(new Error('Database failure'));
 
             const result = await createAdmin(inputData);
@@ -450,17 +493,20 @@ describe('updateMember', () => {
                 ...MOCK_MEMBER_WITH_USER,
                 user: {...MOCK_MEMBER_WITH_USER.user, fullName: 'John Updated'},
             };
+            updateMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateMember.mockResolvedValue(updatedMember);
 
             const result = await updateMember(inputId, inputData);
 
             expect(result).toEqual({success: true, data: updatedMember});
+            expect(updateMemberSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(userServiceMock.updateMember).toHaveBeenCalledWith(inputId, inputData);
         });
 
         it('updateMember_Path2_invalidInput_returnsValidationError', async () => {
             const inputId: string = MEMBER_ID;
-            const inputData = {email: 'not-an-email'} as unknown as UpdateMemberInput;
+            const inputData = {} as UpdateMemberInput;
+            updateMemberSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await updateMember(inputId, inputData);
 
@@ -475,6 +521,7 @@ describe('updateMember', () => {
         it('updateMember_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {...VALID_UPDATE_MEMBER_INPUT};
+            updateMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateMember.mockRejectedValue(new NotFoundError(`Member not found: ${MEMBER_ID}`));
 
             const result = await updateMember(inputId, inputData);
@@ -485,6 +532,7 @@ describe('updateMember', () => {
         it('updateMember_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {...VALID_UPDATE_MEMBER_INPUT};
+            updateMemberSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateMember.mockRejectedValue(new Error('Database failure'));
 
             const result = await updateMember(inputId, inputData);
@@ -507,17 +555,20 @@ describe('updateAdmin', () => {
                 ...MOCK_ADMIN_WITH_USER,
                 user: {...MOCK_ADMIN_WITH_USER.user, fullName: 'Admin Updated'},
             };
+            updateAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateAdmin.mockResolvedValue(updatedAdmin);
 
             const result = await updateAdmin(inputId, inputData);
 
             expect(result).toEqual({success: true, data: updatedAdmin});
+            expect(updateAdminSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(userServiceMock.updateAdmin).toHaveBeenCalledWith(inputId, inputData);
         });
 
         it('updateAdmin_Path2_invalidInput_returnsValidationError', async () => {
             const inputId: string = ADMIN_ID;
-            const inputData = {email: 'not-an-email'} as unknown as UpdateAdminInput;
+            const inputData = {} as UpdateAdminInput;
+            updateAdminSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
             const result = await updateAdmin(inputId, inputData);
 
@@ -532,6 +583,7 @@ describe('updateAdmin', () => {
         it('updateAdmin_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {...VALID_UPDATE_ADMIN_INPUT};
+            updateAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateAdmin.mockRejectedValue(new NotFoundError(`Admin not found: ${ADMIN_ID}`));
 
             const result = await updateAdmin(inputId, inputData);
@@ -542,6 +594,7 @@ describe('updateAdmin', () => {
         it('updateAdmin_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {...VALID_UPDATE_ADMIN_INPUT};
+            updateAdminSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             userServiceMock.updateAdmin.mockRejectedValue(new Error('Database failure'));
 
             const result = await updateAdmin(inputId, inputData);

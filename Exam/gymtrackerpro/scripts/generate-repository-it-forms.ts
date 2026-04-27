@@ -49,7 +49,9 @@ const createIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
+    ConflictError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="check uniqueness"];
@@ -123,7 +125,9 @@ const findByIdIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="look up by id"];
@@ -345,8 +349,11 @@ const updateIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
   }
 
   method -> findById     [label="existence check"];
@@ -450,7 +457,9 @@ const setActiveIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="existence check"];
@@ -536,8 +545,11 @@ const deleteIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="existence check"];
@@ -656,8 +668,11 @@ const userRepoCreateMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
     TransactionError;
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> findUnique       [label="check duplicate email"];
@@ -760,8 +775,11 @@ const userRepoCreateAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     ConflictError;
     TransactionError;
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> findUnique       [label="check duplicate email"];
@@ -839,7 +857,9 @@ const userRepoFindByIdIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="look up by user.id"];
@@ -914,7 +934,9 @@ const userRepoFindMemberByIdIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="look up by member.id"];
@@ -981,7 +1003,9 @@ const userRepoFindAdminByIdIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="look up by admin.id"];
@@ -1403,9 +1427,13 @@ const userRepoUpdateMemberIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
     TransactionError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> findMember       [label="existence check"];
@@ -1517,7 +1545,9 @@ const userRepoSetMemberActiveIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="existence check"];
@@ -1631,9 +1661,13 @@ const userRepoUpdateAdminIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
     ConflictError;
     TransactionError;
+    NotFoundError -> AppError [label="extends"];
+    ConflictError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> findAdmin        [label="existence check"];
@@ -1748,7 +1782,9 @@ const userRepoDeleteIt: ItDescriptor = {
  
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
  
   method -> findMember       [label="try member lookup"];
@@ -1872,9 +1908,13 @@ const wsRepoCreateIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     WorkoutSessionRequiresExercisesError;
     NotFoundError;
     TransactionError;
+    WorkoutSessionRequiresExercisesError -> AppError [label="extends"];
+    NotFoundError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> WorkoutSessionRequiresExercisesError [label="throws (empty exercises)", style=dashed];
@@ -1968,7 +2008,9 @@ const wsRepoFindByIdIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="look up by id"];
@@ -2190,7 +2232,9 @@ const wsRepoUpdateIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="existence check"];
@@ -2335,9 +2379,13 @@ const wsRepoUpdateWithExercisesIt: ItDescriptor = {
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     WorkoutSessionRequiresExercisesError;
     NotFoundError;
     TransactionError;
+    WorkoutSessionRequiresExercisesError -> AppError [label="extends"];
+    NotFoundError -> AppError [label="extends"];
+    TransactionError -> AppError [label="extends"];
   }
 
   method -> WorkoutSessionRequiresExercisesError [label="throws (empty exercises)", style=dashed];
@@ -2454,16 +2502,20 @@ const wsRepoDeleteIt: ItDescriptor = {
     label="PrismaClient";
     findUnique [label="workoutSession\\n.findUnique()"];
     deleteOp   [label="workoutSession\\n.delete()"];
+    deleteOpWSE   [label="workoutSessionExercises\\n(cascade)"];
   }
 
   subgraph cluster_errors {
     label="domain/errors";
+    AppError;
     NotFoundError;
+    NotFoundError -> AppError [label="extends"];
   }
 
   method -> findUnique    [label="existence check"];
   method -> NotFoundError [label="throws (id missing)", style=dashed];
-  method -> deleteOp      [label="remove row (cascades to WSE)"];
+  method -> deleteOp      [label="remove row"];
+  deleteOp -> deleteOpWSE [label="cascades to"];
 }`,
 
     tcRows: [

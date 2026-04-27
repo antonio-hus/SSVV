@@ -46,9 +46,14 @@ export const ExercisesTable = ({exercises}: ExercisesTableProps) => {
                                 </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                                <Button render={<Link href={`/admin/exercises/${exercise.id}/edit`} />} nativeButton={false} variant="ghost" size="sm">
-                                    Edit
-                                </Button>
+                                <div className="flex justify-end gap-2">
+                                    <Button render={<Link href={`/admin/exercises/${exercise.id}`} />} nativeButton={false} variant="ghost" size="sm">
+                                        View
+                                    </Button>
+                                    <Button render={<Link href={`/admin/exercises/${exercise.id}/edit`} />} nativeButton={false} variant="ghost" size="sm">
+                                        Edit
+                                    </Button>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}

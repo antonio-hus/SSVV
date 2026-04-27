@@ -75,15 +75,23 @@ export const EditMemberForm = ({member, memberId}: EditMemberFormProps) => {
 
     const handleSuspend = useCallback(() => {
         startTransition(async () => {
-            await suspendMember(memberId);
-            router.push(`/admin/members/${memberId}`);
+            const res = await suspendMember(memberId);
+            if (res.success) {
+                router.push(`/admin/members/${memberId}`);
+            } else {
+                setResult(res);
+            }
         });
     }, [memberId, router]);
 
     const handleActivate = useCallback(() => {
         startTransition(async () => {
-            await activateMember(memberId);
-            router.push(`/admin/members/${memberId}`);
+            const res = await activateMember(memberId);
+            if (res.success) {
+                router.push(`/admin/members/${memberId}`);
+            } else {
+                setResult(res);
+            }
         });
     }, [memberId, router]);
 

@@ -49,6 +49,7 @@ export const EditExerciseForm = ({exercise, exerciseId}: EditExerciseFormProps) 
     }, [result]);
 
     const nameError = getFieldError('name');
+    const descriptionError = getFieldError('description');
     const muscleGroupError = getFieldError('muscleGroup');
     const equipmentNeededError = getFieldError('equipmentNeeded');
 
@@ -78,22 +79,34 @@ export const EditExerciseForm = ({exercise, exerciseId}: EditExerciseFormProps) 
 
     const handleArchive = useCallback(() => {
         startTransition(async () => {
-            await archiveExercise(exerciseId);
-            router.push('/admin/exercises');
+            const res = await archiveExercise(exerciseId);
+            if (res.success) {
+                router.push('/admin/exercises');
+            } else {
+                setResult(res);
+            }
         });
     }, [exerciseId, router]);
 
     const handleUnarchive = useCallback(() => {
         startTransition(async () => {
-            await unarchiveExercise(exerciseId);
-            router.push('/admin/exercises');
+            const res = await unarchiveExercise(exerciseId);
+            if (res.success) {
+                router.push('/admin/exercises');
+            } else {
+                setResult(res);
+            }
         });
     }, [exerciseId, router]);
 
     const handleDelete = useCallback(() => {
         startTransition(async () => {
-            await deleteExercise(exerciseId);
-            router.push('/admin/exercises');
+            const res = await deleteExercise(exerciseId);
+            if (res.success) {
+                router.push('/admin/exercises');
+            } else {
+                setResult(res);
+            }
         });
     }, [exerciseId, router]);
 
@@ -128,6 +141,7 @@ export const EditExerciseForm = ({exercise, exerciseId}: EditExerciseFormProps) 
                         value={inputs.description}
                         onChange={handleChange}
                     />
+                    {descriptionError && <p className="text-sm text-destructive">{descriptionError}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

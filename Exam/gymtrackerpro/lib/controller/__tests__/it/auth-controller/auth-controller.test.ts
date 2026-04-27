@@ -1,18 +1,11 @@
 import {prisma} from '@/lib/database';
+import {userService} from '@/lib/di';
 import {login, logout} from '@/lib/controller/auth-controller';
-import {userRepository} from '@/lib/di';
 import {getSession} from '@/lib/session';
 import {SessionData} from '@/lib/domain/session';
 import {ActionResult} from '@/lib/domain/action-result';
 import {CreateMemberInput, LoginUserInput} from '@/lib/schema/user-schema';
 
-/**
- * getSession() mock.
- *
- * This module cannot be used as is, because on the dependency for cookies() from next/headers
- * This is a Next.js request-context primitive that throws unconditionally outside a live request.
- * The mock replaces it with a plain object that satisfies the IronSession<SessionData> contract.
- */
 jest.mock('@/lib/session');
 const mockSession = {} as Partial<SessionData> & { save: jest.Mock; destroy: jest.Mock };
 mockSession.save = jest.fn();
@@ -52,25 +45,30 @@ describe('login', () => {
             password: 'ValidPass123!',
             membershipStart: '2024-01-01',
         };
-        const seededMember = await userRepository.createMember(memberInput);
+        const seededMember = await userService.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: memberInput.password};
 
         const result: ActionResult<SessionData> = await login(input);
 
-        expect(result.success).toBe(true);
-        if (!result.success) throw new Error('Expected success result');
-        expect(result.data.userId).toBe(seededMember.user.id);
-        expect(result.data.email).toBe(seededMember.user.email);
-        expect(result.data.fullName).toBe(seededMember.user.fullName);
-        expect(result.data.role).toBe('MEMBER');
-        expect(result.data.memberId).toBe(seededMember.id);
-        expect(result.data.isActive).toBe(true);
-        expect(result.data.adminId).toBeUndefined();
-        expect(mockSession.userId).toBe(seededMember.user.id);
-        expect(mockSession.email).toBe(seededMember.user.email);
-        expect(mockSession.role).toBe('MEMBER');
-        expect(mockSession.memberId).toBe(seededMember.id);
-        expect(mockSession.isActive).toBe(true);
+        expect(result).toEqual({
+            success: true,
+            data: {
+                userId: seededMember.user.id,
+                email: seededMember.user.email,
+                fullName: seededMember.user.fullName,
+                role: 'MEMBER',
+                memberId: seededMember.id,
+                isActive: true,
+                adminId: undefined,
+            },
+        });
+        expect(mockSession).toMatchObject({
+            userId: seededMember.user.id,
+            email: seededMember.user.email,
+            role: 'MEMBER',
+            memberId: seededMember.id,
+            isActive: true,
+        });
         expect(mockSession.adminId).toBeUndefined();
         expect(mockSession.save).toHaveBeenCalledTimes(1);
     });
@@ -80,11 +78,14 @@ describe('login', () => {
 
         const result: ActionResult<SessionData> = await login(input);
 
-        expect(result.success).toBe(false);
-        if (result.success) throw new Error('Expected failure result');
-        expect(result.message).toBe('Validation failed');
-        expect(result.errors?.email).toBeDefined();
-        expect(result.errors?.password).toBeDefined();
+        expect(result).toEqual({
+            success: false,
+            message: 'Validation failed',
+            errors: expect.objectContaining({
+                email: expect.anything(),
+                password: expect.anything(),
+            }),
+        });
         expect(mockSession.save).not.toHaveBeenCalled();
     });
 
@@ -93,9 +94,7 @@ describe('login', () => {
 
         const result: ActionResult<SessionData> = await login(input);
 
-        expect(result.success).toBe(false);
-        if (result.success) throw new Error('Expected failure result');
-        expect(result.message).toBe('Invalid email or password');
+        expect(result).toEqual({success: false, message: 'Invalid email or password'});
         expect(mockSession.save).not.toHaveBeenCalled();
     });
 
@@ -108,14 +107,12 @@ describe('login', () => {
             password: 'ValidPass123!',
             membershipStart: '2024-01-01',
         };
-        await userRepository.createMember(memberInput);
+        await userService.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: 'WrongPass999!'};
 
         const result: ActionResult<SessionData> = await login(input);
 
-        expect(result.success).toBe(false);
-        if (result.success) throw new Error('Expected failure result');
-        expect(result.message).toBe('Invalid email or password');
+        expect(result).toEqual({success: false, message: 'Invalid email or password'});
         expect(mockSession.save).not.toHaveBeenCalled();
     });
 
@@ -128,9 +125,7 @@ describe('logout', () => {
 
         const result: ActionResult<void> = await logout();
 
-        expect(result.success).toBe(true);
-        if (!result.success) throw new Error('Expected success result');
-        expect(result.data).toBeUndefined();
+        expect(result).toEqual({success: true, data: undefined});
         expect(mockSession.destroy).toHaveBeenCalledTimes(1);
     });
 
@@ -139,9 +134,7 @@ describe('logout', () => {
 
         const result: ActionResult<void> = await logout();
 
-        expect(result.success).toBe(false);
-        if (result.success) throw new Error('Expected failure result');
-        expect(result.message).toBe('An unexpected error occurred');
+        expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
     });
 
 });
