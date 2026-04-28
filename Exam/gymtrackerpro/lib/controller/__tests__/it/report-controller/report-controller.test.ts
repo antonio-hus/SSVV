@@ -41,6 +41,7 @@ const seedExercise = async (overrides: Partial<CreateExerciseInput> = {}) => {
 describe('getMemberProgressReport', () => {
 
     it('getMemberProgressReport_oneSessionOneExercise_returnsSuccessWithCorrectlyComputedReport', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise({name: 'Bench Press'});
         await workoutSessionService.createWorkoutSession(
@@ -48,8 +49,14 @@ describe('getMemberProgressReport', () => {
             [{exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 100}],
         );
 
-        const result: ActionResult<Report> = await getMemberProgressReport(seededMember.id, '2024-01-01', '2024-01-31');
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            seededMember.id,
+            '2024-01-01',
+            '2024-01-31'
+        );
 
+        // Assert
         expect(result).toEqual({
             success: true,
             data: expect.objectContaining({
@@ -82,6 +89,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_multipleSessionsMultipleExercises_returnsSuccessWithCorrectAggregatesAndBreakdownSortedByVolumeDescending', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const benchPress = await seedExercise({name: 'Bench Press', muscleGroup: MuscleGroup.CHEST});
         const deadlift = await seedExercise({name: 'Deadlift', muscleGroup: MuscleGroup.BACK});
@@ -97,8 +105,14 @@ describe('getMemberProgressReport', () => {
             ],
         );
 
-        const result: ActionResult<Report> = await getMemberProgressReport(seededMember.id, '2024-01-01', '2024-01-31');
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            seededMember.id,
+            '2024-01-01',
+            '2024-01-31'
+        );
 
+        // Assert
         expect(result).toEqual({
             success: true,
             data: expect.objectContaining({
@@ -121,6 +135,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_sameExerciseAcrossMultipleSessions_returnsSuccessWithSessionCountReflectingDistinctSessions', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise({name: 'Back Squat', muscleGroup: MuscleGroup.LEGS});
         await workoutSessionService.createWorkoutSession(
@@ -132,8 +147,14 @@ describe('getMemberProgressReport', () => {
             [{exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50}],
         );
 
-        const result: ActionResult<Report> = await getMemberProgressReport(seededMember.id, '2024-01-01', '2024-01-31');
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            seededMember.id,
+            '2024-01-01',
+            '2024-01-31'
+        );
 
+        // Assert
         expect(result).toEqual({
             success: true,
             data: expect.objectContaining({totalSessions: 2, totalVolume: 3000}),
@@ -148,6 +169,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_noSessionsInDateWindow_returnsSuccessWithZeroedAggregatesAndEmptyArrays', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise({name: 'Bench Press'});
         await workoutSessionService.createWorkoutSession(
@@ -155,8 +177,14 @@ describe('getMemberProgressReport', () => {
             [{exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 100}],
         );
 
-        const result: ActionResult<Report> = await getMemberProgressReport(seededMember.id, '2024-01-01', '2024-01-31');
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            seededMember.id,
+            '2024-01-01',
+            '2024-01-31'
+        );
 
+        // Assert
         expect(result).toEqual({
             success: true,
             data: expect.objectContaining({
@@ -170,18 +198,32 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_nonExistentMemberId_returnsFailureWithNotFoundMessage', async () => {
+        // Arrange
+        const memberId = '00000000-0000-0000-0000-000000000000';
+
+        // Act
         const result: ActionResult<Report> = await getMemberProgressReport(
-            '00000000-0000-0000-0000-000000000000',
+            memberId,
             '2024-01-01',
-            '2024-01-31',
+            '2024-01-31'
         );
 
+        // Assert
         expect(result).toEqual({success: false, message: expect.any(String)});
     });
 
     it('getMemberProgressReport_invalidDateFormat_returnsValidationFailureWithFieldErrors', async () => {
-        const result: ActionResult<Report> = await getMemberProgressReport('any-id', 'not-a-date', 'also-not-a-date');
+        // Arrange
+        const memberId = 'any-id';
 
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            memberId,
+            'not-a-date',
+            'also-not-a-date'
+        );
+
+        // Assert
         expect(result).toEqual({
             success: false,
             message: 'Validation failed',

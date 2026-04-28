@@ -2331,6 +2331,14 @@ const listMemberWorkoutSessionsIt: ItDescriptor = {
         },
         {
             noTc: '7',
+            arrange: 'Two members seeded: member1 (m1@test.com), member2 (m2@test.com). Exercise seeded. Sessions seeded: member1 → "2024-01-01", member1 → "2024-06-01", member2 → "2024-06-01".\nconst inputOptions: WorkoutSessionListOptions = { startDate: new Date(\'2024-03-01\') }',
+            act: 'service.listMemberWorkoutSessions(member1.id, inputOptions)',
+            expectedReturn: 'items = [member1\'s 2024-06-01 session only], total = 1 (member1\'s 2024-01-01 session excluded by startDate; member2\'s 2024-06-01 session excluded by memberId)',
+            expectedDbState: 'No change',
+            actualResult: 'Passed',
+        },
+        {
+            noTc: '8',
             arrange: 'Member seeded. Exercise seeded. Five sessions seeded via workoutSessionRepository.create(): dates "2024-01-01" through "2024-05-01".\nconst inputOptions: WorkoutSessionListOptions = { page: 2, pageSize: 2 }',
             act: 'service.listMemberWorkoutSessions(seededMember.id, inputOptions)',
             expectedReturn: 'items = [2024-03-01, 2024-02-01] (date DESC, page 2 of 3), total = 5',
@@ -2338,7 +2346,7 @@ const listMemberWorkoutSessionsIt: ItDescriptor = {
             actualResult: 'Passed',
         },
         {
-            noTc: '8',
+            noTc: '9',
             arrange: 'Member seeded. Exercise seeded. Three sessions seeded: "2024-01-01", "2024-02-01", "2024-03-01".\nconst inputOptions: WorkoutSessionListOptions = { page: 0, pageSize: 2 }',
             act: 'service.listMemberWorkoutSessions(seededMember.id, inputOptions)',
             expectedReturn: 'items = [2024-03-01, 2024-02-01] (date DESC, page clamped to 1), total = 3',
@@ -2346,7 +2354,7 @@ const listMemberWorkoutSessionsIt: ItDescriptor = {
             actualResult: 'Passed',
         },
         {
-            noTc: '9',
+            noTc: '10',
             arrange: 'Member seeded. Exercise seeded. Three sessions seeded: "2024-01-01", "2024-02-01", "2024-03-01".\nconst inputOptions: WorkoutSessionListOptions = { page: 1, pageSize: 100 }',
             act: 'service.listMemberWorkoutSessions(seededMember.id, inputOptions)',
             expectedReturn: 'items contains all 3 sessions (date DESC), total = 3',
@@ -2354,7 +2362,7 @@ const listMemberWorkoutSessionsIt: ItDescriptor = {
             actualResult: 'Passed',
         },
         {
-            noTc: '10',
+            noTc: '11',
             arrange: 'Member seeded. Exercise seeded. Three sessions seeded: "2024-01-01", "2024-02-01", "2024-03-01".\nconst inputOptions: WorkoutSessionListOptions = { page: 2 }',
             act: 'service.listMemberWorkoutSessions(seededMember.id, inputOptions)',
             expectedReturn: 'items = [2024-01-01, 2024-02-01, 2024-03-01] (date ASC, not paginated — pageSize absent), total = 3',

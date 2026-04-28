@@ -58,13 +58,17 @@ describe('login', () => {
     describe('Independent Paths', () => {
 
         it('login_Path1_adminUser_validCredentials_returnsSessionDataWithAdminId', async () => {
+            // Arrange
             const inputData = {email: 'admin@gymtrackerpro.com', password: 'secret'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_ADMIN_USER);
             mockPasswordMatch(true);
 
             const service = AuthService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result).toEqual({
                 userId: MOCK_ADMIN_USER.id,
                 email: MOCK_ADMIN_USER.email,
@@ -77,13 +81,17 @@ describe('login', () => {
         });
 
         it('login_Path1_activeMemberUser_validCredentials_returnsSessionDataWithMemberId', async () => {
+            // Arrange
             const inputData = {email: 'member@example.com', password: 'secret'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(true);
 
             const service = AuthService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result).toEqual({
                 userId: MOCK_MEMBER_USER.id,
                 email: MOCK_MEMBER_USER.email,
@@ -96,13 +104,17 @@ describe('login', () => {
         });
 
         it('login_Path1_inactiveMemberUser_validCredentials_returnsSessionDataWithIsActiveFalse', async () => {
+            // Arrange
             const inputData = {email: 'member@example.com', password: 'secret'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_INACTIVE_MEMBER_USER);
             mockPasswordMatch(true);
 
             const service = AuthService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result).toEqual({
                 userId: MOCK_INACTIVE_MEMBER_USER.id,
                 email: MOCK_INACTIVE_MEMBER_USER.email,
@@ -115,24 +127,32 @@ describe('login', () => {
         });
 
         it('login_Path2_emailNotFound_throwsNotFoundError', async () => {
+            // Arrange
             const inputData = {email: 'unknown@example.com', password: 'secret'};
             mockUserRepo.findByEmail.mockResolvedValue(null);
 
             const service = AuthService.getInstance(mockUserRepo);
+
+            // Act
             const action = async () => await service.login(inputData);
 
+            // Assert
             await expect(action()).rejects.toThrow(NotFoundError);
             await expect(action()).rejects.toThrow('Invalid email or password');
         });
 
         it('login_Path3_wrongPassword_throwsAuthorizationError', async () => {
+            // Arrange
             const inputData = {email: 'admin@gymtrackerpro.com', password: 'wrong'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_ADMIN_USER);
             mockPasswordMatch(false);
 
             const service = AuthService.getInstance(mockUserRepo);
+
+            // Act
             const action = async () => await service.login(inputData);
 
+            // Assert
             await expect(action()).rejects.toThrow(AuthorizationError);
             await expect(action()).rejects.toThrow('Invalid email or password');
         });
@@ -149,18 +169,24 @@ describe('login', () => {
 describe('getInstance', () => {
 
     it('getInstance_Path1_returnsValidInstance', () => {
+        // Act
         const instance = AuthService.getInstance(mockUserRepo);
 
+        // Assert
         expect(instance).toBeDefined();
         expect(instance).toBeInstanceOf(AuthService);
     });
 
     it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        // Arrange
         const firstCall = AuthService.getInstance(mockUserRepo);
 
         const secondUserRepo = mock<UserRepositoryInterface>();
+
+        // Act
         const secondCall = AuthService.getInstance(secondUserRepo);
 
+        // Assert
         expect(secondCall).toBe(firstCall);
 
         const internalRepo = (secondCall as unknown as { userRepository: unknown }).userRepository;

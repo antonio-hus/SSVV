@@ -19,6 +19,7 @@ afterAll(async () => {
 describe('createExercise', () => {
 
     it('createExercise_newExercise_returnsPersistedRowWithAllFields', async () => {
+        // Arrange
         const input: CreateExerciseInput = {
             name: 'Deadlift',
             description: 'Posterior chain compound movement',
@@ -26,15 +27,16 @@ describe('createExercise', () => {
             equipmentNeeded: Equipment.BARBELL,
         };
 
+        // Act
         const result = await exerciseService.createExercise(input);
 
+        // Assert
         expect(result.id).toBeDefined();
         expect(result.name).toBe('Deadlift');
         expect(result.description).toBe('Posterior chain compound movement');
         expect(result.muscleGroup).toBe(MuscleGroup.BACK);
         expect(result.equipmentNeeded).toBe(Equipment.BARBELL);
         expect(result.isActive).toBe(true);
-
         const rowInRepository = await exerciseRepository.findById(result.id);
         expect(rowInRepository).toBeDefined();
         expect(rowInRepository.name).toBe(input.name);
@@ -43,6 +45,7 @@ describe('createExercise', () => {
     });
 
     it('createExercise_duplicateName_throwsConflictErrorAndLeavesOnlyOneRowInRepository', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -56,14 +59,17 @@ describe('createExercise', () => {
             equipmentNeeded: Equipment.BARBELL,
         };
 
+        // Act
         const action = () => exerciseService.createExercise(input);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const {total: totalRowsInRepository} = await exerciseRepository.findAll({includeInactive: true});
         expect(totalRowsInRepository).toBe(1);
     });
 
     it('createExercise_secondExerciseWithUniqueName_persistsBothRowsIndependently', async () => {
+        // Arrange
         const firstInput: CreateExerciseInput = {
             name: 'Squat',
             description: 'Leg compound',
@@ -77,9 +83,11 @@ describe('createExercise', () => {
             equipmentNeeded: Equipment.MACHINE,
         };
 
+        // Act
         const firstResult = await exerciseService.createExercise(firstInput);
         const secondResult = await exerciseService.createExercise(secondInput);
 
+        // Assert
         expect(firstResult.id).not.toBe(secondResult.id);
         const {total: totalRowsInRepository} = await exerciseRepository.findAll({includeInactive: true});
         expect(totalRowsInRepository).toBe(2);
@@ -90,6 +98,7 @@ describe('createExercise', () => {
 describe('getExercise', () => {
 
     it('getExercise_existingId_returnsExactRowFromDatabase', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Cable Fly',
             description: 'Chest isolation',
@@ -98,8 +107,10 @@ describe('getExercise', () => {
         });
         const id: string = seededExercise.id;
 
+        // Act
         const result = await exerciseService.getExercise(id);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.name).toBe(seededExercise.name);
         expect(result.description).toBe(seededExercise.description);
@@ -109,10 +120,13 @@ describe('getExercise', () => {
     });
 
     it('getExercise_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const id: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseService.getExercise(id);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -121,6 +135,7 @@ describe('getExercise', () => {
 describe('listExercises', () => {
 
     it('listExercises_noOptions_returnsOnlyActiveExercisesOrderedByNameAscending', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Squat',
             description: 'Leg compound',
@@ -141,8 +156,10 @@ describe('listExercises', () => {
         });
         await exerciseRepository.setActive(legPress.id, false);
 
+        // Act
         const result = await exerciseService.listExercises();
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(e => e.isActive)).toBe(true);
@@ -151,6 +168,7 @@ describe('listExercises', () => {
     });
 
     it('listExercises_includeInactiveTrue_returnsAllRowsFromDatabase', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -166,14 +184,17 @@ describe('listExercises', () => {
         await exerciseRepository.setActive(legPress.id, false);
         const options: ExerciseListOptions = {includeInactive: true};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.some(e => !e.isActive)).toBe(true);
     });
 
     it('listExercises_muscleGroupFilter_returnsOnlyRowsMatchingThatMuscleGroup', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -194,14 +215,17 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {muscleGroup: MuscleGroup.BACK};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(e => e.muscleGroup === MuscleGroup.BACK)).toBe(true);
     });
 
     it('listExercises_searchTerm_returnsOnlyRowsWhoseNameContainsTermCaseInsensitively', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -222,13 +246,16 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {search: 'PRESS'};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items.every(e => e.name.toLowerCase().includes('press'))).toBe(true);
     });
 
     it('listExercises_searchAndMuscleGroup_returnsOnlyRowsMatchingBothFilters', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -249,14 +276,17 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {search: 'press', muscleGroup: MuscleGroup.CHEST};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items.every(e => e.muscleGroup === MuscleGroup.CHEST)).toBe(true);
         expect(result.items.every(e => e.name.toLowerCase().includes('press'))).toBe(true);
     });
 
     it('listExercises_pagination_returnsCorrectSliceAndReportsFullTotalFromDatabase', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Exercise A',
             description: 'A',
@@ -278,9 +308,11 @@ describe('listExercises', () => {
         const firstOptions: ExerciseListOptions = {page: 1, pageSize: 2};
         const secondOptions: ExerciseListOptions = {page: 2, pageSize: 2};
 
+        // Act
         const firstPageResult = await exerciseService.listExercises(firstOptions);
         const secondPageResult = await exerciseService.listExercises(secondOptions);
 
+        // Assert
         expect(firstPageResult.total).toBe(3);
         expect(firstPageResult.items).toHaveLength(2);
         expect(secondPageResult.total).toBe(3);
@@ -290,6 +322,7 @@ describe('listExercises', () => {
     });
 
     it('listExercises_includeInactiveWithMuscleGroupFilter_returnsBothActiveAndInactiveRowsMatchingThatMuscleGroup', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -311,8 +344,10 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {includeInactive: true, muscleGroup: MuscleGroup.CHEST};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(e => e.muscleGroup === MuscleGroup.CHEST)).toBe(true);
@@ -320,6 +355,7 @@ describe('listExercises', () => {
     });
 
     it('listExercises_includeInactiveWithSearchFilter_returnsMatchingRowsRegardlessOfActiveStatus', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -341,8 +377,10 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {includeInactive: true, search: 'press'};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(e => e.name.toLowerCase().includes('press'))).toBe(true);
@@ -350,6 +388,7 @@ describe('listExercises', () => {
     });
 
     it('listExercises_pageSizeExceedsTotalRowCount_returnsAllRowsInSinglePage', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Squat',
             description: 'Leg compound',
@@ -364,13 +403,16 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {page: 1, pageSize: 100};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
     });
 
     it('listExercises_searchTermContainsLikeWildcard_treatedAsLiteralAndMatchesNoRows', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -385,8 +427,10 @@ describe('listExercises', () => {
         });
         const options: ExerciseListOptions = {search: 'Bench%'};
 
+        // Act
         const result = await exerciseService.listExercises(options);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
@@ -396,6 +440,7 @@ describe('listExercises', () => {
 describe('updateExercise', () => {
 
     it('updateExercise_validData_returnsUpdatedRowAndPersistsChangesToDatabase', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Squat',
             description: 'Leg compound',
@@ -404,8 +449,10 @@ describe('updateExercise', () => {
         });
         const data: UpdateExerciseInput = {name: 'Barbell Back Squat', description: 'Updated description'};
 
+        // Act
         const result = await exerciseService.updateExercise(seededExercise.id, data);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.name).toBe('Barbell Back Squat');
         expect(result.description).toBe('Updated description');
@@ -415,6 +462,7 @@ describe('updateExercise', () => {
     });
 
     it('updateExercise_partialInput_doesNotOverwriteUnspecifiedFieldsInRepository', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Squat',
             description: 'Original description',
@@ -423,8 +471,10 @@ describe('updateExercise', () => {
         });
         const data: UpdateExerciseInput = {name: 'Barbell Back Squat'};
 
+        // Act
         await exerciseService.updateExercise(seededExercise.id, data);
 
+        // Assert
         const rowInRepository = await exerciseRepository.findById(seededExercise.id);
         expect(rowInRepository.description).toBe('Original description');
         expect(rowInRepository.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -432,6 +482,7 @@ describe('updateExercise', () => {
     });
 
     it('updateExercise_sameNameAsCurrentExercise_doesNotThrowAndPersistsOtherChanges', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -440,8 +491,10 @@ describe('updateExercise', () => {
         });
         const data: UpdateExerciseInput = {name: 'Bench Press', description: 'New description'};
 
+        // Act
         const result = await exerciseService.updateExercise(seededExercise.id, data);
 
+        // Assert
         expect(result.name).toBe('Bench Press');
         expect(result.description).toBe('New description');
         const rowInRepository = await exerciseRepository.findById(seededExercise.id);
@@ -449,15 +502,19 @@ describe('updateExercise', () => {
     });
 
     it('updateExercise_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const id: string = '00000000-0000-0000-0000-000000000000';
         const data: UpdateExerciseInput = {name: 'Ghost'};
 
+        // Act
         const action = () => exerciseService.updateExercise(id, data);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateExercise_nameAlreadyTakenByAnotherExercise_throwsConflictErrorAndLeavesOriginalNameInRepository', async () => {
+        // Arrange
         await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -472,14 +529,17 @@ describe('updateExercise', () => {
         });
         const data: UpdateExerciseInput = {name: 'Bench Press'};
 
+        // Act
         const action = () => exerciseService.updateExercise(seededSquat.id, data);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const rowInRepository = await exerciseRepository.findById(seededSquat.id);
         expect(rowInRepository.name).toBe('Squat');
     });
 
     it('updateExercise_emptyInput_returnsUnchangedRowAndLeavesAllFieldsInRepository', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Squat',
             description: 'Original description',
@@ -488,8 +548,10 @@ describe('updateExercise', () => {
         });
         const data: UpdateExerciseInput = {};
 
+        // Act
         const result = await exerciseService.updateExercise(seededExercise.id, data);
 
+        // Assert
         expect(result.name).toBe('Squat');
         expect(result.description).toBe('Original description');
         expect(result.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -506,6 +568,7 @@ describe('updateExercise', () => {
 describe('archiveExercise', () => {
 
     it('archiveExercise_activeExercise_returnsRowWithIsActiveFalseAndPersistsToDatabase', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -514,8 +577,10 @@ describe('archiveExercise', () => {
         });
         const id: string = seededExercise.id;
 
+        // Act
         const result = await exerciseService.archiveExercise(id);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.isActive).toBe(false);
         const rowInRepository = await exerciseRepository.findById(id);
@@ -523,10 +588,13 @@ describe('archiveExercise', () => {
     });
 
     it('archiveExercise_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const id: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseService.archiveExercise(id);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -535,6 +603,7 @@ describe('archiveExercise', () => {
 describe('unarchiveExercise', () => {
 
     it('unarchiveExercise_inactiveExercise_returnsRowWithIsActiveTrueAndPersistsToDatabase', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -544,8 +613,10 @@ describe('unarchiveExercise', () => {
         await exerciseRepository.setActive(seededExercise.id, false);
         const id: string = seededExercise.id;
 
+        // Act
         const result = await exerciseService.unarchiveExercise(id);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.isActive).toBe(true);
         const rowInRepository = await exerciseRepository.findById(id);
@@ -553,10 +624,13 @@ describe('unarchiveExercise', () => {
     });
 
     it('unarchiveExercise_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const id: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseService.unarchiveExercise(id);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -565,6 +639,7 @@ describe('unarchiveExercise', () => {
 describe('deleteExercise', () => {
 
     it('deleteExercise_unreferencedExercise_removesRowFromDatabase', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -573,12 +648,15 @@ describe('deleteExercise', () => {
         });
         const id: string = seededExercise.id;
 
+        // Act
         await exerciseService.deleteExercise(id);
 
+        // Assert
         await expect(exerciseRepository.findById(id)).rejects.toThrow(NotFoundError);
     });
 
     it('deleteExercise_oneOfManyExercises_removesOnlyTargetRowFromDatabase', async () => {
+        // Arrange
         const seededBenchPress = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -592,22 +670,28 @@ describe('deleteExercise', () => {
             equipmentNeeded: Equipment.BARBELL
         });
 
+        // Act
         await exerciseService.deleteExercise(seededBenchPress.id);
 
+        // Assert
         const {items: remainingRows} = await exerciseRepository.findAll({includeInactive: true});
         expect(remainingRows).toHaveLength(1);
         expect(remainingRows[0].id).toBe(seededDeadlift.id);
     });
 
     it('deleteExercise_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const id: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseService.deleteExercise(id);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('deleteExercise_exerciseReferencedByWorkoutSession_throwsConflictErrorAndRowRemainsInRepository', async () => {
+        // Arrange
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Classic chest compound exercise',
@@ -629,14 +713,17 @@ describe('deleteExercise', () => {
         );
         const id: string = seededExercise.id;
 
+        // Act
         const action = () => exerciseService.deleteExercise(id);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const rowInRepository = await exerciseRepository.findById(id);
         expect(rowInRepository.id).toBe(id);
     });
 
     it('deleteExercise_afterConflictOnReferencedExercise_unreferencedSiblingExerciseRemainsDeleteable', async () => {
+        // Arrange
         const referencedExercise = await exerciseRepository.create({
             name: 'Bench Press',
             description: 'Chest compound',
@@ -663,10 +750,12 @@ describe('deleteExercise', () => {
             [{exerciseId: referencedExercise.id, sets: 3, reps: 10, weight: 50}],
         );
 
+        // Act
         await expect(exerciseService.deleteExercise(referencedExercise.id)).rejects.toThrow(ConflictError);
 
         await exerciseService.deleteExercise(unreferencedExercise.id);
 
+        // Assert
         const {items: remainingRows} = await exerciseRepository.findAll({includeInactive: true});
         expect(remainingRows).toHaveLength(1);
         expect(remainingRows[0].id).toBe(referencedExercise.id);

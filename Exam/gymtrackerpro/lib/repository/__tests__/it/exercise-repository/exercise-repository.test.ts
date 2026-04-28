@@ -68,6 +68,7 @@ const seedWorkoutSessionExercise = async (exerciseId: string) => {
 describe('create', () => {
 
     it('create_newExercise_returnsPersistedRowWithAllFields', async () => {
+        // Arrange
         const input: CreateExerciseInput = {
             name: 'Deadlift',
             description: 'Posterior chain compound movement',
@@ -75,8 +76,10 @@ describe('create', () => {
             equipmentNeeded: Equipment.BARBELL,
         };
 
+        // Act
         const result = await exerciseRepository.create(input);
 
+        // Assert
         expect(result.id).toBeDefined();
         expect(result.name).toBe('Deadlift');
         expect(result.description).toBe('Posterior chain compound movement');
@@ -91,6 +94,7 @@ describe('create', () => {
     });
 
     it('create_duplicateName_throwsConflictErrorAndLeavesOnlyOneRowInDatabase', async () => {
+        // Arrange
         await seedExercise({name: 'Bench Press'});
         const duplicateInput: CreateExerciseInput = {
             name: 'Bench Press',
@@ -99,14 +103,17 @@ describe('create', () => {
             equipmentNeeded: Equipment.BARBELL,
         };
 
+        // Act
         const action = () => exerciseRepository.create(duplicateInput);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const totalRowsInDatabase = await prisma.exercise.count();
         expect(totalRowsInDatabase).toBe(1);
     });
 
     it('create_secondExerciseWithUniqueName_persistsBothRowsIndependently', async () => {
+        // Arrange
         const firstInput: CreateExerciseInput = {
             name: 'Squat',
             description: 'Leg compound',
@@ -120,9 +127,11 @@ describe('create', () => {
             equipmentNeeded: Equipment.MACHINE,
         };
 
+        // Act
         const firstResult = await exerciseRepository.create(firstInput);
         const secondResult = await exerciseRepository.create(secondInput);
 
+        // Assert
         expect(firstResult.id).not.toBe(secondResult.id);
         const totalRowsInDatabase = await prisma.exercise.count();
         expect(totalRowsInDatabase).toBe(2);
@@ -133,14 +142,17 @@ describe('create', () => {
 describe('findById', () => {
 
     it('findById_existingId_returnsExactRowFromDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({
             name: 'Cable Fly',
             muscleGroup: MuscleGroup.CHEST,
             equipmentNeeded: Equipment.CABLE,
         });
 
+        // Act
         const result = await exerciseRepository.findById(seededExercise.id);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.name).toBe(seededExercise.name);
         expect(result.description).toBe(seededExercise.description);
@@ -150,10 +162,13 @@ describe('findById', () => {
     });
 
     it('findById_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseRepository.findById(nonExistentId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -162,6 +177,7 @@ describe('findById', () => {
 describe('findAll', () => {
 
     it('findAll_noOptions_returnsOnlyActiveExercisesOrderedByNameAscending', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -188,8 +204,10 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll();
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(exercise => exercise.isActive)).toBe(true);
@@ -198,6 +216,7 @@ describe('findAll', () => {
     });
 
     it('findAll_includeInactiveTrue_returnsAllRowsFromDatabase', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -217,14 +236,17 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({includeInactive: true});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.some(exercise => !exercise.isActive)).toBe(true);
     });
 
     it('findAll_muscleGroupFilter_returnsOnlyRowsMatchingThatMuscleGroup', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -251,14 +273,17 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({muscleGroup: MuscleGroup.BACK});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(exercise => exercise.muscleGroup === MuscleGroup.BACK)).toBe(true);
     });
 
     it('findAll_searchTerm_returnsOnlyRowsWhoseNameContainsTermCaseInsensitively', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -285,13 +310,16 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({search: 'PRESS'});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items.every(exercise => exercise.name.toLowerCase().includes('press'))).toBe(true);
     });
 
     it('findAll_searchAndMuscleGroup_returnsOnlyRowsMatchingBothFilters', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -318,14 +346,17 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({search: 'press', muscleGroup: MuscleGroup.CHEST});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items.every(exercise => exercise.muscleGroup === MuscleGroup.CHEST)).toBe(true);
         expect(result.items.every(exercise => exercise.name.toLowerCase().includes('press'))).toBe(true);
     });
 
     it('findAll_pagination_returnsCorrectSliceAndReportsFullTotalFromDatabase', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -352,9 +383,11 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const firstPageResult = await exerciseRepository.findAll({page: 1, pageSize: 2});
         const secondPageResult = await exerciseRepository.findAll({page: 2, pageSize: 2});
 
+        // Assert
         expect(firstPageResult.total).toBe(3);
         expect(firstPageResult.items).toHaveLength(2);
         expect(secondPageResult.total).toBe(3);
@@ -364,6 +397,7 @@ describe('findAll', () => {
     });
 
     it('findAll_includeInactiveWithMuscleGroupFilter_returnsBothActiveAndInactiveRowsMatchingThatMuscleGroup', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -390,8 +424,10 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({includeInactive: true, muscleGroup: MuscleGroup.CHEST});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(exercise => exercise.muscleGroup === MuscleGroup.CHEST)).toBe(true);
@@ -399,6 +435,7 @@ describe('findAll', () => {
     });
 
     it('findAll_includeInactiveWithSearchFilter_returnsMatchingRowsRegardlessOfActiveStatus', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -425,8 +462,10 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({includeInactive: true, search: 'press'});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
         expect(result.items.every(exercise => exercise.name.toLowerCase().includes('press'))).toBe(true);
@@ -434,6 +473,7 @@ describe('findAll', () => {
     });
 
     it('findAll_pageSizeExceedsTotalRowCount_returnsAllRowsInSinglePage', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -453,13 +493,16 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({page: 1, pageSize: 100});
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
     });
 
     it('findAll_searchTermContainsLikeWildcard_treatedAsLiteralAndMatchesNoRows', async () => {
+        // Arrange
         await prisma.exercise.createMany({
             data: [
                 {
@@ -479,8 +522,10 @@ describe('findAll', () => {
             ],
         });
 
+        // Act
         const result = await exerciseRepository.findAll({search: 'Bench%'});
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
@@ -490,8 +535,10 @@ describe('findAll', () => {
 describe('update', () => {
 
     it('update_validData_returnsUpdatedRowAndPersistsChangesToDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({name: 'Squat', muscleGroup: MuscleGroup.LEGS});
 
+        // Act
         const result = await exerciseRepository.update(seededExercise.id, {
             name: 'Barbell Back Squat',
             description: 'Updated description',
@@ -499,6 +546,7 @@ describe('update', () => {
             equipmentNeeded: Equipment.BARBELL,
         });
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.name).toBe('Barbell Back Squat');
         expect(result.description).toBe('Updated description');
@@ -508,6 +556,7 @@ describe('update', () => {
     });
 
     it('update_partialInput_doesNotOverwriteUnspecifiedFieldsInDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({
             name: 'Squat',
             description: 'Original description',
@@ -515,8 +564,10 @@ describe('update', () => {
             equipmentNeeded: Equipment.BARBELL,
         });
 
+        // Act
         await exerciseRepository.update(seededExercise.id, {name: 'Barbell Back Squat'});
 
+        // Assert
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
         expect(rowInDatabase!.description).toBe('Original description');
         expect(rowInDatabase!.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -524,13 +575,16 @@ describe('update', () => {
     });
 
     it('update_sameNameAsCurrentExercise_doesNotThrowAndPersistsOtherChanges', async () => {
+        // Arrange
         const seededExercise = await seedExercise({name: 'Bench Press'});
 
+        // Act
         const result = await exerciseRepository.update(seededExercise.id, {
             name: 'Bench Press',
             description: 'New description',
         });
 
+        // Assert
         expect(result.name).toBe('Bench Press');
         expect(result.description).toBe('New description');
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
@@ -538,25 +592,32 @@ describe('update', () => {
     });
 
     it('update_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseRepository.update(nonExistentId, {name: 'Ghost'});
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('update_nameAlreadyTakenByAnotherExercise_throwsConflictErrorAndLeavesOriginalNameInDatabase', async () => {
+        // Arrange
         await seedExercise({name: 'Bench Press'});
         const secondSeededExercise = await seedExercise({name: 'Squat'});
 
+        // Act
         const action = () => exerciseRepository.update(secondSeededExercise.id, {name: 'Bench Press'});
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: secondSeededExercise.id}});
         expect(rowInDatabase!.name).toBe('Squat');
     });
 
     it('update_emptyInput_returnsUnchangedRowAndLeavesAllFieldsInDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({
             name: 'Squat',
             description: 'Original description',
@@ -564,8 +625,10 @@ describe('update', () => {
             equipmentNeeded: Equipment.BARBELL,
         });
 
+        // Act
         const result = await exerciseRepository.update(seededExercise.id, {});
 
+        // Assert
         expect(result.name).toBe('Squat');
         expect(result.description).toBe('Original description');
         expect(result.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -582,10 +645,13 @@ describe('update', () => {
 describe('setActive', () => {
 
     it('setActive_falseOnActiveExercise_returnsRowWithIsActiveFalseAndPersistsToDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({isActive: true});
 
+        // Act
         const result = await exerciseRepository.setActive(seededExercise.id, false);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.isActive).toBe(false);
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
@@ -593,10 +659,13 @@ describe('setActive', () => {
     });
 
     it('setActive_trueOnInactiveExercise_returnsRowWithIsActiveTrueAndPersistsToDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise({isActive: false});
 
+        // Act
         const result = await exerciseRepository.setActive(seededExercise.id, true);
 
+        // Assert
         expect(result.id).toBe(seededExercise.id);
         expect(result.isActive).toBe(true);
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
@@ -604,10 +673,13 @@ describe('setActive', () => {
     });
 
     it('setActive_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseRepository.setActive(nonExistentId, false);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -616,53 +688,67 @@ describe('setActive', () => {
 describe('delete', () => {
 
     it('delete_existingUnreferencedExercise_removesRowFromDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise();
 
+        // Act
         await exerciseRepository.delete(seededExercise.id);
 
+        // Assert
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
         expect(rowInDatabase).toBeNull();
     });
 
     it('delete_oneOfManyExercises_removesOnlyTargetRowFromDatabase', async () => {
+        // Arrange
         const firstSeededExercise = await seedExercise({name: 'Bench Press'});
         const secondSeededExercise = await seedExercise({name: 'Deadlift'});
 
+        // Act
         await exerciseRepository.delete(firstSeededExercise.id);
 
+        // Assert
         const remainingRows = await prisma.exercise.findMany();
         expect(remainingRows).toHaveLength(1);
         expect(remainingRows[0].id).toBe(secondSeededExercise.id);
     });
 
     it('delete_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const nonExistentId = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => exerciseRepository.delete(nonExistentId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('delete_exerciseReferencedByWorkoutSession_throwsConflictErrorAndRowRemainsInDatabase', async () => {
+        // Arrange
         const seededExercise = await seedExercise();
         await seedWorkoutSessionExercise(seededExercise.id);
 
+        // Act
         const action = () => exerciseRepository.delete(seededExercise.id);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const rowInDatabase = await prisma.exercise.findUnique({where: {id: seededExercise.id}});
         expect(rowInDatabase).not.toBeNull();
     });
 
     it('delete_afterConflictOnReferencedExercise_unreferencedSiblingExerciseRemainsDeleteable', async () => {
+        // Arrange
         const referencedExercise = await seedExercise({name: 'Bench Press'});
         const unreferencedExercise = await seedExercise({name: 'Deadlift'});
         await seedWorkoutSessionExercise(referencedExercise.id);
 
+        // Act
         await expect(exerciseRepository.delete(referencedExercise.id)).rejects.toThrow(ConflictError);
-
         await exerciseRepository.delete(unreferencedExercise.id);
 
+        // Assert
         const remainingRows = await prisma.exercise.findMany();
         expect(remainingRows).toHaveLength(1);
         expect(remainingRows[0].id).toBe(referencedExercise.id);

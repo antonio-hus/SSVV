@@ -61,34 +61,43 @@ beforeEach(() => {
 describe('createMember', () => {
     describe('Equivalence Classes', () => {
         it('createMember_EC_emailNotRegistered_returnsMemberWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.createMember(inputMember);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
             expect(result.user.email).toBe(inputMember.email);
         });
 
         it('createMember_EC_emailAlreadyRegistered_throwsConflictError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
             mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email already registered'));
 
+            // Act
             const act = service.createMember(inputMember);
 
+            // Assert
             await expect(act).rejects.toThrow(ConflictError);
             await expect(act).rejects.toThrow('Email already registered');
         });
 
         it('createMember_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputMember: CreateMemberInput = CREATE_MEMBER_INPUT;
             mockUserRepo.createMember.mockRejectedValue(new TransactionError('DB failure'));
 
+            // Act
             const act = service.createMember(inputMember);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB failure');
         });
@@ -106,33 +115,43 @@ describe('generateTempPassword', () => {
 
     describe('Equivalence Classes', () => {
         it('generateTempPassword_EC_outputLength_returnsStringOfLength16', () => {
+            // Act
             const result = generate();
 
+            // Assert
             expect(typeof result).toBe('string');
             expect(result).toHaveLength(16);
         });
 
         it('generateTempPassword_EC_containsUppercase_returnsStringWithAtLeastOneUppercaseLetter', () => {
+            // Act
             const result = generate();
 
+            // Assert
             expect(/[A-Z]/.test(result)).toBe(true);
         });
 
         it('generateTempPassword_EC_containsDigit_returnsStringWithAtLeastOneDigit', () => {
+            // Act
             const result = generate();
 
+            // Assert
             expect(/[0-9]/.test(result)).toBe(true);
         });
 
         it('generateTempPassword_EC_containsSpecialChar_returnsStringWithAtLeastOneSpecialChar', () => {
+            // Act
             const result = generate();
 
+            // Assert
             expect(result.split('').some((ch) => specialSet.has(ch))).toBe(true);
         });
 
         it('generateTempPassword_EC_allCharsAllowed_returnsStringWithOnlyAllowedChars', () => {
+            // Act
             const result = generate();
 
+            // Assert
             expect(result.split('').every((ch) => allowedSet.has(ch))).toBe(true);
         });
     });
@@ -141,6 +160,7 @@ describe('generateTempPassword', () => {
 describe('createMemberWithTempPassword', () => {
     describe('Equivalence Classes', () => {
         it('createMemberWithTempPassword_EC_validData_returnsMemberWithTempPassword', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputData: CreateMemberWithTempPasswordInput = {
                 email: 'john@example.com',
@@ -151,14 +171,17 @@ describe('createMemberWithTempPassword', () => {
             };
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.createMemberWithTempPassword(inputData);
 
+            // Assert
             expect(result.id).toBe(MEMBER_ID);
             expect(result.user.email).toBe(inputData.email);
             expect(result.tempPassword).toHaveLength(16);
         });
 
         it('createMemberWithTempPassword_EC_duplicateEmail_throwsConflictError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputData: CreateMemberWithTempPasswordInput = {
                 email: 'taken@example.com',
@@ -169,8 +192,10 @@ describe('createMemberWithTempPassword', () => {
             };
             mockUserRepo.createMember.mockRejectedValue(new ConflictError('Email taken'));
 
+            // Act
             const act = service.createMemberWithTempPassword(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(ConflictError);
             await expect(act).rejects.toThrow('Email taken');
         });
@@ -178,6 +203,7 @@ describe('createMemberWithTempPassword', () => {
 
     describe('Boundary Value Analysis', () => {
         it('createMemberWithTempPassword_BVA_tempPasswordLength16', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputData: CreateMemberWithTempPasswordInput = {
                 email: 'john@example.com',
@@ -188,12 +214,15 @@ describe('createMemberWithTempPassword', () => {
             };
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.createMemberWithTempPassword(inputData);
 
+            // Assert
             expect(result.tempPassword).toHaveLength(16);
         });
 
         it('createMemberWithTempPassword_BVA_tempPasswordStrength_containsRequiredCharacters', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputData: CreateMemberWithTempPasswordInput = {
                 email: 'john@example.com',
@@ -204,8 +233,10 @@ describe('createMemberWithTempPassword', () => {
             };
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.createMemberWithTempPassword(inputData);
 
+            // Assert
             expect(/[A-Z]/.test(result.tempPassword)).toBe(true);
             expect(/[0-9]/.test(result.tempPassword)).toBe(true);
             expect(/[^A-Za-z0-9]/.test(result.tempPassword)).toBe(true);
@@ -216,35 +247,44 @@ describe('createMemberWithTempPassword', () => {
 describe('createAdmin', () => {
     describe('Equivalence Classes', () => {
         it('createAdmin_EC_emailNotRegistered_returnsAdminWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
             const expectedReturn = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_ADMIN_WITH_USER.user, email: CREATE_ADMIN_INPUT.email}};
             mockUserRepo.createAdmin.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.createAdmin(inputAdmin);
 
+            // Assert
             expect(result).toEqual(expectedReturn);
             expect(result.user.email).toBe(CREATE_ADMIN_INPUT.email);
         });
 
         it('createAdmin_EC_emailAlreadyRegistered_throwsConflictError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
             mockUserRepo.createAdmin.mockRejectedValue(new ConflictError('Email already registered'));
 
+            // Act
             const act = service.createAdmin(inputAdmin);
 
+            // Assert
             await expect(act).rejects.toThrow(ConflictError);
             await expect(act).rejects.toThrow('Email already registered');
         });
 
         it('createAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputAdmin: CreateAdminInput = CREATE_ADMIN_INPUT;
             mockUserRepo.createAdmin.mockRejectedValue(new TransactionError('DB failure'));
 
+            // Act
             const act = service.createAdmin(inputAdmin);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB failure');
         });
@@ -254,22 +294,28 @@ describe('createAdmin', () => {
 describe('getMember', () => {
     describe('Equivalence Classes', () => {
         it('getMember_EC_existingMemberId_returnsMemberWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.getMember(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('getMember_EC_nonExistentMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
@@ -277,33 +323,42 @@ describe('getMember', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getMember_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getMember_BVA_existingOneCharId_returnsMemberWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const expectedReturn: MemberWithUser = {...MOCK_MEMBER_WITH_USER, id: 'a'};
             mockUserRepo.findMemberById.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.getMember(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
@@ -313,22 +368,28 @@ describe('getMember', () => {
 describe('getAdmin', () => {
     describe('Equivalence Classes', () => {
         it('getAdmin_EC_existingAdminId_returnsAdminWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             mockUserRepo.findAdminById.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.getAdmin(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('getAdmin_EC_nonExistentAdminId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.getAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Admin not found');
         });
@@ -336,33 +397,42 @@ describe('getAdmin', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.getAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.findAdminById.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.getAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getAdmin_BVA_existingOneCharId_returnsAdminWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const expectedReturn: AdminWithUser = {...MOCK_ADMIN_WITH_USER, id: 'a'};
             mockUserRepo.findAdminById.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.getAdmin(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.user).toEqual(MOCK_ADMIN_WITH_USER.user);
         });
@@ -372,46 +442,58 @@ describe('getAdmin', () => {
 describe('listMembers', () => {
     describe('Equivalence Classes', () => {
         it('listMembers_EC_noOptions_returnsDefaultPageWithTotal', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers();
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0]).toEqual(MOCK_MEMBER_WITH_USER);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_EC_withSearchTerm_returnsMatchingItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {search: 'John'};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0]).toEqual(MOCK_MEMBER_WITH_USER);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_EC_multipleMembers_returnsMembersOrderedByFullNameAscending', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const memberAlice = {...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Alice'}};
             mockUserRepo.findMembers.mockResolvedValue({items: [memberAlice, MOCK_MEMBER_WITH_USER], total: 2});
 
+            // Act
             const result = await service.listMembers();
 
+            // Assert
             expect(result.items[0].user.fullName).toBe('Alice');
             expect(result.items[1].user.fullName).toBe('John Doe');
             expect(result.total).toBe(2);
         });
 
         it('listMembers_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             mockUserRepo.findMembers.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.listMembers();
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
@@ -419,111 +501,141 @@ describe('listMembers', () => {
 
     describe('Boundary Value Analysis', () => {
         it('listMembers_BVA_searchUndefined_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {search: undefined};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_searchEmpty_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {search: ''};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_searchOneChar_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {search: 'a'};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_pageUndefined_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {page: undefined};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {page: 0};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page1_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {page: 1};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_page2_returnsSecondPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {page: 2};
             mockUserRepo.findMembers.mockResolvedValue({items: [], total: 15});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.total).toBe(15);
             expect(result.items).toHaveLength(0);
         });
 
         it('listMembers_BVA_pageSizeUndefined_returnsDefaultPageSize', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {pageSize: undefined};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listMembers_BVA_pageSize0_returnsNoItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {pageSize: 0};
             mockUserRepo.findMembers.mockResolvedValue({items: [], total: 5});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(5);
         });
 
         it('listMembers_BVA_pageSize1_returnsOneItem', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: MemberListOptions = {pageSize: 1};
             mockUserRepo.findMembers.mockResolvedValue({items: [MOCK_MEMBER_WITH_USER], total: 5});
 
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
@@ -533,46 +645,58 @@ describe('listMembers', () => {
 describe('listAdmins', () => {
     describe('Equivalence Classes', () => {
         it('listAdmins_EC_noOptions_returnsDefaultPageWithTotal', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins();
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0]).toEqual(MOCK_ADMIN_WITH_USER);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_EC_withSearchTerm_returnsMatchingItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {search: 'Admin'};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0]).toEqual(MOCK_ADMIN_WITH_USER);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_EC_multipleAdmins_returnsAdminsOrderedByFullNameAscending', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const adminAlice = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Alice'}};
             mockUserRepo.findAdmins.mockResolvedValue({items: [adminAlice, MOCK_ADMIN_WITH_USER], total: 2});
 
+            // Act
             const result = await service.listAdmins();
 
+            // Assert
             expect(result.items[0].user.fullName).toBe('Alice');
             expect(result.items[1].user.fullName).toBe('John Doe');
             expect(result.total).toBe(2);
         });
 
         it('listAdmins_EC_emptyDatabase_returnsEmptyPageWithZeroTotal', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.listAdmins();
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
@@ -580,111 +704,141 @@ describe('listAdmins', () => {
 
     describe('Boundary Value Analysis', () => {
         it('listAdmins_BVA_searchUndefined_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {search: undefined};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_searchEmpty_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {search: ''};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_searchOneChar_returnsItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {search: 'a'};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_pageUndefined_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {page: undefined};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {page: 0};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page1_returnsFirstPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {page: 1};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_page2_returnsSecondPage', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {page: 2};
             mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 15});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(15);
         });
 
         it('listAdmins_BVA_pageSizeUndefined_returnsDefaultPageSize', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {pageSize: undefined};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 1});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(1);
         });
 
         it('listAdmins_BVA_pageSize0_returnsNoItems', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {pageSize: 0};
             mockUserRepo.findAdmins.mockResolvedValue({items: [], total: 5});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(5);
         });
 
         it('listAdmins_BVA_pageSize1_returnsOneItem', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputOptions: AdminListOptions = {pageSize: 1};
             mockUserRepo.findAdmins.mockResolvedValue({items: [MOCK_ADMIN_WITH_USER], total: 5});
 
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
@@ -694,72 +848,90 @@ describe('listAdmins', () => {
 describe('updateMember', () => {
     describe('Equivalence Classes', () => {
         it('updateMember_EC_existingMemberValidData_returnsMemberWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: 'Updated Name'};
             const expectedReturn = {...MOCK_MEMBER_WITH_USER, user: {...MOCK_USER, fullName: 'Updated Name'}};
             mockUserRepo.updateMember.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(expectedReturn);
             expect(result.user.fullName).toBe('Updated Name');
         });
 
         it('updateMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateMemberInput = {fullName: 'New'};
             mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.updateMember(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
 
         it('updateMember_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {email: 'taken@example.com'};
             mockUserRepo.updateMember.mockRejectedValue(new ConflictError('Email taken'));
 
+            // Act
             const act = service.updateMember(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(ConflictError);
             await expect(act).rejects.toThrow('Email taken');
         });
 
         it('updateMember_EC_sameEmailAsCurrentUser_returnsUpdatedMember', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {email: MOCK_USER.email};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_EC_withNewPassword_returnsUpdatedMember', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {password: 'New1!'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: 'New'};
             mockUserRepo.updateMember.mockRejectedValue(new TransactionError('DB Error'));
 
+            // Act
             const act = service.updateMember(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB Error');
         });
@@ -767,235 +939,298 @@ describe('updateMember', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateMember_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             const inputData: UpdateMemberInput = {fullName: 'New'};
             mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.updateMember(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateMemberInput = {fullName: 'New'};
             mockUserRepo.updateMember.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.updateMember(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateMemberInput = {fullName: 'New'};
             const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
 
         it('updateMember_BVA_emailUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {email: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_emailEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {email: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_emailOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {email: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_fullNameOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {fullName: 'A'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {phone: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {phone: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_phoneOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {phone: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {dateOfBirth: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {dateOfBirth: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {dateOfBirth: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {password: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {password: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_passwordOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {password: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {membershipStart: undefined};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {membershipStart: ''};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('updateMember_BVA_membershipStartOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {membershipStart: 'a'};
             mockUserRepo.updateMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
     });
@@ -1004,72 +1239,90 @@ describe('updateMember', () => {
 describe('updateAdmin', () => {
     describe('Equivalence Classes', () => {
         it('updateAdmin_EC_existingAdminValidData_returnsAdminWithUser', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: 'Updated Admin'};
             const expectedReturn = {...MOCK_ADMIN_WITH_USER, user: {...MOCK_USER, role: Role.ADMIN, fullName: 'Updated Admin'}};
             mockUserRepo.updateAdmin.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(expectedReturn);
             expect(result.user.fullName).toBe('Updated Admin');
         });
 
         it('updateAdmin_EC_nonExistentAdmin_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateAdminInput = {fullName: 'Name'};
             mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.updateAdmin(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Admin not found');
         });
 
         it('updateAdmin_EC_newEmailAlreadyRegistered_throwsConflictError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {email: 'taken@example.com'};
             mockUserRepo.updateAdmin.mockRejectedValue(new ConflictError('Email taken'));
 
+            // Act
             const act = service.updateAdmin(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(ConflictError);
             await expect(act).rejects.toThrow('Email taken');
         });
 
         it('updateAdmin_EC_sameEmailAsCurrentUser_returnsUpdatedAdmin', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {email: MOCK_ADMIN_WITH_USER.user.email};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_EC_withNewPassword_returnsUpdatedAdmin', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {password: 'New1!'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: 'New'};
             mockUserRepo.updateAdmin.mockRejectedValue(new TransactionError('DB Error'));
 
+            // Act
             const act = service.updateAdmin(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB Error');
         });
@@ -1077,202 +1330,256 @@ describe('updateAdmin', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             const inputData: UpdateAdminInput = {fullName: 'New'};
             mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.updateAdmin(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateAdminInput = {fullName: 'New'};
             mockUserRepo.updateAdmin.mockRejectedValue(new NotFoundError('Admin not found'));
 
+            // Act
             const act = service.updateAdmin(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateAdmin_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const inputData: UpdateAdminInput = {fullName: 'New'};
             const expectedReturn = {...MOCK_ADMIN_WITH_USER, id: 'a'};
             mockUserRepo.updateAdmin.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.user).toEqual(MOCK_ADMIN_WITH_USER.user);
         });
 
         it('updateAdmin_BVA_emailUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {email: undefined};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_emailEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {email: ''};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_emailOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {email: 'a'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: undefined};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: ''};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_fullNameOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {fullName: 'A'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {phone: undefined};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {phone: ''};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_phoneOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {phone: 'a'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {dateOfBirth: undefined};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {dateOfBirth: ''};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_dateOfBirthOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {dateOfBirth: 'a'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordUndefined_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {password: undefined};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordEmpty_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {password: ''};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
 
         it('updateAdmin_BVA_passwordOneChar_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {password: 'a'};
             mockUserRepo.updateAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
         });
     });
@@ -1281,25 +1588,31 @@ describe('updateAdmin', () => {
 describe('suspendMember', () => {
     describe('Equivalence Classes', () => {
         it('suspendMember_EC_existingMember_suspendsMember', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             const expectedReturn = {...MOCK_MEMBER_WITH_USER, isActive: false};
             mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.suspendMember(inputId);
 
+            // Assert
             expect(result.isActive).toBe(false);
             expect(result.id).toBe(MEMBER_ID);
             expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
         });
 
         it('suspendMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.suspendMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
@@ -1307,33 +1620,42 @@ describe('suspendMember', () => {
 
     describe('Boundary Value Analysis', () => {
         it('suspendMember_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.suspendMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('suspendMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.suspendMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('suspendMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a', isActive: false};
             mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.suspendMember(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.isActive).toBe(false);
             expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
@@ -1344,24 +1666,30 @@ describe('suspendMember', () => {
 describe('activateMember', () => {
     describe('Equivalence Classes', () => {
         it('activateMember_EC_existingMember_activatesMember', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             mockUserRepo.setMemberActive.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
+            // Act
             const result = await service.activateMember(inputId);
 
+            // Assert
             expect(result.isActive).toBe(true);
             expect(result.id).toBe(MEMBER_ID);
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
         });
 
         it('activateMember_EC_nonExistentMember_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.activateMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
@@ -1369,33 +1697,42 @@ describe('activateMember', () => {
 
     describe('Boundary Value Analysis', () => {
         it('activateMember_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.activateMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('activateMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.setMemberActive.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.activateMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('activateMember_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             const expectedReturn = {...MOCK_MEMBER_WITH_USER, id: 'a'};
             mockUserRepo.setMemberActive.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.activateMember(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.isActive).toBe(true);
             expect(result.user).toEqual(MOCK_MEMBER_WITH_USER.user);
@@ -1406,22 +1743,28 @@ describe('activateMember', () => {
 describe('deleteMember', () => {
     describe('Equivalence Classes', () => {
         it('deleteMember_EC_existingMemberId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = MEMBER_ID;
             mockUserRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteMember(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
 
         it('deleteMember_EC_nonExistentId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Not found');
         });
@@ -1429,32 +1772,41 @@ describe('deleteMember', () => {
 
     describe('Boundary Value Analysis', () => {
         it('deleteMember_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteMember_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteMember(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteMember_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteMember(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
     });
@@ -1463,22 +1815,28 @@ describe('deleteMember', () => {
 describe('deleteAdmin', () => {
     describe('Equivalence Classes', () => {
         it('deleteAdmin_EC_existingAdminId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = ADMIN_ID;
             mockUserRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteAdmin(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
 
         it('deleteAdmin_EC_nonExistentId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = NONEXISTENT_ID;
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Not found');
         });
@@ -1486,32 +1844,41 @@ describe('deleteAdmin', () => {
 
     describe('Boundary Value Analysis', () => {
         it('deleteAdmin_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = '';
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteAdmin_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.delete.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const act = service.deleteAdmin(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteAdmin_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = UserService.getInstance(mockUserRepo);
             const inputId: string = 'a';
             mockUserRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteAdmin(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
     });

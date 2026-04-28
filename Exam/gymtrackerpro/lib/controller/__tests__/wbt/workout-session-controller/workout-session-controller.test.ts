@@ -144,14 +144,17 @@ describe('createWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('createWorkoutSession_Path1_validInputServiceSucceeds_returnsSessionWithExercises', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
             createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: true, data: MOCK_SESSION_WITH_EXERCISES});
             expect(createWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(workoutSessionExercisesSchemaMock.safeParse).toHaveBeenCalledWith(inputExercises);
@@ -159,12 +162,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_Path2_invalidSessionData_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {memberId: MEMBER_ID, date: 'not-a-date', duration: 60};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
             createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({
                 success: false,
                 message: 'Validation failed',
@@ -174,6 +180,7 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_Path3_emptyExercisesArray_returnsArrayLevelErrorMessage', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [];
             createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
@@ -182,13 +189,16 @@ describe('createWorkoutSession', () => {
                 error: MOCK_ZOD_ERROR_EXERCISES_FORM
             });
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'At least one exercise is required'});
             expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
         });
 
         it('createWorkoutSession_Path4_exerciseItemInvalid_returnsGenericExerciseMessage', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [
                 {exerciseId: '', sets: 3, reps: 10, weight: 20},
@@ -199,13 +209,16 @@ describe('createWorkoutSession', () => {
                 error: MOCK_ZOD_ERROR_EXERCISES_FIELD
             });
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'Invalid exercises'});
             expect(workoutSessionServiceMock.createWorkoutSession).not.toHaveBeenCalled();
         });
 
         it('createWorkoutSession_Path5_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
             createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
@@ -214,20 +227,25 @@ describe('createWorkoutSession', () => {
                 new NotFoundError(`Member not found: ${MEMBER_ID}`),
             );
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Member not found: ${MEMBER_ID}`});
         });
 
         it('createWorkoutSession_Path6_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...VALID_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...VALID_EXERCISES];
             createWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionExercisesSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 
@@ -240,32 +258,41 @@ describe('getWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('getWorkoutSession_Path1_serviceSucceeds_returnsSessionWithExercises', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.getWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: true, data: MOCK_SESSION_WITH_EXERCISES});
             expect(workoutSessionServiceMock.getWorkoutSession).toHaveBeenCalledWith(inputId);
         });
 
         it('getWorkoutSession_Path2_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Workout session not found: ${SESSION_ID}`});
         });
 
         it('getWorkoutSession_Path3_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 
@@ -278,6 +305,7 @@ describe('listMemberWorkoutSessions', () => {
     describe('Independent Paths', () => {
 
         it('listMemberWorkoutSessions_Path1_serviceSucceeds_returnsPageResult', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions | undefined = undefined;
             const pageResult: PageResult<WorkoutSessionWithExercises> = {
@@ -286,31 +314,39 @@ describe('listMemberWorkoutSessions', () => {
             };
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(pageResult);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result).toEqual({success: true, data: pageResult});
             expect(workoutSessionServiceMock.listMemberWorkoutSessions).toHaveBeenCalledWith(inputMemberId, inputOptions);
         });
 
         it('listMemberWorkoutSessions_Path2_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions | undefined = undefined;
             workoutSessionServiceMock.listMemberWorkoutSessions.mockRejectedValue(
                 new NotFoundError(`Member not found: ${MEMBER_ID}`),
             );
 
+            // Act
             const result = await listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Member not found: ${MEMBER_ID}`});
         });
 
         it('listMemberWorkoutSessions_Path3_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions | undefined = undefined;
             workoutSessionServiceMock.listMemberWorkoutSessions.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 
@@ -323,26 +359,32 @@ describe('updateWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('updateWorkoutSession_Path1_validInputServiceSucceeds_returnsUpdatedSession', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const updatedSession: WorkoutSession = {...MOCK_SESSION, notes: 'Updated notes'};
             updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(updatedSession);
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual({success: true, data: updatedSession});
             expect(updateWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(workoutSessionServiceMock.updateWorkoutSession).toHaveBeenCalledWith(inputId, inputData);
         });
 
         it('updateWorkoutSession_Path2_invalidSessionData_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {date: 'not-a-valid-date'};
             updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual({
                 success: false,
                 message: 'Validation failed',
@@ -352,6 +394,7 @@ describe('updateWorkoutSession', () => {
         });
 
         it('updateWorkoutSession_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
@@ -359,19 +402,24 @@ describe('updateWorkoutSession', () => {
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Workout session not found: ${SESSION_ID}`});
         });
 
         it('updateWorkoutSession_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: true, data: inputData});
             workoutSessionServiceMock.updateWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 
@@ -384,6 +432,7 @@ describe('updateWorkoutSessionWithExercises', () => {
     describe('Independent Paths', () => {
 
         it('updateWorkoutSessionWithExercises_Path1_validInputServiceSucceeds_returnsSessionWithExercises', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
@@ -391,8 +440,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: true, data: MOCK_SESSION_WITH_EXERCISES});
             expect(updateWorkoutSessionSchemaMock.safeParse).toHaveBeenCalledWith(inputData);
             expect(workoutSessionExercisesUpdateSchemaMock.safeParse).toHaveBeenCalledWith(inputExercises);
@@ -402,13 +453,16 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_Path2_invalidSessionData_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {date: 'not-a-valid-date'};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
             updateWorkoutSessionSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR_SESSION});
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({
                 success: false,
                 message: 'Validation failed',
@@ -418,6 +472,7 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_Path3_emptyExercisesArray_returnsArrayLevelErrorMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [];
@@ -427,13 +482,16 @@ describe('updateWorkoutSessionWithExercises', () => {
                 error: MOCK_ZOD_ERROR_EXERCISES_FORM
             });
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'At least one exercise is required'});
             expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).not.toHaveBeenCalled();
         });
 
         it('updateWorkoutSessionWithExercises_Path4_exerciseItemInvalid_returnsGenericExerciseMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [
@@ -445,13 +503,16 @@ describe('updateWorkoutSessionWithExercises', () => {
                 error: MOCK_ZOD_ERROR_EXERCISES_FIELD
             });
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'Invalid exercises'});
             expect(workoutSessionServiceMock.updateWorkoutSessionWithExercises).not.toHaveBeenCalled();
         });
 
         it('updateWorkoutSessionWithExercises_Path5_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
@@ -461,12 +522,15 @@ describe('updateWorkoutSessionWithExercises', () => {
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Workout session not found: ${SESSION_ID}`});
         });
 
         it('updateWorkoutSessionWithExercises_Path6_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...VALID_UPDATE_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...VALID_UPDATE_EXERCISES];
@@ -474,8 +538,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             workoutSessionExercisesUpdateSchemaMock.safeParse.mockReturnValue({success: true, data: inputExercises});
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 
@@ -488,32 +554,41 @@ describe('deleteWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('deleteWorkoutSession_Path1_serviceSucceeds_returnsVoid', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockResolvedValue(undefined);
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: true, data: undefined});
             expect(workoutSessionServiceMock.deleteWorkoutSession).toHaveBeenCalledWith(inputId);
         });
 
         it('deleteWorkoutSession_Path2_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(
                 new NotFoundError(`Workout session not found: ${SESSION_ID}`),
             );
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Workout session not found: ${SESSION_ID}`});
         });
 
         it('deleteWorkoutSession_Path3_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 

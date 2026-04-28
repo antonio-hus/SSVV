@@ -74,7 +74,7 @@ export const LoginForm = () => {
     }, [inputs, router]);
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form noValidate onSubmit={handleSubmit} className="space-y-4">
             {result && !result.success && (
                 <Alert variant="destructive">
                     <AlertDescription>{result.message}</AlertDescription>

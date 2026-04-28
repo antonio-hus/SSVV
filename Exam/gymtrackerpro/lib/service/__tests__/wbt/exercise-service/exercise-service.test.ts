@@ -35,12 +35,16 @@ describe('createExercise', () => {
     describe('Independent Paths', () => {
 
         it('createExercise_Path1_validInput_returnsCreatedExercise', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...CREATE_EXERCISE_INPUT};
             mockExerciseRepo.create.mockResolvedValue(MOCK_EXERCISE);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.createExercise(inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_EXERCISE);
             expect(mockExerciseRepo.create).toHaveBeenCalledWith(inputData);
         });
@@ -54,12 +58,16 @@ describe('getExercise', () => {
     describe('Independent Paths', () => {
 
         it('getExercise_Path1_validId_returnsExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             mockExerciseRepo.findById.mockResolvedValue(MOCK_EXERCISE);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.getExercise(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_EXERCISE);
             expect(mockExerciseRepo.findById).toHaveBeenCalledWith(inputId);
         });
@@ -73,13 +81,17 @@ describe('listExercises', () => {
     describe('Independent Paths', () => {
 
         it('listExercises_Path1_noOptions_returnsPageResult', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {};
             const pageResult: PageResult<Exercise> = {items: [MOCK_EXERCISE], total: 1};
             mockExerciseRepo.findAll.mockResolvedValue(pageResult);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.listExercises(inputOptions);
 
+            // Assert
             expect(result).toEqual(pageResult);
             expect(mockExerciseRepo.findAll).toHaveBeenCalledWith(inputOptions);
         });
@@ -93,14 +105,18 @@ describe('updateExercise', () => {
     describe('Independent Paths', () => {
 
         it('updateExercise_Path1_validInput_returnsUpdatedExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {description: 'Updated description'};
             const updatedExercise: Exercise = {...MOCK_EXERCISE, description: 'Updated description'};
             mockExerciseRepo.update.mockResolvedValue(updatedExercise);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.updateExercise(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(updatedExercise);
             expect(mockExerciseRepo.update).toHaveBeenCalledWith(inputId, inputData);
         });
@@ -114,13 +130,17 @@ describe('archiveExercise', () => {
     describe('Independent Paths', () => {
 
         it('archiveExercise_Path1_validId_returnsArchivedExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const archivedExercise: Exercise = {...MOCK_EXERCISE, isActive: false};
             mockExerciseRepo.setActive.mockResolvedValue(archivedExercise);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.archiveExercise(inputId);
 
+            // Assert
             expect(result).toEqual(archivedExercise);
             expect(mockExerciseRepo.setActive).toHaveBeenCalledWith(inputId, false);
         });
@@ -134,13 +154,17 @@ describe('unarchiveExercise', () => {
     describe('Independent Paths', () => {
 
         it('unarchiveExercise_Path1_validId_returnsUnarchivedExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const unarchivedExercise: Exercise = {...MOCK_EXERCISE, isActive: true};
             mockExerciseRepo.setActive.mockResolvedValue(unarchivedExercise);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.unarchiveExercise(inputId);
 
+            // Assert
             expect(result).toEqual(unarchivedExercise);
             expect(mockExerciseRepo.setActive).toHaveBeenCalledWith(inputId, true);
         });
@@ -154,12 +178,16 @@ describe('deleteExercise', () => {
     describe('Independent Paths', () => {
 
         it('deleteExercise_Path1_validId_resolvesVoid', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             mockExerciseRepo.delete.mockResolvedValue(undefined);
 
             const service = ExerciseService.getInstance(mockExerciseRepo);
+
+            // Act
             const result = await service.deleteExercise(inputId);
 
+            // Assert
             expect(result).toBeUndefined();
             expect(mockExerciseRepo.delete).toHaveBeenCalledWith(inputId);
         });
@@ -176,18 +204,24 @@ describe('deleteExercise', () => {
 describe('getInstance', () => {
 
     it('getInstance_Path1_returnsValidInstance', () => {
+        // Act
         const instance = ExerciseService.getInstance(mockExerciseRepo);
 
+        // Assert
         expect(instance).toBeDefined();
         expect(instance).toBeInstanceOf(ExerciseService);
     });
 
     it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        // Arrange
         const firstCall = ExerciseService.getInstance(mockExerciseRepo);
 
         const secondRepo = mock<ExerciseRepositoryInterface>();
+
+        // Act
         const secondCall = ExerciseService.getInstance(secondRepo);
 
+        // Assert
         expect(secondCall).toBe(firstCall);
 
         const internalRepo = (secondCall as unknown as { exerciseRepository: unknown }).exerciseRepository;

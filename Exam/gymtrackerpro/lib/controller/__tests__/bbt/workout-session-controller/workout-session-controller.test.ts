@@ -110,12 +110,15 @@ beforeEach(() => {
 describe('createWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('createWorkoutSession_EC_allFieldsValid_returnsSuccessWithSession', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_SESSION_WITH_EXERCISES);
@@ -123,6 +126,7 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_multipleExercises_returnsSuccessWithAllExercises', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [
                 ...VALID_EXERCISES,
@@ -137,8 +141,10 @@ describe('createWorkoutSession', () => {
             };
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(multiMock);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.exercises).toHaveLength(2);
@@ -146,13 +152,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_notesAbsent_returnsSuccess', async () => {
+            // Arrange
             const {notes, ...inputSession} = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             const mockNoNotes = {...MOCK_SESSION_WITH_EXERCISES, notes: null};
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(mockNoNotes);
 
+            // Act
             const result = await createWorkoutSession(inputSession as never, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBeNull();
@@ -160,13 +169,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_notesEmptyString_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, notes: ''};
             const inputExercises = VALID_EXERCISES;
             const mockEmptyNotes = {...MOCK_SESSION_WITH_EXERCISES, notes: ''};
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(mockEmptyNotes);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe('');
@@ -174,11 +186,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_missingMemberId_returnsValidationError', async () => {
+            // Arrange
             const {memberId, ...inputSession} = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession as never, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.memberId).toBeDefined();
@@ -186,11 +201,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_memberIdWhitespaceOnly_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, memberId: '   '};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.memberId).toBeDefined();
@@ -198,11 +216,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_missingDate_returnsValidationError', async () => {
+            // Arrange
             const {date, ...inputSession} = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession as never, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.date).toBeDefined();
@@ -210,11 +231,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_invalidDateFormat_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, date: '15/06/2024'};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.date).toBeDefined();
@@ -222,11 +246,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_missingDuration_returnsValidationError', async () => {
+            // Arrange
             const {duration, ...inputSession} = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession as never, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.duration).toBeDefined();
@@ -234,11 +261,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_emptyExercisesArray_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('At least one exercise is required');
@@ -246,11 +276,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_missingExerciseId_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{sets: 3, reps: 10, weight: 80}] as never;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -258,12 +291,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Member not found');
@@ -271,12 +307,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockRejectedValue(new TransactionError('DB failure'));
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('DB failure');
@@ -286,11 +325,14 @@ describe('createWorkoutSession', () => {
 
     describe('Boundary Value Analysis - Session', () => {
         it('createWorkoutSession_BVA_memberId0Chars_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, memberId: ''};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.memberId).toBeDefined();
@@ -298,13 +340,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_memberId1Char_returnsSuccess', async () => {
+            // Arrange
             const inputId = 'A';
             const inputSession = {...VALID_SESSION_INPUT, memberId: inputId};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, memberId: inputId});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.memberId).toBe(inputId);
@@ -312,13 +357,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_memberId2Chars_returnsSuccess', async () => {
+            // Arrange
             const inputId = 'AB';
             const inputSession = {...VALID_SESSION_INPUT, memberId: inputId};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, memberId: inputId});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.memberId).toBe(inputId);
@@ -326,11 +374,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_durationMinus1_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: -1};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.duration).toBeDefined();
@@ -338,12 +389,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_duration0_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: 0};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, duration: 0});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.duration).toBe(0);
@@ -351,12 +405,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_duration1_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: 1};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, duration: 1});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.duration).toBe(1);
@@ -364,12 +421,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_duration179_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: 179};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, duration: 179});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.duration).toBe(179);
@@ -377,12 +437,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_duration180_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: 180};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, duration: 180});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.duration).toBe(180);
@@ -390,11 +453,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_duration181_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, duration: 181};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.duration).toBeDefined();
@@ -402,12 +468,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_notes0Chars_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, notes: ''};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, notes: ''});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe('');
@@ -415,12 +484,15 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_notes1Char_returnsSuccess', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, notes: 'A'};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, notes: 'A'});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe('A');
@@ -428,13 +500,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_notes1023Chars_returnsSuccess', async () => {
+            // Arrange
             const inputNotes = 'A'.repeat(1023);
             const inputSession = {...VALID_SESSION_INPUT, notes: inputNotes};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, notes: inputNotes});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe(inputNotes);
@@ -442,13 +517,16 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_notes1024Chars_returnsSuccess', async () => {
+            // Arrange
             const inputNotes = 'A'.repeat(1024);
             const inputSession = {...VALID_SESSION_INPUT, notes: inputNotes};
             const inputExercises = VALID_EXERCISES;
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, notes: inputNotes});
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.notes).toBe(inputNotes);
@@ -456,11 +534,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_notes1025Chars_returnsValidationError', async () => {
+            // Arrange
             const inputSession = {...VALID_SESSION_INPUT, notes: 'A'.repeat(1025)};
             const inputExercises = VALID_EXERCISES;
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.notes).toBeDefined();
@@ -472,11 +553,14 @@ describe('createWorkoutSession', () => {
         const testEx = VALID_EXERCISES[0];
 
         it('createWorkoutSession_BVA_setsMinus1_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: -1}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -484,51 +568,66 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_sets0_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: 0}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_sets1_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: 1}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_sets5_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: 5}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_sets6_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: 6}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_sets7_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, sets: 7}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -536,11 +635,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_repsMinus1_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: -1}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -548,51 +650,66 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_reps0_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: 0}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_reps1_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: 1}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_reps29_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: 29}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_reps30_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: 30}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_reps31_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, reps: 31}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -600,11 +717,14 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_weightMinus0point1_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: -0.1}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -612,51 +732,66 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_BVA_weight0_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: 0}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_weight0point1_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: 0.1}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_weight499point9_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: 499.9}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_weight500_returnsSuccess', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: 500}];
             workoutSessionServiceMock.createWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('createWorkoutSession_BVA_weight500point1_returnsValidationError', async () => {
+            // Arrange
             const inputSession = VALID_SESSION_INPUT;
             const inputExercises = [{...testEx, weight: 500.1}];
 
+            // Act
             const result = await createWorkoutSession(inputSession, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid exercises');
@@ -668,11 +803,14 @@ describe('createWorkoutSession', () => {
 describe('getWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('getWorkoutSession_EC_existingId_returnsSuccessWithSession', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             workoutSessionServiceMock.getWorkoutSession.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_SESSION_WITH_EXERCISES);
@@ -680,11 +818,14 @@ describe('getWorkoutSession', () => {
         });
 
         it('getWorkoutSession_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = NONEXISTENT_ID;
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Session not found');
@@ -692,11 +833,14 @@ describe('getWorkoutSession', () => {
         });
 
         it('getWorkoutSession_EC_unexpectedError_returnsGenericFailure', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(new Error('Internal failure'));
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -706,11 +850,14 @@ describe('getWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getWorkoutSession_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId = '';
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Session not found');
@@ -718,11 +865,14 @@ describe('getWorkoutSession', () => {
         });
 
         it('getWorkoutSession_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId = 'a';
             workoutSessionServiceMock.getWorkoutSession.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Session not found');
@@ -730,11 +880,14 @@ describe('getWorkoutSession', () => {
         });
 
         it('getWorkoutSession_BVA_existingOneCharId_returnsSuccess', async () => {
+            // Arrange
             const inputId = 'a';
             workoutSessionServiceMock.getWorkoutSession.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, id: inputId});
 
+            // Act
             const result = await getWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe(inputId);
@@ -746,11 +899,14 @@ describe('getWorkoutSession', () => {
 describe('listMemberWorkoutSessions', () => {
     describe('Equivalence Classes', () => {
         it('listMemberWorkoutSessions_EC_existingMemberId_returnsSuccessWithPage', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(MOCK_PAGE_SESSIONS);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -759,23 +915,29 @@ describe('listMemberWorkoutSessions', () => {
         });
 
         it('listMemberWorkoutSessions_EC_withDateRangeOptions_returnsMatchingItems', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {startDate: new Date('2024-01-01'), endDate: new Date('2024-12-31')};
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(MOCK_PAGE_SESSIONS);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId, inputOptions);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('listMemberWorkoutSessions_EC_multipleSessions_returnsOrderedSessionsAscending', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             const sessionA = {...MOCK_SESSION_WITH_EXERCISES, id: 'older', date: new Date('2024-01-01')};
             const sessionB = {...MOCK_SESSION_WITH_EXERCISES, id: 'newer', date: new Date('2024-12-31')};
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue({items: [sessionA, sessionB], total: 2});
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].id).toBe('older');
@@ -784,14 +946,17 @@ describe('listMemberWorkoutSessions', () => {
         });
 
         it('listMemberWorkoutSessions_EC_multipleSessionsPaginated_returnsOrderedSessionsDescending', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             const inputOptions = {page: 1, pageSize: 10};
             const sessionA = {...MOCK_SESSION_WITH_EXERCISES, id: 'older', date: new Date('2024-01-01')};
             const sessionB = {...MOCK_SESSION_WITH_EXERCISES, id: 'newer', date: new Date('2024-12-01')};
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue({items: [sessionB, sessionA], total: 2});
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId, inputOptions);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].id).toBe('newer');
@@ -800,11 +965,14 @@ describe('listMemberWorkoutSessions', () => {
         });
 
         it('listMemberWorkoutSessions_EC_throwsAppError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             workoutSessionServiceMock.listMemberWorkoutSessions.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Member not found');
@@ -814,11 +982,14 @@ describe('listMemberWorkoutSessions', () => {
 
     describe('Boundary Value Analysis', () => {
         it('listMemberWorkoutSessions_BVA_memberIdEmpty_returnsEmptyPage', async () => {
+            // Arrange
             const inputId = '';
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(0);
@@ -826,31 +997,40 @@ describe('listMemberWorkoutSessions', () => {
         });
 
         it('listMemberWorkoutSessions_BVA_memberId1Char_returnsSuccess', async () => {
+            // Arrange
             const inputId = 'A';
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(MOCK_PAGE_SESSIONS);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('listMemberWorkoutSessions_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             const inputOptions = {page: 0};
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(MOCK_PAGE_SESSIONS);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId, inputOptions);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('listMemberWorkoutSessions_BVA_pageSize1_returnsOneItem', async () => {
+            // Arrange
             const inputId = MEMBER_ID;
             const inputOptions = {pageSize: 1};
             workoutSessionServiceMock.listMemberWorkoutSessions.mockResolvedValue(MOCK_PAGE_SESSIONS);
 
+            // Act
             const result = await listMemberWorkoutSessions(inputId, inputOptions);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -862,13 +1042,16 @@ describe('listMemberWorkoutSessions', () => {
 describe('updateWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('updateWorkoutSession_EC_validInput_returnsUpdatedSession', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const expectedReturn = {...MOCK_SESSION, duration: 75};
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.duration).toBe(75);
@@ -876,21 +1059,27 @@ describe('updateWorkoutSession', () => {
         });
 
         it('updateWorkoutSession_EC_emptyUpdateObject_returnsSuccess', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = {};
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue(MOCK_SESSION);
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('updateWorkoutSession_EC_invalidDuration_returnsValidationError', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = {duration: -5};
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.duration).toBeDefined();
@@ -898,21 +1087,27 @@ describe('updateWorkoutSession', () => {
         });
 
         it('updateWorkoutSession_EC_invalidDateFormat_returnsValidationError', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = {date: '2024.01.01'};
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData as never);
 
+            // Asserts
             expect(result.success).toBe(false);
         });
 
         it('updateWorkoutSession_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = NONEXISTENT_ID;
             const inputData = VALID_UPDATE_INPUT;
             workoutSessionServiceMock.updateWorkoutSession.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -922,12 +1117,15 @@ describe('updateWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateWorkoutSession_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const inputId = 'a';
             const inputData = VALID_UPDATE_INPUT;
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue({...MOCK_SESSION, id: inputId});
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe(inputId);
@@ -935,12 +1133,15 @@ describe('updateWorkoutSession', () => {
         });
 
         it('updateWorkoutSession_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId = 'a';
             const inputData = VALID_UPDATE_INPUT;
             workoutSessionServiceMock.updateWorkoutSession.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -948,23 +1149,29 @@ describe('updateWorkoutSession', () => {
         });
 
         it('updateWorkoutSession_BVA_duration0_returnsSuccess', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = {duration: 0};
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue({...MOCK_SESSION, duration: 0});
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('updateWorkoutSession_BVA_notes1024Chars_returnsSuccess', async () => {
+            // Arrange
             const inputNotes = 'A'.repeat(1024);
             const inputId = SESSION_ID;
             const inputData = {notes: inputNotes};
             workoutSessionServiceMock.updateWorkoutSession.mockResolvedValue({...MOCK_SESSION, notes: inputNotes});
 
+            // Act
             const result = await updateWorkoutSession(inputId, inputData);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
     });
@@ -973,13 +1180,16 @@ describe('updateWorkoutSession', () => {
 describe('updateWorkoutSessionWithExercises', () => {
     describe('Equivalence Classes', () => {
         it('updateWorkoutSessionWithExercises_EC_validInputAndExercises_returnsUpdatedSession', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = VALID_UPDATE_EXERCISES;
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_SESSION_WITH_EXERCISES);
@@ -987,12 +1197,15 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_EC_emptyExercises_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [];
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('At least one exercise is required');
@@ -1000,12 +1213,15 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_EC_invalidSessionData_returnsValidationError', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = {duration: 1000};
             const inputExercises = VALID_UPDATE_EXERCISES;
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.duration).toBeDefined();
@@ -1013,13 +1229,16 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_EC_throwsTransactionError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = VALID_UPDATE_EXERCISES;
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockRejectedValue(new TransactionError('DB failure'));
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('DB failure');
@@ -1029,13 +1248,16 @@ describe('updateWorkoutSessionWithExercises', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateWorkoutSessionWithExercises_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const inputId = 'a';
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = VALID_UPDATE_EXERCISES;
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockResolvedValue({...MOCK_SESSION_WITH_EXERCISES, id: inputId});
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe(inputId);
@@ -1043,13 +1265,16 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId = 'a';
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = VALID_UPDATE_EXERCISES;
             workoutSessionServiceMock.updateWorkoutSessionWithExercises.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -1057,6 +1282,7 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_BVA_reps30_returnsSuccess', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = [{...VALID_UPDATE_EXERCISES[0], reps: 30}];
@@ -1065,12 +1291,15 @@ describe('updateWorkoutSessionWithExercises', () => {
                 exercises: [{...MOCK_SESSION_WITH_EXERCISES.exercises[0], reps: 30}]
             });
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
 
         it('updateWorkoutSessionWithExercises_BVA_weight500_returnsSuccess', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             const inputData = VALID_UPDATE_INPUT;
             const inputExercises = [{...VALID_UPDATE_EXERCISES[0], weight: 500}];
@@ -1079,8 +1308,10 @@ describe('updateWorkoutSessionWithExercises', () => {
                 exercises: [{...MOCK_SESSION_WITH_EXERCISES.exercises[0], weight: 500}]
             });
 
+            // Act
             const result = await updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
     });
@@ -1089,11 +1320,14 @@ describe('updateWorkoutSessionWithExercises', () => {
 describe('deleteWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('deleteWorkoutSession_EC_existingId_resolvesSuccessfully', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockResolvedValue(undefined);
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toBeUndefined();
@@ -1101,11 +1335,14 @@ describe('deleteWorkoutSession', () => {
         });
 
         it('deleteWorkoutSession_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId = NONEXISTENT_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -1113,11 +1350,14 @@ describe('deleteWorkoutSession', () => {
         });
 
         it('deleteWorkoutSession_EC_unexpectedError_returnsGenericFailure', async () => {
+            // Arrange
             const inputId = SESSION_ID;
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(new Error('Internal failure'));
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -1127,11 +1367,14 @@ describe('deleteWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('deleteWorkoutSession_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId = '';
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -1139,11 +1382,14 @@ describe('deleteWorkoutSession', () => {
         });
 
         it('deleteWorkoutSession_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId = 'a';
             workoutSessionServiceMock.deleteWorkoutSession.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Not found');
@@ -1151,11 +1397,14 @@ describe('deleteWorkoutSession', () => {
         });
 
         it('deleteWorkoutSession_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            // Arrange
             const inputId = 'a';
             workoutSessionServiceMock.deleteWorkoutSession.mockResolvedValue(undefined);
 
+            // Act
             const result = await deleteWorkoutSession(inputId);
 
+            // Asserts
             expect(result.success).toBe(true);
         });
     });

@@ -24,6 +24,7 @@ afterAll(async () => {
 describe('createMember', () => {
 
     it('createMember_newMember_returnsMemberWithUserAndPersistsToDb', async () => {
+        // Arrange
         const inputCreateMember: CreateMemberInput = {
             email: 'alice@test.com',
             fullName: 'Alice Smith',
@@ -33,8 +34,10 @@ describe('createMember', () => {
             membershipStart: '2024-01-01',
         };
 
+        // Act
         const result = await userService.createMember(inputCreateMember);
 
+        // Assert
         expect(result.user.email).toBe('alice@test.com');
         expect(result.user.fullName).toBe('Alice Smith');
         expect(result.user.role).toBe('MEMBER');
@@ -49,6 +52,7 @@ describe('createMember', () => {
     });
 
     it('createMember_duplicateEmail_throwsConflictError', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -62,14 +66,17 @@ describe('createMember', () => {
             membershipStart: '2024-06-01',
         };
 
+        // Act
         const action = () => userService.createMember(inputCreateMember);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const {total: count} = await userRepository.findMembers();
         expect(count).toBe(1);
     });
 
     it('createMember_afterConflict_subsequentValidCallSucceeds', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -88,8 +95,10 @@ describe('createMember', () => {
             membershipStart: '2024-02-01',
         };
 
+        // Act
         const result = await userService.createMember(inputCreateMember);
 
+        // Assert
         expect(result.user.email).toBe('bob@test.com');
         const {total: count} = await userRepository.findMembers();
         expect(count).toBe(2);
@@ -100,6 +109,7 @@ describe('createMember', () => {
 describe('createMemberWithTempPassword', () => {
 
     it('createMemberWithTempPassword_newMember_returnsMemberWithTempPasswordAndPersistsToDb', async () => {
+        // Arrange
         const inputCreateMember: CreateMemberWithTempPasswordInput = {
             email: 'alice@test.com',
             fullName: 'Alice Smith',
@@ -108,8 +118,10 @@ describe('createMemberWithTempPassword', () => {
             membershipStart: '2024-01-01',
         };
 
+        // Act
         const result = await userService.createMemberWithTempPassword(inputCreateMember);
 
+        // Assert
         expect(result.user.email).toBe('alice@test.com');
         expect(result.user.role).toBe('MEMBER');
         expect(result.tempPassword).toBeDefined();
@@ -122,6 +134,7 @@ describe('createMemberWithTempPassword', () => {
     });
 
     it('createMemberWithTempPassword_duplicateEmail_throwsConflictError', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -134,8 +147,10 @@ describe('createMemberWithTempPassword', () => {
             membershipStart: '2024-06-01',
         };
 
+        // Act
         const action = () => userService.createMemberWithTempPassword(inputCreateMember);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const {total: count} = await userRepository.findMembers();
         expect(count).toBe(1);
@@ -146,6 +161,7 @@ describe('createMemberWithTempPassword', () => {
 describe('createAdmin', () => {
 
     it('createAdmin_newAdmin_returnsAdminWithUserAndPersistsToDb', async () => {
+        // Arrange
         const inputCreateAdmin: CreateAdminInput = {
             email: 'admin@test.com',
             fullName: 'Admin User',
@@ -154,8 +170,10 @@ describe('createAdmin', () => {
             password: 'AdminPass1!',
         };
 
+        // Act
         const result = await userService.createAdmin(inputCreateAdmin);
 
+        // Assert
         expect(result.user.email).toBe('admin@test.com');
         expect(result.user.role).toBe('ADMIN');
         const userInRepository = await userRepository.findByEmail('admin@test.com');
@@ -166,6 +184,7 @@ describe('createAdmin', () => {
     });
 
     it('createAdmin_duplicateEmail_throwsConflictError', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -178,14 +197,17 @@ describe('createAdmin', () => {
             password: 'AdminPass2!',
         };
 
+        // Act
         const action = () => userService.createAdmin(inputCreateAdmin);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const {total: count} = await userRepository.findAdmins();
         expect(count).toBe(1);
     });
 
     it('createAdmin_afterConflict_subsequentValidCallSucceeds', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -203,8 +225,10 @@ describe('createAdmin', () => {
             password: 'AdminPass3!',
         };
 
+        // Act
         const result = await userService.createAdmin(inputCreateAdmin);
 
+        // Assert
         expect(result.user.email).toBe('admin2@test.com');
         const {total: count} = await userRepository.findAdmins();
         expect(count).toBe(2);
@@ -215,14 +239,17 @@ describe('createAdmin', () => {
 describe('getMember', () => {
 
     it('getMember_existingMember_returnsMemberWithUserAndAllFieldsMatching', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
         });
         const inputId: string = seededMember.id;
 
+        // Act
         const result = await userService.getMember(inputId);
 
+        // Assert
         expect(result.id).toBe(seededMember.id);
         expect(result.user.email).toBe('alice@test.com');
         expect(result.user.fullName).toBe('Alice Smith');
@@ -230,10 +257,13 @@ describe('getMember', () => {
     });
 
     it('getMember_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.getMember(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -242,14 +272,17 @@ describe('getMember', () => {
 describe('getAdmin', () => {
 
     it('getAdmin_existingAdmin_returnsAdminWithUserAndAllFieldsMatching', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
         });
         const inputId: string = seededAdmin.id;
 
+        // Act
         const result = await userService.getAdmin(inputId);
 
+        // Assert
         expect(result.id).toBe(seededAdmin.id);
         expect(result.user.email).toBe('admin@test.com');
         expect(result.user.fullName).toBe('Admin User');
@@ -257,10 +290,13 @@ describe('getAdmin', () => {
     });
 
     it('getAdmin_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.getAdmin(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -269,6 +305,7 @@ describe('getAdmin', () => {
 describe('listMembers', () => {
 
     it('listMembers_noOptions_returnsAllMembersOrderedByFullNameAsc', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'charlie@test.com',
             fullName: 'Charlie',
@@ -295,8 +332,10 @@ describe('listMembers', () => {
         });
         const inputOptions: MemberListOptions | undefined = undefined;
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].user.fullName).toBe('Alice');
@@ -305,15 +344,19 @@ describe('listMembers', () => {
     });
 
     it('listMembers_noMembers_returnsEmptyPage', async () => {
+        // Arrange
         const inputOptions: MemberListOptions | undefined = undefined;
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('listMembers_searchByName_returnsOnlyMatchingMember', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice Smith',
@@ -332,13 +375,16 @@ describe('listMembers', () => {
         });
         const inputOptions: MemberListOptions = {search: 'alice'};
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].user.email).toBe('alice@test.com');
     });
 
     it('listMembers_searchByEmail_returnsOnlyMatchingMember', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice Smith',
@@ -357,13 +403,16 @@ describe('listMembers', () => {
         });
         const inputOptions: MemberListOptions = {search: 'bob@test.com'};
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].user.email).toBe('bob@test.com');
     });
 
     it('listMembers_pageSizeExceedsTotal_returnsAllRows', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice',
@@ -382,13 +431,16 @@ describe('listMembers', () => {
         });
         const inputOptions: MemberListOptions = {pageSize: 100};
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
     });
 
     it('listMembers_searchTermContainsLikeWildcard_treatedAsLiteralAndMatchesNoRows', async () => {
+        // Arrange
         await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice Smith',
@@ -399,13 +451,16 @@ describe('listMembers', () => {
         });
         const inputOptions: MemberListOptions = {search: '%'};
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('listMembers_pagination_returnsCorrectSlice', async () => {
+        // Arrange
         for (let i = 1; i <= 5; i++) {
             await userRepository.createMember({
                 email: `m${i}@test.com`,
@@ -418,8 +473,10 @@ describe('listMembers', () => {
         }
         const inputOptions: MemberListOptions = {page: 2, pageSize: 2};
 
+        // Act
         const result = await userService.listMembers(inputOptions);
 
+        // Assert
         expect(result.total).toBe(5);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].user.fullName).toBe('Member3');
@@ -431,6 +488,7 @@ describe('listMembers', () => {
 describe('listAdmins', () => {
 
     it('listAdmins_noOptions_returnsAllAdminsOrderedByFullNameAsc', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'charlie-a@test.com',
             fullName: 'Charlie Admin',
@@ -447,23 +505,29 @@ describe('listAdmins', () => {
         });
         const inputOptions: AdminListOptions | undefined = undefined;
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items[0].user.fullName).toBe('Alice Admin');
         expect(result.items[1].user.fullName).toBe('Charlie Admin');
     });
 
     it('listAdmins_noAdmins_returnsEmptyPage', async () => {
+        // Arrange
         const inputOptions: AdminListOptions | undefined = undefined;
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('listAdmins_searchByName_returnsOnlyMatchingAdmin', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'alice-a@test.com',
             fullName: 'Alice Admin',
@@ -480,13 +544,16 @@ describe('listAdmins', () => {
         });
         const inputOptions: AdminListOptions = {search: 'alice'};
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].user.email).toBe('alice-a@test.com');
     });
 
     it('listAdmins_searchByEmail_returnsOnlyMatchingAdmin', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'alice-a@test.com',
             fullName: 'Alice Admin',
@@ -503,13 +570,16 @@ describe('listAdmins', () => {
         });
         const inputOptions: AdminListOptions = {search: 'bob-a@test.com'};
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].user.email).toBe('bob-a@test.com');
     });
 
     it('listAdmins_pageSizeExceedsTotal_returnsAllRows', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'alice-a@test.com',
             fullName: 'Alice Admin',
@@ -526,13 +596,16 @@ describe('listAdmins', () => {
         });
         const inputOptions: AdminListOptions = {pageSize: 50};
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(2);
         expect(result.items).toHaveLength(2);
     });
 
     it('listAdmins_searchTermContainsLikeWildcard_treatedAsLiteralAndMatchesNoRows', async () => {
+        // Arrange
         await userRepository.createAdmin({
             email: 'alice-a@test.com',
             fullName: 'Alice Admin',
@@ -542,13 +615,16 @@ describe('listAdmins', () => {
         });
         const inputOptions: AdminListOptions = {search: '%'};
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('listAdmins_pagination_returnsCorrectSlice', async () => {
+        // Arrange
         for (let i = 1; i <= 5; i++) {
             await userRepository.createAdmin({
                 email: `a${i}@test.com`,
@@ -560,8 +636,10 @@ describe('listAdmins', () => {
         }
         const inputOptions: AdminListOptions = {page: 2, pageSize: 2};
 
+        // Act
         const result = await userService.listAdmins(inputOptions);
 
+        // Assert
         expect(result.total).toBe(5);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].user.fullName).toBe('Admin3');
@@ -573,6 +651,7 @@ describe('listAdmins', () => {
 describe('updateMember', () => {
 
     it('updateMember_allFields_returnsUpdatedMemberAndPersistsAllChanges', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -587,8 +666,10 @@ describe('updateMember', () => {
             membershipStart: '2025-03-01',
         };
 
+        // Act
         const result = await userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('alice2@test.com');
         expect(result.user.fullName).toBe('Alice Updated');
         expect(result.user.phone).toBe('0700000002');
@@ -600,15 +681,19 @@ describe('updateMember', () => {
     });
 
     it('updateMember_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
         const inputUpdate: UpdateMemberInput = {fullName: 'X'};
 
+        // Act
         const action = () => userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateMember_duplicateEmail_throwsConflictErrorAndLeavesOriginalEmailIntact', async () => {
+        // Arrange
         const alice = await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice',
@@ -628,14 +713,17 @@ describe('updateMember', () => {
         const inputId: string = alice.id;
         const inputUpdate: UpdateMemberInput = {email: 'bob@test.com'};
 
+        // Act
         const action = () => userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const aliceInRepository = await userRepository.findMemberById(alice.id);
         expect(aliceInRepository.user.email).toBe('alice@test.com');
     });
 
     it('updateMember_partialInput_onlySpecifiedFieldsChangeUnspecifiedFieldsUntouched', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -643,8 +731,10 @@ describe('updateMember', () => {
         const inputId: string = seededMember.id;
         const inputUpdate: UpdateMemberInput = {fullName: 'Alice Renamed'};
 
+        // Act
         const result = await userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.fullName).toBe('Alice Renamed');
         expect(result.user.email).toBe('alice@test.com');
         const memberInRepository = await userRepository.findMemberById(seededMember.id);
@@ -654,6 +744,7 @@ describe('updateMember', () => {
     });
 
     it('updateMember_emptyInput_noFieldsMutated', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -661,8 +752,10 @@ describe('updateMember', () => {
         const inputId: string = seededMember.id;
         const inputUpdate: UpdateMemberInput = {};
 
+        // Act
         const result = await userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('alice@test.com');
         expect(result.user.fullName).toBe('Alice Smith');
         const memberInRepository = await userRepository.findMemberById(seededMember.id);
@@ -672,6 +765,7 @@ describe('updateMember', () => {
     });
 
     it('updateMember_sameEmailAsSelf_doesNotThrowConflictErrorAndSucceeds', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -679,8 +773,10 @@ describe('updateMember', () => {
         const inputId: string = seededMember.id;
         const inputUpdate: UpdateMemberInput = {email: 'alice@test.com', fullName: 'Alice Still'};
 
+        // Act
         const result = await userService.updateMember(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('alice@test.com');
         expect(result.user.fullName).toBe('Alice Still');
         const memberInRepository = await userRepository.findMemberById(seededMember.id);
@@ -688,6 +784,7 @@ describe('updateMember', () => {
     });
 
     it('updateMember_afterConflict_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const alice = await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice',
@@ -709,8 +806,10 @@ describe('updateMember', () => {
         const inputValidId: string = alice.id;
         const inputValidUpdate: UpdateMemberInput = {fullName: 'Alice Renamed'};
 
+        // Act
         const result = await userService.updateMember(inputValidId, inputValidUpdate);
 
+        // Assert
         expect(result.user.fullName).toBe('Alice Renamed');
         const aliceInRepository = await userRepository.findMemberById(alice.id);
         expect(aliceInRepository.user.fullName).toBe('Alice Renamed');
@@ -721,24 +820,30 @@ describe('updateMember', () => {
 describe('suspendMember', () => {
 
     it('suspendMember_activeMember_returnsRowWithIsActiveFalseAndPersistsToDatabase', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
         });
         const inputId: string = seededMember.id;
 
+        // Act
         const result = await userService.suspendMember(inputId);
 
+        // Assert
         expect(result.isActive).toBe(false);
         const memberInRepository = await userRepository.findMemberById(seededMember.id);
         expect(memberInRepository.isActive).toBe(false);
     });
 
     it('suspendMember_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.suspendMember(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -747,6 +852,7 @@ describe('suspendMember', () => {
 describe('activateMember', () => {
 
     it('activateMember_inactiveMember_returnsRowWithIsActiveTrueAndPersistsToDatabase', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -754,18 +860,23 @@ describe('activateMember', () => {
         await userRepository.setMemberActive(seededMember.id, false);
         const inputId: string = seededMember.id;
 
+        // Act
         const result = await userService.activateMember(inputId);
 
+        // Assert
         expect(result.isActive).toBe(true);
         const memberInRepository = await userRepository.findMemberById(seededMember.id);
         expect(memberInRepository.isActive).toBe(true);
     });
 
     it('activateMember_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.activateMember(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -774,6 +885,7 @@ describe('activateMember', () => {
 describe('updateAdmin', () => {
 
     it('updateAdmin_allFields_returnsUpdatedAdminAndPersistsAllChanges', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -787,8 +899,10 @@ describe('updateAdmin', () => {
             password: 'NewAdminPass1!',
         };
 
+        // Act
         const result = await userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('admin2@test.com');
         expect(result.user.fullName).toBe('Admin Updated');
         expect(result.user.phone).toBe('0700000098');
@@ -798,15 +912,19 @@ describe('updateAdmin', () => {
     });
 
     it('updateAdmin_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
         const inputUpdate: UpdateAdminInput = {fullName: 'X'};
 
+        // Act
         const action = () => userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateAdmin_duplicateEmail_throwsConflictErrorAndLeavesOriginalEmailIntact', async () => {
+        // Arrange
         const adminA = await userRepository.createAdmin({
             email: 'admin-a@test.com',
             fullName: 'Admin A',
@@ -824,14 +942,17 @@ describe('updateAdmin', () => {
         const inputId: string = adminA.id;
         const inputUpdate: UpdateAdminInput = {email: 'admin-b@test.com'};
 
+        // Act
         const action = () => userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         await expect(action()).rejects.toThrow(ConflictError);
         const adminAInRepository = await userRepository.findAdminById(adminA.id);
         expect(adminAInRepository.user.email).toBe('admin-a@test.com');
     });
 
     it('updateAdmin_partialInput_onlySpecifiedFieldsChangeUnspecifiedFieldsUntouched', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -839,8 +960,10 @@ describe('updateAdmin', () => {
         const inputId: string = seededAdmin.id;
         const inputUpdate: UpdateAdminInput = {fullName: 'Admin Renamed'};
 
+        // Act
         const result = await userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.fullName).toBe('Admin Renamed');
         expect(result.user.email).toBe('admin@test.com');
         const adminInRepository = await userRepository.findAdminById(seededAdmin.id);
@@ -850,6 +973,7 @@ describe('updateAdmin', () => {
     });
 
     it('updateAdmin_emptyInput_noFieldsMutated', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -857,8 +981,10 @@ describe('updateAdmin', () => {
         const inputId: string = seededAdmin.id;
         const inputUpdate: UpdateAdminInput = {};
 
+        // Act
         const result = await userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('admin@test.com');
         expect(result.user.fullName).toBe('Admin User');
         const adminInRepository = await userRepository.findAdminById(seededAdmin.id);
@@ -868,6 +994,7 @@ describe('updateAdmin', () => {
     });
 
     it('updateAdmin_sameEmailAsSelf_doesNotThrowConflictErrorAndSucceeds', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
@@ -875,8 +1002,10 @@ describe('updateAdmin', () => {
         const inputId: string = seededAdmin.id;
         const inputUpdate: UpdateAdminInput = {email: 'admin@test.com', fullName: 'Admin Still'};
 
+        // Act
         const result = await userService.updateAdmin(inputId, inputUpdate);
 
+        // Assert
         expect(result.user.email).toBe('admin@test.com');
         expect(result.user.fullName).toBe('Admin Still');
         const adminInRepository = await userRepository.findAdminById(seededAdmin.id);
@@ -884,6 +1013,7 @@ describe('updateAdmin', () => {
     });
 
     it('updateAdmin_afterConflict_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const adminA = await userRepository.createAdmin({
             email: 'admin-a@test.com',
             fullName: 'Admin A',
@@ -902,8 +1032,10 @@ describe('updateAdmin', () => {
         });
         const inputValidUpdate: UpdateAdminInput = {fullName: 'Admin Renamed'};
 
+        // Act
         const result = await userService.updateAdmin(adminA.id, inputValidUpdate);
 
+        // Assert
         expect(result.user.fullName).toBe('Admin Renamed');
         const adminInRepository = await userRepository.findAdminById(adminA.id);
         expect(adminInRepository.user.fullName).toBe('Admin Renamed');
@@ -914,20 +1046,24 @@ describe('updateAdmin', () => {
 describe('deleteMember', () => {
 
     it('deleteMember_member_removesUserAndMemberRowViaCascade', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
         });
         const inputId: string = seededMember.id;
 
+        // Act
         await userService.deleteMember(inputId);
 
+        // Assert
         await expect(userRepository.findMemberById(inputId)).rejects.toThrow(NotFoundError);
         const userInRepository = await userRepository.findByEmail('alice@test.com');
         expect(userInRepository).toBeNull();
     });
 
     it('deleteMember_memberWithWorkoutSession_cascadesWorkoutSessionDeletion', async () => {
+        // Arrange
         const seededMember = await userRepository.createMember({
             email: 'alice@test.com', fullName: 'Alice Smith', phone: '0700000001',
             dateOfBirth: '1990-05-15', password: 'Secret123!', membershipStart: '2024-01-01',
@@ -944,8 +1080,10 @@ describe('deleteMember', () => {
         );
         const inputId: string = seededMember.id;
 
+        // Act
         await userService.deleteMember(inputId);
 
+        // Assert
         await expect(userRepository.findMemberById(inputId)).rejects.toThrow(NotFoundError);
         await expect(workoutSessionRepository.findById(session.id)).rejects.toThrow(NotFoundError);
         const userInRepository = await userRepository.findByEmail('alice@test.com');
@@ -953,14 +1091,18 @@ describe('deleteMember', () => {
     });
 
     it('deleteMember_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.deleteMember(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('deleteMember_afterErrorOnNonExistentId_subsequentValidCallOnDifferentRowSucceeds', async () => {
+        // Arrange
         const alice = await userRepository.createMember({
             email: 'alice@test.com',
             fullName: 'Alice',
@@ -981,8 +1123,10 @@ describe('deleteMember', () => {
         });
         const inputValidId: string = bob.id;
 
+        // Act
         await userService.deleteMember(inputValidId);
 
+        // Assert
         const aliceInRepository = await userRepository.findMemberById(alice.id);
         expect(aliceInRepository).toBeDefined();
         await expect(userRepository.findMemberById(bob.id)).rejects.toThrow(NotFoundError);
@@ -993,28 +1137,35 @@ describe('deleteMember', () => {
 describe('deleteAdmin', () => {
 
     it('deleteAdmin_admin_removesUserAndAdminRowViaCascade', async () => {
+        // Arrange
         const seededAdmin = await userRepository.createAdmin({
             email: 'admin@test.com', fullName: 'Admin User', phone: '0700000099',
             dateOfBirth: '1985-03-20', password: 'AdminPass1!',
         });
         const inputId: string = seededAdmin.id;
 
+        // Act
         await userService.deleteAdmin(inputId);
 
+        // Assert
         await expect(userRepository.findAdminById(inputId)).rejects.toThrow(NotFoundError);
         const userInRepository = await userRepository.findByEmail('admin@test.com');
         expect(userInRepository).toBeNull();
     });
 
     it('deleteAdmin_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => userService.deleteAdmin(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('deleteAdmin_afterErrorOnNonExistentId_subsequentValidCallOnDifferentRowSucceeds', async () => {
+        // Arrange
         const adminA = await userRepository.createAdmin({
             email: 'admin-a@test.com',
             fullName: 'Admin A',
@@ -1033,8 +1184,10 @@ describe('deleteAdmin', () => {
         });
         const inputValidId: string = adminB.id;
 
+        // Act
         await userService.deleteAdmin(inputValidId);
 
+        // Assert
         const adminAInRepository = await userRepository.findAdminById(adminA.id);
         expect(adminAInRepository).toBeDefined();
         await expect(userRepository.findAdminById(adminB.id)).rejects.toThrow(NotFoundError);

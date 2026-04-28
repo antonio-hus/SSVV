@@ -56,13 +56,16 @@ beforeEach(() => {
 describe('login', () => {
     describe('Equivalence Classes', () => {
         it('login_EC_validAdminCredentials_returnsSuccessWithAdminData', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = VALID_LOGIN_INPUT;
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_ADMIN_SESSION);
@@ -71,13 +74,16 @@ describe('login', () => {
         });
 
         it('login_EC_validMemberCredentials_returnsSuccessWithMemberData', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = {email: 'member@example.com', password: 'ValidPassword1!'};
             authServiceMock.login.mockResolvedValue(MOCK_MEMBER_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_MEMBER_SESSION);
@@ -87,10 +93,13 @@ describe('login', () => {
         });
 
         it('login_EC_missingEmail_returnsValidationError', async () => {
+            // Arrange
             const inputData = {password: 'ValidPass1!'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData as never);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.email).toBeDefined();
@@ -98,10 +107,13 @@ describe('login', () => {
         });
 
         it('login_EC_missingPassword_returnsValidationError', async () => {
+            // Arrange
             const inputData = {email: 'admin@gymtrackerpro.com'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData as never);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -109,10 +121,13 @@ describe('login', () => {
         });
 
         it('login_EC_invalidEmailFormat_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'bad-email', password: 'ValidPass1!'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.email).toBeDefined();
@@ -120,10 +135,13 @@ describe('login', () => {
         });
 
         it('login_EC_passwordMissingUppercase_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'validpass1!'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -131,10 +149,13 @@ describe('login', () => {
         });
 
         it('login_EC_passwordMissingNumber_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'ValidPass!'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -142,10 +163,13 @@ describe('login', () => {
         });
 
         it('login_EC_passwordMissingSpecialChar_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'ValidPass1'};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -153,12 +177,15 @@ describe('login', () => {
         });
 
         it('login_EC_throwsAuthorizationError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputData: LoginUserInput = VALID_LOGIN_INPUT;
             authServiceMock.login.mockRejectedValue(new AuthorizationError('Invalid email or password'));
             getSessionMock.mockResolvedValue(makeMockSession());
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Invalid email or password');
@@ -166,12 +193,15 @@ describe('login', () => {
         });
 
         it('login_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputData: LoginUserInput = VALID_LOGIN_INPUT;
             authServiceMock.login.mockRejectedValue(new NotFoundError('User not found'));
             getSessionMock.mockResolvedValue(makeMockSession());
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('User not found');
@@ -179,11 +209,14 @@ describe('login', () => {
         });
 
         it('login_EC_getSessionFails_returnsGenericFailure', async () => {
+            // Arrange
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockRejectedValue(new Error('Cookie store failed'));
 
+            // Act
             const result: ActionResult<SessionData> = await login(VALID_LOGIN_INPUT);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -193,10 +226,13 @@ describe('login', () => {
 
     describe('Boundary Value Analysis', () => {
         it('login_BVA_password7Chars_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(4)};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -204,54 +240,69 @@ describe('login', () => {
         });
 
         it('login_BVA_password8Chars_returnsSuccess', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(5)};
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
         });
 
         it('login_BVA_password9Chars_returnsSuccess', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(6)};
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
         });
 
         it('login_BVA_password63Chars_returnsSuccess', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(60)};
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
         });
 
         it('login_BVA_password64Chars_returnsSuccess', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(61)};
             authServiceMock.login.mockResolvedValue(MOCK_ADMIN_SESSION);
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
         });
 
         it('login_BVA_password65Chars_returnsValidationError', async () => {
+            // Arrange
             const inputData: LoginUserInput = {email: 'admin@gymtrackerpro.com', password: 'V1@' + 'a'.repeat(62)};
 
+            // Act
             const result: ActionResult<SessionData> = await login(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.errors?.password).toBeDefined();
@@ -263,11 +314,14 @@ describe('login', () => {
 describe('logout', () => {
     describe('Equivalence Classes', () => {
         it('logout_EC_called_returnsSuccessWithUndefinedData', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<void> = await logout();
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toBeUndefined();
@@ -276,10 +330,13 @@ describe('logout', () => {
         });
 
         it('logout_EC_getSessionFails_returnsGenericFailure', async () => {
+            // Arrange
             getSessionMock.mockRejectedValue(new Error('Session fetch failed'));
 
+            // Act
             const result: ActionResult<void> = await logout();
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -287,12 +344,15 @@ describe('logout', () => {
         });
 
         it('logout_EC_sessionDestroyFails_returnsGenericFailure', async () => {
+            // Arrange
             const mockSession = makeMockSession();
             mockSession.destroy.mockRejectedValue(new Error('Destroy failed'));
             getSessionMock.mockResolvedValue(mockSession);
 
+            // Act
             const result: ActionResult<void> = await logout();
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');

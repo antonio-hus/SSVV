@@ -81,6 +81,7 @@ const seedWorkoutSession = async (
 describe('create', () => {
 
     it('create_newSessionWithOneExercise_returnsPersistedSessionAndCreatesWseRow', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const inputData: CreateWorkoutSessionInput = {
@@ -93,8 +94,10 @@ describe('create', () => {
             {exerciseId: exercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionRepository.create(inputData, inputExercises);
 
+        // Assert
         expect(result.id).toBeDefined();
         expect(result.memberId).toBe(member.id);
         expect(result.duration).toBe(60);
@@ -108,6 +111,7 @@ describe('create', () => {
     });
 
     it('create_newSessionWithMultipleExercises_createsOneWseRowPerExercise', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise1 = await seedExercise({name: 'Bench Press'});
         const exercise2 = await seedExercise({name: 'Deadlift'});
@@ -121,14 +125,17 @@ describe('create', () => {
             {exerciseId: exercise2.id, sets: 4, reps: 8, weight: 80},
         ];
 
+        // Act
         const result = await workoutSessionRepository.create(inputData, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
         const wseInDb = await prisma.workoutSessionExercise.findMany({where: {workoutSessionId: result.id}});
         expect(wseInDb).toHaveLength(2);
     });
 
     it('create_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+        // Arrange
         const member = await seedMember();
         const inputData: CreateWorkoutSessionInput = {
             memberId: member.id,
@@ -136,14 +143,17 @@ describe('create', () => {
             duration: 60,
         };
 
+        // Act
         const action = () => workoutSessionRepository.create(inputData, []);
 
+        // Assert
         await expect(action()).rejects.toThrow(WorkoutSessionRequiresExercisesError);
         const sessionCount = await prisma.workoutSession.count();
         expect(sessionCount).toBe(0);
     });
 
     it('create_memberNotFound_throwsNotFoundError', async () => {
+        // Arrange
         const exercise = await seedExercise();
         const inputData: CreateWorkoutSessionInput = {
             memberId: '00000000-0000-0000-0000-000000000000',
@@ -154,14 +164,17 @@ describe('create', () => {
             {exerciseId: exercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const action = () => workoutSessionRepository.create(inputData, inputExercises);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
         const sessionCount = await prisma.workoutSession.count();
         expect(sessionCount).toBe(0);
     });
 
     it('create_afterNotFoundError_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
 
@@ -180,8 +193,10 @@ describe('create', () => {
             {exerciseId: exercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionRepository.create(inputData, inputExercises);
 
+        // Assert
         expect(result.memberId).toBe(member.id);
         const sessionCount = await prisma.workoutSession.count();
         expect(sessionCount).toBe(1);
@@ -192,6 +207,7 @@ describe('create', () => {
 describe('findById', () => {
 
     it('findById_existingSession_returnsSessionWithAllFieldsAndExercisesMatching', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id], {
@@ -199,8 +215,10 @@ describe('findById', () => {
         });
         const inputId: string = seeded.id;
 
+        // Act
         const result = await workoutSessionRepository.findById(inputId);
 
+        // Assert
         expect(result.id).toBe(seeded.id);
         expect(result.memberId).toBe(member.id);
         expect(result.duration).toBe(60);
@@ -210,10 +228,13 @@ describe('findById', () => {
     });
 
     it('findById_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => workoutSessionRepository.findById(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -222,14 +243,17 @@ describe('findById', () => {
 describe('findAll', () => {
 
     it('findAll_noOptions_returnsAllSessionsOrderedByDateAsc', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-03-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-06-01')});
 
+        // Act
         const result = await workoutSessionRepository.findAll();
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-01-01'));
@@ -238,13 +262,16 @@ describe('findAll', () => {
     });
 
     it('findAll_noSessions_returnsEmptyPage', async () => {
+        // Act
         const result = await workoutSessionRepository.findAll();
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('findAll_memberIdFilter_returnsOnlySessionsForThatMember', async () => {
+        // Arrange
         const member1 = await seedMember({email: 'm1@test.com', fullName: 'M1'});
         const member2 = await seedMember({email: 'm2@test.com', fullName: 'M2'});
         const exercise = await seedExercise();
@@ -252,39 +279,48 @@ describe('findAll', () => {
         await seedWorkoutSession(member2.id, [exercise.id]);
         const inputMemberId: string = member1.id;
 
+        // Act
         const result = await workoutSessionRepository.findAll({memberId: inputMemberId});
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(session1.id);
     });
 
     it('findAll_startDateFilter_returnsOnlySessionsOnOrAfterStartDate', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         const laterSession = await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-06-01')});
         const inputStartDate: Date = new Date('2024-03-01');
 
+        // Act
         const result = await workoutSessionRepository.findAll({startDate: inputStartDate});
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(laterSession.id);
     });
 
     it('findAll_endDateFilter_returnsOnlySessionsOnOrBeforeEndDate', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const earlySession = await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-06-01')});
         const inputEndDate: Date = new Date('2024-03-01');
 
+        // Act
         const result = await workoutSessionRepository.findAll({endDate: inputEndDate});
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(earlySession.id);
     });
 
     it('findAll_startDateAndEndDate_returnsOnlySessionsWithinRange', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
@@ -293,13 +329,16 @@ describe('findAll', () => {
         const inputStartDate: Date = new Date('2024-03-01');
         const inputEndDate: Date = new Date('2024-06-01');
 
+        // Act
         const result = await workoutSessionRepository.findAll({startDate: inputStartDate, endDate: inputEndDate});
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(midSession.id);
     });
 
     it('findAll_pageAndPageSize_returnsPaginatedSliceOrderedByDateDesc', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         for (let month = 1; month <= 5; month++) {
@@ -308,8 +347,10 @@ describe('findAll', () => {
             });
         }
 
+        // Act
         const result = await workoutSessionRepository.findAll({page: 2, pageSize: 2});
 
+        // Assert
         expect(result.total).toBe(5);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
@@ -317,14 +358,17 @@ describe('findAll', () => {
     });
 
     it('findAll_pageZeroWithPageSize_clampedToPageOneAndReturnsFirstSliceDesc', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-02-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-03-01')});
 
+        // Act
         const result = await workoutSessionRepository.findAll({page: 0, pageSize: 2});
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
@@ -332,20 +376,24 @@ describe('findAll', () => {
     });
 
     it('findAll_pageSizeExceedsTotalWithPage_returnsAllRowsDesc', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-02-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-03-01')});
 
+        // Act
         const result = await workoutSessionRepository.findAll({page: 1, pageSize: 100});
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
     });
 
     it('findAll_memberIdAndStartDate_returnsOnlyMatchingMembersSessionsAfterStartDate', async () => {
+        // Arrange
         const member1 = await seedMember({email: 'm1@test.com', fullName: 'M1'});
         const member2 = await seedMember({email: 'm2@test.com', fullName: 'M2'});
         const exercise = await seedExercise();
@@ -355,21 +403,26 @@ describe('findAll', () => {
         const inputMemberId: string = member1.id;
         const inputStartDate: Date = new Date('2024-03-01');
 
+        // Act
         const result = await workoutSessionRepository.findAll({memberId: inputMemberId, startDate: inputStartDate});
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(targetSession.id);
     });
 
     it('findAll_onlyPageWithoutPageSize_notPaginatedReturnsAllSessionsAsc', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-02-01')});
         await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-03-01')});
 
+        // Act
         const result = await workoutSessionRepository.findAll({page: 2});
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-01-01'));
@@ -381,6 +434,7 @@ describe('findAll', () => {
 describe('update', () => {
 
     it('update_allFields_returnsUpdatedSessionAndPersistsAllChanges', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id], {
@@ -393,8 +447,10 @@ describe('update', () => {
             notes: 'Updated',
         };
 
+        // Act
         const result = await workoutSessionRepository.update(inputId, inputData);
 
+        // Assert
         expect(result.date).toEqual(new Date('2025-01-15'));
         expect(result.duration).toBe(90);
         expect(result.notes).toBe('Updated');
@@ -405,14 +461,18 @@ describe('update', () => {
     });
 
     it('update_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => workoutSessionRepository.update(inputId, {duration: 90});
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('update_partialInput_onlyDurationChangedOtherFieldsUntouched', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id], {
@@ -421,8 +481,10 @@ describe('update', () => {
         const inputId: string = seeded.id;
         const inputData: UpdateWorkoutSessionInput = {duration: 90};
 
+        // Act
         const result = await workoutSessionRepository.update(inputId, inputData);
 
+        // Assert
         expect(result.duration).toBe(90);
         const sessionInDb = await prisma.workoutSession.findUnique({where: {id: inputId}});
         expect(sessionInDb!.duration).toBe(90);
@@ -431,6 +493,7 @@ describe('update', () => {
     });
 
     it('update_emptyInput_noFieldsMutated', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id], {
@@ -439,8 +502,10 @@ describe('update', () => {
         const inputId: string = seeded.id;
         const inputData: UpdateWorkoutSessionInput = {};
 
+        // Act
         const result = await workoutSessionRepository.update(inputId, inputData);
 
+        // Assert
         expect(result.date).toEqual(new Date('2024-06-01'));
         expect(result.duration).toBe(60);
         expect(result.notes).toBe('Original');
@@ -451,6 +516,7 @@ describe('update', () => {
     });
 
     it('update_afterNotFoundError_subsequentValidCallOnDifferentSessionSucceeds', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const sessionA = await seedWorkoutSession(member.id, [exercise.id], {duration: 60});
@@ -462,8 +528,10 @@ describe('update', () => {
         const inputId: string = sessionB.id;
         const inputData: UpdateWorkoutSessionInput = {duration: 90};
 
+        // Act
         const result = await workoutSessionRepository.update(inputId, inputData);
 
+        // Assert
         expect(result.duration).toBe(90);
         const sessionAInDb = await prisma.workoutSession.findUnique({where: {id: sessionA.id}});
         const sessionBInDb = await prisma.workoutSession.findUnique({where: {id: sessionB.id}});
@@ -476,6 +544,7 @@ describe('update', () => {
 describe('updateWithExercises', () => {
 
     it('updateWithExercises_sessionFieldsAndExistingExercise_updatesSessionAndWseRow', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id], {duration: 60});
@@ -486,8 +555,10 @@ describe('updateWithExercises', () => {
             {id: wse1.id, exerciseId: exercise.id, sets: 5, reps: 8, weight: 100},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, inputData, inputExercises);
 
+        // Assert
         expect(result.duration).toBe(90);
         expect(result.exercises).toHaveLength(1);
         expect(result.exercises[0].sets).toBe(5);
@@ -502,13 +573,16 @@ describe('updateWithExercises', () => {
     });
 
     it('updateWithExercises_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id]);
         const inputId: string = seeded.id;
 
+        // Act
         const action = () => workoutSessionRepository.updateWithExercises(inputId, {}, []);
 
+        // Assert
         await expect(action()).rejects.toThrow(WorkoutSessionRequiresExercisesError);
         const sessionInDb = await prisma.workoutSession.findUnique({where: {id: inputId}});
         const wseInDb = await prisma.workoutSessionExercise.findMany({where: {workoutSessionId: inputId}});
@@ -517,18 +591,22 @@ describe('updateWithExercises', () => {
     });
 
     it('updateWithExercises_nonExistentSession_throwsNotFoundError', async () => {
+        // Arrange
         const exercise = await seedExercise();
         const inputId: string = '00000000-0000-0000-0000-000000000000';
         const inputExercises: WorkoutSessionExerciseUpdateInput[] = [
             {exerciseId: exercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const action = () => workoutSessionRepository.updateWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateWithExercises_exerciseOmittedFromInput_deletesItsWseRow', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise1 = await seedExercise({name: 'Bench Press'});
         const exercise2 = await seedExercise({name: 'Deadlift'});
@@ -540,8 +618,10 @@ describe('updateWithExercises', () => {
             {id: wse1.id, exerciseId: exercise1.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(1);
         expect(result.exercises[0].id).toBe(wse1.id);
         const wse2InDb = await prisma.workoutSessionExercise.findUnique({where: {id: wse2.id}});
@@ -549,6 +629,7 @@ describe('updateWithExercises', () => {
     });
 
     it('updateWithExercises_exerciseWithIdInInput_updatesItsWseFields', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id]);
@@ -558,8 +639,10 @@ describe('updateWithExercises', () => {
             {id: wse1.id, exerciseId: exercise.id, sets: 5, reps: 8, weight: 100},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises[0].sets).toBe(5);
         expect(result.exercises[0].reps).toBe(8);
         expect(result.exercises[0].weight).toBe(100);
@@ -570,6 +653,7 @@ describe('updateWithExercises', () => {
     });
 
     it('updateWithExercises_exerciseWithoutIdInInput_createsNewWseRow', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise1 = await seedExercise({name: 'Bench Press'});
         const exercise2 = await seedExercise({name: 'Deadlift'});
@@ -581,14 +665,17 @@ describe('updateWithExercises', () => {
             {exerciseId: exercise2.id, sets: 2, reps: 15, weight: 20},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
         const allWseInDb = await prisma.workoutSessionExercise.findMany({where: {workoutSessionId: inputId}});
         expect(allWseInDb).toHaveLength(2);
     });
 
     it('updateWithExercises_mixKeepDeleteAdd_reconcileAllThreeBranchesCorrectly', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise1 = await seedExercise({name: 'Bench Press'});
         const exercise2 = await seedExercise({name: 'Deadlift'});
@@ -602,8 +689,10 @@ describe('updateWithExercises', () => {
             {exerciseId: exercise3.id, sets: 3, reps: 10, weight: 40},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
         expect(result.exercises.find((e) => e.id === wse1.id)?.sets).toBe(4);
         expect(result.exercises.find((e) => e.id === wse2.id)).toBeUndefined();
@@ -617,6 +706,7 @@ describe('updateWithExercises', () => {
     });
 
     it('updateWithExercises_afterRequiresExercisesError_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id]);
@@ -629,8 +719,10 @@ describe('updateWithExercises', () => {
             {id: wse1.id, exerciseId: exercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionRepository.updateWithExercises(inputId, inputData, inputExercises);
 
+        // Assert
         expect(result.duration).toBe(90);
         const sessionInDb = await prisma.workoutSession.findUnique({where: {id: inputId}});
         expect(sessionInDb!.duration).toBe(90);
@@ -641,14 +733,17 @@ describe('updateWithExercises', () => {
 describe('delete', () => {
 
     it('delete_existingSession_removesSessionAndItsWseRowsViaCascade', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const seeded = await seedWorkoutSession(member.id, [exercise.id]);
         const inputId: string = seeded.id;
         const wseId: string = seeded.exercises[0].id;
 
+        // Act
         await workoutSessionRepository.delete(inputId);
 
+        // Assert
         const sessionInDb = await prisma.workoutSession.findUnique({where: {id: inputId}});
         const wseInDb = await prisma.workoutSessionExercise.findUnique({where: {id: wseId}});
         expect(sessionInDb).toBeNull();
@@ -656,22 +751,28 @@ describe('delete', () => {
     });
 
     it('delete_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => workoutSessionRepository.delete(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('delete_sessionWithMultipleWseRows_cascadesAllWseRowsDeletion', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise1 = await seedExercise({name: 'Bench Press'});
         const exercise2 = await seedExercise({name: 'Deadlift'});
         const seeded = await seedWorkoutSession(member.id, [exercise1.id, exercise2.id]);
         const inputId: string = seeded.id;
 
+        // Act
         await workoutSessionRepository.delete(inputId);
 
+        // Assert
         const sessionInDb = await prisma.workoutSession.findUnique({where: {id: inputId}});
         const allWseInDb = await prisma.workoutSessionExercise.findMany({where: {workoutSessionId: inputId}});
         expect(sessionInDb).toBeNull();
@@ -679,6 +780,7 @@ describe('delete', () => {
     });
 
     it('delete_afterNotFoundError_subsequentValidCallOnDifferentSessionSucceeds', async () => {
+        // Arrange
         const member = await seedMember();
         const exercise = await seedExercise();
         const sessionA = await seedWorkoutSession(member.id, [exercise.id], {date: new Date('2024-01-01')});
@@ -687,8 +789,10 @@ describe('delete', () => {
         });
         const inputId: string = sessionB.id;
 
+        // Act
         await workoutSessionRepository.delete(inputId);
 
+        // Assert
         const sessionAInDb = await prisma.workoutSession.findUnique({where: {id: sessionA.id}});
         const sessionBInDb = await prisma.workoutSession.findUnique({where: {id: sessionB.id}});
         expect(sessionAInDb).not.toBeNull();

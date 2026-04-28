@@ -56,13 +56,16 @@ beforeEach(() => {
 describe('login', () => {
     describe('Equivalence Classes', () => {
         it('login_EC_validAdminCredentials_returnsSessionData', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'admin@gymtrackerpro.com', password: 'CorrectPass1!'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_ADMIN_USER);
             mockPasswordMatch(true);
 
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result.userId).toBe(USER_ID);
             expect(result.email).toBe(MOCK_ADMIN_USER.email);
             expect(result.fullName).toBe(MOCK_ADMIN_USER.fullName);
@@ -73,13 +76,16 @@ describe('login', () => {
         });
 
         it('login_EC_validMemberCredentials_returnsSessionData', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: 'CorrectPass1!'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(true);
 
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result.userId).toBe('user-uuid-002');
             expect(result.email).toBe(MOCK_MEMBER_USER.email);
             expect(result.fullName).toBe(MOCK_MEMBER_USER.fullName);
@@ -90,13 +96,16 @@ describe('login', () => {
         });
 
         it('login_EC_validInactiveMemberCredentials_returnsSessionDataWithIsActiveFalse', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: 'CorrectPass1!'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_INACTIVE_MEMBER_USER);
             mockPasswordMatch(true);
 
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result.isActive).toBe(false);
             expect(result.memberId).toBe(MEMBER_ID);
             expect(result.userId).toBe('user-uuid-002');
@@ -104,24 +113,30 @@ describe('login', () => {
         });
 
         it('login_EC_userNotFound_throwsNotFoundError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'unknown@example.com', password: 'AnyPassword1!'};
             mockUserRepo.findByEmail.mockResolvedValue(null);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_EC_wrongPassword_throwsAuthorizationError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: 'WrongPassword1!'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(false);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(AuthorizationError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
@@ -129,72 +144,90 @@ describe('login', () => {
 
     describe('Boundary Value Analysis', () => {
         it('login_BVA_emptyEmail_throwsNotFoundError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: '', password: 'SomePassword1!'};
             mockUserRepo.findByEmail.mockResolvedValue(null);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_inexistentOneCharEmail_throwsNotFoundError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'a', password: 'SomePassword1!'};
             mockUserRepo.findByEmail.mockResolvedValue(null);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_existingOneCharEmail_authenticatesSuccessfully', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'a', password: 'CorrectPass1!'};
             const oneCharUser = {...MOCK_MEMBER_USER, email: 'a'};
             mockUserRepo.findByEmail.mockResolvedValue(oneCharUser);
             mockPasswordMatch(true);
 
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result.email).toBe('a');
             expect(result.userId).toBe(oneCharUser.id);
         });
 
         it('login_BVA_emptyPassword_throwsAuthorizationError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: ''};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(false);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(AuthorizationError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_inexistentOneCharPassword_throwsAuthorizationError', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: 'p'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(false);
 
+            // Act
             const act = service.login(inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(AuthorizationError);
             await expect(act).rejects.toThrow('Invalid email or password');
         });
 
         it('login_BVA_existingOneCharPassword_authenticatesSuccessfully', async () => {
+            // Arrange
             const service = AuthService.getInstance(mockUserRepo);
             const inputData = {email: 'member@example.com', password: 'p'};
             mockUserRepo.findByEmail.mockResolvedValue(MOCK_MEMBER_USER);
             mockPasswordMatch(true);
 
+            // Act
             const result = await service.login(inputData);
 
+            // Assert
             expect(result.userId).toBe('user-uuid-002');
             expect(result.email).toBe(MOCK_MEMBER_USER.email);
         });

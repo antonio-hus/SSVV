@@ -67,11 +67,14 @@ beforeEach(() => {
 describe('createExercise', () => {
     describe('Equivalence Classes', () => {
         it('createExercise_EC_allFieldsValid_returnsSuccessWithExercise', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
             exerciseServiceMock.createExercise.mockResolvedValue(MOCK_EXERCISE);
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_EXERCISE);
@@ -79,6 +82,7 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_missingDescription_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {
                 name: 'Standard Bench Press',
                 muscleGroup: MuscleGroup.CHEST,
@@ -87,8 +91,10 @@ describe('createExercise', () => {
             const mockResult = {...MOCK_EXERCISE, description: undefined};
             exerciseServiceMock.createExercise.mockResolvedValue(mockResult);
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -97,10 +103,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_missingName_returnsValidationError', async () => {
+            // Arrange
             const inputData = {...VALID_CREATE_INPUT, name: undefined as unknown as string};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -109,10 +118,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_missingMuscleGroup_returnsValidationError', async () => {
+            // Arrange
             const inputData = {...VALID_CREATE_INPUT, muscleGroup: undefined as unknown as MuscleGroup};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -121,10 +133,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_missingEquipment_returnsValidationError', async () => {
+            // Arrange
             const inputData = {...VALID_CREATE_INPUT, equipmentNeeded: undefined as unknown as Equipment};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -133,10 +148,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_emptyName_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: ''};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -145,11 +163,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_duplicateName_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
             exerciseServiceMock.createExercise.mockRejectedValue(new ConflictError('Name already in use'));
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Name already in use');
@@ -157,11 +178,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_EC_unexpectedError_returnsGenericFailure', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT};
             exerciseServiceMock.createExercise.mockRejectedValue(new Error('Internal failure'));
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -171,10 +195,13 @@ describe('createExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('createExercise_BVA_nameWhitespaceOnly_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: '         '};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -183,11 +210,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_namePaddedWithWhitespace_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: '   Bench Press   '};
             exerciseServiceMock.createExercise.mockResolvedValue(MOCK_EXERCISE);
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_EXERCISE);
@@ -195,10 +225,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength7Chars_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(7)};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -207,11 +240,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength8Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(8)};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -219,11 +255,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength9Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(9)};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -231,11 +270,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength63Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(63)};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -243,11 +285,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength64Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(64)};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -255,10 +300,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_nameLength65Chars_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, name: 'A'.repeat(65)};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -267,14 +315,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_descriptionLength1023Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, description: 'A'.repeat(1023)};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 description: inputData.description!
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.description).toBe(inputData.description);
@@ -282,14 +333,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_descriptionLength1024Chars_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, description: 'A'.repeat(1024)};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 description: inputData.description!
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.description).toBe(inputData.description);
@@ -297,10 +351,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_descriptionLength1025Chars_returnsValidationError', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, description: 'A'.repeat(1025)};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -309,11 +366,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupCHEST_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.CHEST};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.CHEST});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.CHEST);
@@ -321,11 +381,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupBACK_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.BACK};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.BACK});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.BACK);
@@ -333,11 +396,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupLEGS_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.LEGS};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.LEGS});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -345,14 +411,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupSHOULDERS_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.SHOULDERS};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 muscleGroup: MuscleGroup.SHOULDERS
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.SHOULDERS);
@@ -360,11 +429,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupARMS_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.ARMS};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.ARMS});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.ARMS);
@@ -372,11 +444,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_muscleGroupCORE_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, muscleGroup: MuscleGroup.CORE};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.CORE});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.CORE);
@@ -384,10 +459,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_invalidMuscleGroup_returnsValidationError', async () => {
+            // Arrange
             const inputData = {...VALID_CREATE_INPUT, muscleGroup: 'INVALID' as unknown as MuscleGroup};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -396,14 +474,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_equipmentBARBELL_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, equipmentNeeded: Equipment.BARBELL};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 equipmentNeeded: Equipment.BARBELL
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.BARBELL);
@@ -411,14 +492,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_equipmentDUMBBELL_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, equipmentNeeded: Equipment.DUMBBELL};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 equipmentNeeded: Equipment.DUMBBELL
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.DUMBBELL);
@@ -426,14 +510,17 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_equipmentMACHINE_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, equipmentNeeded: Equipment.MACHINE};
             exerciseServiceMock.createExercise.mockResolvedValue({
                 ...MOCK_EXERCISE,
                 equipmentNeeded: Equipment.MACHINE
             });
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.MACHINE);
@@ -441,11 +528,14 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_equipmentCABLE_returnsSuccess', async () => {
+            // Arrange
             const inputData: CreateExerciseInput = {...VALID_CREATE_INPUT, equipmentNeeded: Equipment.CABLE};
             exerciseServiceMock.createExercise.mockResolvedValue({...MOCK_EXERCISE, equipmentNeeded: Equipment.CABLE});
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.CABLE);
@@ -453,10 +543,13 @@ describe('createExercise', () => {
         });
 
         it('createExercise_BVA_invalidEquipment_returnsValidationError', async () => {
+            // Arrange
             const inputData = {...VALID_CREATE_INPUT, equipmentNeeded: 'INVALID' as unknown as Equipment};
 
+            // Act
             const result: ActionResult<Exercise> = await createExercise(inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -469,11 +562,14 @@ describe('createExercise', () => {
 describe('getExercise', () => {
     describe('Equivalence Classes', () => {
         it('getExercise_EC_existingId_returnsSuccessWithExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.getExercise.mockResolvedValue(MOCK_EXERCISE);
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_EXERCISE);
@@ -481,11 +577,14 @@ describe('getExercise', () => {
         });
 
         it('getExercise_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = NONEXISTENT_ID;
             exerciseServiceMock.getExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Exercise not found');
@@ -493,11 +592,14 @@ describe('getExercise', () => {
         });
 
         it('getExercise_EC_unexpectedError_returnsGenericFailure', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.getExercise.mockRejectedValue(new Error('Internal failure'));
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -507,20 +609,26 @@ describe('getExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getExercise_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = '';
             exerciseServiceMock.getExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
 
         it('getExercise_BVA_existingOneCharId_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.getExercise.mockResolvedValue({...MOCK_EXERCISE, id: 'a'});
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe('a');
@@ -528,11 +636,14 @@ describe('getExercise', () => {
         });
 
         it('getExercise_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.getExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await getExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
     });
@@ -541,10 +652,13 @@ describe('getExercise', () => {
 describe('listExercises', () => {
     describe('Equivalence Classes', () => {
         it('listExercises_EC_noOptions_returnsActiveExercises', async () => {
+            // Arrange
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises();
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -553,11 +667,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_inactiveFalse_returnsActiveExercises', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {includeInactive: false};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -566,11 +683,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_inactiveTrue_returnsAllExercises', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {includeInactive: true};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -579,11 +699,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_muscleGroup_returnsMatchingExercises', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.CHEST};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -592,11 +715,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_search_returnsMatchingExercises', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {search: 'Bench'};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -605,6 +731,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_multipleExercises_returnsOrderedExercises', async () => {
+            // Arrange
             const exerciseA = {...MOCK_EXERCISE, id: 'a', name: 'A Exercise'};
             const exerciseB = {...MOCK_EXERCISE, id: 'b', name: 'B Exercise'};
             const mockPage: PageResult<Exercise> = {
@@ -613,8 +740,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPage);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises();
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(2);
@@ -624,10 +753,13 @@ describe('listExercises', () => {
         });
 
         it('listExercises_EC_throwsAppError_returnsFailureWithMessage', async () => {
+            // Arrange
             exerciseServiceMock.listExercises.mockRejectedValue(new AppError('Service failed'));
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises();
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Service failed');
@@ -637,11 +769,14 @@ describe('listExercises', () => {
 
     describe('Boundary Value Analysis', () => {
         it('listExercises_BVA_searchUndefined_returnsAll', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {search: undefined};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.total).toBe(1);
@@ -650,11 +785,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_searchEmpty_returnsAll', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {search: ''};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.total).toBe(1);
@@ -663,11 +801,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_searchOneChar_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {search: 'a'};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.total).toBe(1);
@@ -676,11 +817,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupCHEST_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.CHEST};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.CHEST);
@@ -688,6 +832,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupBACK_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.BACK};
             const mockPageResult: PageResult<Exercise> = {
                 items: [{...MOCK_EXERCISE, muscleGroup: MuscleGroup.BACK}],
@@ -695,8 +840,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPageResult);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.BACK);
@@ -704,6 +851,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupLEGS_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.LEGS};
             const mockPageResult: PageResult<Exercise> = {
                 items: [{...MOCK_EXERCISE, muscleGroup: MuscleGroup.LEGS}],
@@ -711,8 +859,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPageResult);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.LEGS);
@@ -720,6 +870,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupSHOULDERS_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.SHOULDERS};
             const mockPageResult: PageResult<Exercise> = {
                 items: [{...MOCK_EXERCISE, muscleGroup: MuscleGroup.SHOULDERS}],
@@ -727,8 +878,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPageResult);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.SHOULDERS);
@@ -736,6 +889,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupARMS_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.ARMS};
             const mockPageResult: PageResult<Exercise> = {
                 items: [{...MOCK_EXERCISE, muscleGroup: MuscleGroup.ARMS}],
@@ -743,8 +897,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPageResult);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.ARMS);
@@ -752,6 +908,7 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_muscleGroupCORE_returnsMatching', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {muscleGroup: MuscleGroup.CORE};
             const mockPageResult: PageResult<Exercise> = {
                 items: [{...MOCK_EXERCISE, muscleGroup: MuscleGroup.CORE}],
@@ -759,8 +916,10 @@ describe('listExercises', () => {
             };
             exerciseServiceMock.listExercises.mockResolvedValue(mockPageResult);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items[0].muscleGroup).toBe(MuscleGroup.CORE);
@@ -768,11 +927,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {page: 0};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -780,11 +942,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_page1_returnsFirstPage', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {page: 1};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -792,11 +957,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_page2_returnsSecondPage', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {page: 2};
             exerciseServiceMock.listExercises.mockResolvedValue({items: [], total: 1});
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(0);
@@ -805,11 +973,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_pageUndefined_returnsFirstPage', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {page: undefined};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -817,11 +988,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_pageSize0_returnsNoItems', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {pageSize: 0};
             exerciseServiceMock.listExercises.mockResolvedValue({items: [], total: 1});
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(0);
@@ -829,11 +1003,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_pageSize1_returnsOneItem', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {pageSize: 1};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -841,11 +1018,14 @@ describe('listExercises', () => {
         });
 
         it('listExercises_BVA_pageSizeUndefined_returnsDefaultSize', async () => {
+            // Arrange
             const inputOptions: ExerciseListOptions = {pageSize: undefined};
             exerciseServiceMock.listExercises.mockResolvedValue(MOCK_PAGE_RESULT);
 
+            // Act
             const result: ActionResult<PageResult<Exercise>> = await listExercises(inputOptions);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.items).toHaveLength(1);
@@ -857,6 +1037,7 @@ describe('listExercises', () => {
 describe('updateExercise', () => {
     describe('Equivalence Classes', () => {
         it('updateExercise_EC_validUpdateData_returnsSuccessWithUpdatedExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {description: 'Updated description'};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -864,8 +1045,10 @@ describe('updateExercise', () => {
                 description: 'Updated description'
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.description).toBe('Updated description');
@@ -873,12 +1056,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_emptyObject_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {};
             exerciseServiceMock.updateExercise.mockResolvedValue(MOCK_EXERCISE);
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toEqual(MOCK_EXERCISE);
@@ -886,11 +1072,14 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_invalidMuscleGroup_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData = {muscleGroup: 'INVALID' as unknown as MuscleGroup};
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -899,11 +1088,14 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_invalidEquipment_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData = {equipmentNeeded: 'INVALID' as unknown as Equipment};
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -912,12 +1104,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_throwsNotFoundError_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateExerciseInput = {name: 'New Exercise Name'};
             exerciseServiceMock.updateExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Exercise not found');
@@ -925,12 +1120,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_duplicateName_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'Existing Name'};
             exerciseServiceMock.updateExercise.mockRejectedValue(new ConflictError('Name taken'));
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Name taken');
@@ -938,12 +1136,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_EC_unexpectedError_returnsGenericFailure', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'Any Name'};
             exerciseServiceMock.updateExercise.mockRejectedValue(new Error('Internal failure'));
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('An unexpected error occurred');
@@ -953,11 +1154,14 @@ describe('updateExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateExercise_BVA_nameLength7Chars_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'A'.repeat(7)};
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -966,12 +1170,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_nameLength8Chars_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'A'.repeat(8)};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name!});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -979,12 +1186,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_nameLength64Chars_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'A'.repeat(64)};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, name: inputData.name!});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.name).toBe(inputData.name);
@@ -992,11 +1202,14 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_nameLength65Chars_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {name: 'A'.repeat(65)};
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -1005,6 +1218,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_descriptionLength1023Chars_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {description: 'A'.repeat(1023)};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1012,8 +1226,10 @@ describe('updateExercise', () => {
                 description: inputData.description!
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.description).toBe(inputData.description);
@@ -1021,6 +1237,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_descriptionLength1024Chars_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {description: 'A'.repeat(1024)};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1028,8 +1245,10 @@ describe('updateExercise', () => {
                 description: inputData.description!
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.description).toBe(inputData.description);
@@ -1037,11 +1256,14 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_descriptionLength1025Chars_returnsValidationError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {description: 'A'.repeat(1025)};
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 const errors: Record<string, string[]> = result.errors || {};
@@ -1050,12 +1272,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupCHEST_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.CHEST};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.CHEST});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.CHEST);
@@ -1063,12 +1288,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupBACK_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.BACK};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.BACK});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.BACK);
@@ -1076,12 +1304,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupLEGS_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.LEGS};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.LEGS});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.LEGS);
@@ -1089,6 +1320,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupSHOULDERS_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.SHOULDERS};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1096,8 +1328,10 @@ describe('updateExercise', () => {
                 muscleGroup: MuscleGroup.SHOULDERS
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.SHOULDERS);
@@ -1105,12 +1339,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupARMS_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.ARMS};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.ARMS});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.ARMS);
@@ -1118,12 +1355,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_muscleGroupCORE_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.CORE};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, muscleGroup: MuscleGroup.CORE});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.muscleGroup).toBe(MuscleGroup.CORE);
@@ -1131,6 +1371,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_equipmentBARBELL_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {equipmentNeeded: Equipment.BARBELL};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1138,8 +1379,10 @@ describe('updateExercise', () => {
                 equipmentNeeded: Equipment.BARBELL
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.BARBELL);
@@ -1147,6 +1390,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_equipmentDUMBBELL_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {equipmentNeeded: Equipment.DUMBBELL};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1154,8 +1398,10 @@ describe('updateExercise', () => {
                 equipmentNeeded: Equipment.DUMBBELL
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.DUMBBELL);
@@ -1163,6 +1409,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_equipmentMACHINE_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {equipmentNeeded: Equipment.MACHINE};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1170,8 +1417,10 @@ describe('updateExercise', () => {
                 equipmentNeeded: Equipment.MACHINE
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.MACHINE);
@@ -1179,12 +1428,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_equipmentCABLE_returnsSuccess', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             const inputData: UpdateExerciseInput = {equipmentNeeded: Equipment.CABLE};
             exerciseServiceMock.updateExercise.mockResolvedValue({...MOCK_EXERCISE, equipmentNeeded: Equipment.CABLE});
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.equipmentNeeded).toBe(Equipment.CABLE);
@@ -1192,6 +1444,7 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const inputId: string = 'a';
             const inputData: UpdateExerciseInput = {muscleGroup: MuscleGroup.BACK};
             exerciseServiceMock.updateExercise.mockResolvedValue({
@@ -1200,8 +1453,10 @@ describe('updateExercise', () => {
                 muscleGroup: MuscleGroup.BACK
             });
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe('a');
@@ -1210,12 +1465,15 @@ describe('updateExercise', () => {
         });
 
         it('updateExercise_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = 'a';
             const inputData: UpdateExerciseInput = {description: 'New'};
             exerciseServiceMock.updateExercise.mockRejectedValue(new NotFoundError('Not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await updateExercise(inputId, inputData);
 
+            // Assert
             expect(result.success).toBe(false);
         });
     });
@@ -1224,11 +1482,14 @@ describe('updateExercise', () => {
 describe('archiveExercise', () => {
     describe('Equivalence Classes', () => {
         it('archiveExercise_EC_existingId_returnsSuccessWithArchivedExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.archiveExercise.mockResolvedValue({...MOCK_EXERCISE, isActive: false});
 
+            // Act
             const result: ActionResult<Exercise> = await archiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.isActive).toBe(false);
@@ -1237,11 +1498,14 @@ describe('archiveExercise', () => {
         });
 
         it('archiveExercise_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = NONEXISTENT_ID;
             exerciseServiceMock.archiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await archiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Exercise not found');
@@ -1251,20 +1515,26 @@ describe('archiveExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('archiveExercise_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = '';
             exerciseServiceMock.archiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await archiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
 
         it('archiveExercise_BVA_existingOneCharId_archivesSuccessfully', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.archiveExercise.mockResolvedValue({...MOCK_EXERCISE, id: 'a', isActive: false});
 
+            // Act
             const result: ActionResult<Exercise> = await archiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe('a');
@@ -1273,11 +1543,14 @@ describe('archiveExercise', () => {
         });
 
         it('archiveExercise_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.archiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await archiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
     });
@@ -1286,11 +1559,14 @@ describe('archiveExercise', () => {
 describe('unarchiveExercise', () => {
     describe('Equivalence Classes', () => {
         it('unarchiveExercise_EC_existingArchivedId_returnsSuccessWithActiveExercise', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.unarchiveExercise.mockResolvedValue({...MOCK_EXERCISE, isActive: true});
 
+            // Act
             const result: ActionResult<Exercise> = await unarchiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.isActive).toBe(true);
@@ -1299,11 +1575,14 @@ describe('unarchiveExercise', () => {
         });
 
         it('unarchiveExercise_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = NONEXISTENT_ID;
             exerciseServiceMock.unarchiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await unarchiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Exercise not found');
@@ -1313,20 +1592,26 @@ describe('unarchiveExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('unarchiveExercise_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = '';
             exerciseServiceMock.unarchiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await unarchiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
 
         it('unarchiveExercise_BVA_existingOneCharId_unarchivesSuccessfully', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.unarchiveExercise.mockResolvedValue({...MOCK_EXERCISE, id: 'a', isActive: true});
 
+            // Act
             const result: ActionResult<Exercise> = await unarchiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data.id).toBe('a');
@@ -1335,11 +1620,14 @@ describe('unarchiveExercise', () => {
         });
 
         it('unarchiveExercise_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.unarchiveExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<Exercise> = await unarchiveExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
     });
@@ -1348,11 +1636,14 @@ describe('unarchiveExercise', () => {
 describe('deleteExercise', () => {
     describe('Equivalence Classes', () => {
         it('deleteExercise_EC_existingUnreferencedId_returnsSuccessWithUndefinedData', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.deleteExercise.mockResolvedValue(undefined);
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
             if (result.success) {
                 expect(result.data).toBeUndefined();
@@ -1360,11 +1651,14 @@ describe('deleteExercise', () => {
         });
 
         it('deleteExercise_EC_nonExistentId_returnsFailureWithMessage', async () => {
+            // Arrange
             const inputId: string = NONEXISTENT_ID;
             exerciseServiceMock.deleteExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Exercise not found');
@@ -1372,11 +1666,14 @@ describe('deleteExercise', () => {
         });
 
         it('deleteExercise_EC_referencedInSession_returnsConflictError', async () => {
+            // Arrange
             const inputId: string = EXERCISE_ID;
             exerciseServiceMock.deleteExercise.mockRejectedValue(new ConflictError('Referenced in sessions'));
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
             if (!result.success) {
                 expect(result.message).toBe('Referenced in sessions');
@@ -1386,29 +1683,38 @@ describe('deleteExercise', () => {
 
     describe('Boundary Value Analysis', () => {
         it('deleteExercise_BVA_emptyId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = '';
             exerciseServiceMock.deleteExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
 
         it('deleteExercise_BVA_existingOneCharId_deletesSuccessfully', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.deleteExercise.mockResolvedValue(undefined);
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(true);
         });
 
         it('deleteExercise_BVA_inexistentOneCharId_returnsFailure', async () => {
+            // Arrange
             const inputId: string = 'a';
             exerciseServiceMock.deleteExercise.mockRejectedValue(new NotFoundError('Exercise not found'));
 
+            // Act
             const result: ActionResult<void> = await deleteExercise(inputId);
 
+            // Assert
             expect(result.success).toBe(false);
         });
     });

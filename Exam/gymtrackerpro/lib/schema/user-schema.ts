@@ -1,23 +1,67 @@
 import {z} from 'zod';
 import {e164PhoneRegex, emailRegex, isoDateRegex} from "@/lib/schema/utils";
 
+/**
+ * Reusable validation rules for user-related fields.
+ */
 const userFields = {
+    /**
+     * User email address.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Leading and trailing whitespace is trimmed
+     * - Must match a valid email format (via `emailRegex`)
+     */
     email: z
         .string()
         .trim()
         .regex(emailRegex, 'Invalid email address')
         .describe('User email address'),
+
+    /**
+     * Full name of the user.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Leading and trailing whitespace is trimmed
+     * - Minimum length: 8 characters
+     * - Maximum length: 64 characters
+     */
     fullName: z
         .string()
         .trim()
         .min(8, 'Full name must be at least 8 characters')
         .max(64, 'Full name must be at most 64 characters')
         .describe('Full name of the user'),
+
+    /**
+     * User phone number.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Leading and trailing whitespace is trimmed
+     * - Must follow E.164 international phone format (via `e164PhoneRegex`)
+     *   - Typically starts with "+" followed by country code and number
+     */
     phone: z
         .string()
         .trim()
         .regex(e164PhoneRegex, 'Phone number format is incorrect')
         .describe('Phone number'),
+
+    /**
+     * User date of birth.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Must match ISO date format: YYYY-MM-DD
+     * - Must satisfy the {@link isoDateRegex} pattern
+     * - Must represent a date in the past (strictly less than today)
+     *
+     * Notes:
+     * - Validation compares the input string lexicographically to today's ISO date
+     */
     dateOfBirth: z
         .string()
         .regex(isoDateRegex, 'Date of birth must be in YYYY-MM-DD format')
@@ -26,6 +70,19 @@ const userFields = {
             return val < today;
         }, 'Date of birth must be in the past')
         .describe('Date of birth in YYYY-MM-DD format'),
+
+    /**
+     * User password.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Minimum length: 8 characters
+     * - Maximum length: 64 characters
+     * - Must contain at least:
+     *   - One uppercase letter (A–Z)
+     *   - One numeric digit (0–9)
+     *   - One special character (non-alphanumeric)
+     */
     password: z
         .string()
         .min(8, 'Password must be at least 8 characters')
@@ -36,6 +93,14 @@ const userFields = {
         .describe('User password'),
 };
 
+/**
+ * Membership start date.
+ *
+ * Constraints:
+ * - Must be a string
+ * - Must match ISO date format: YYYY-MM-DD
+ * - Must satisfy the {@link isoDateRegex} pattern
+ */
 const membershipStartField = z
     .string()
     .regex(isoDateRegex, 'Membership start date must be in YYYY-MM-DD format')
@@ -55,11 +120,32 @@ export const updateUserSchema = z.object({
 
 /** Schema for user login. */
 export const loginUserSchema = z.object({
+    /**
+     * User email address.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Leading and trailing whitespace is trimmed
+     * - Must match a valid email format (via `emailRegex`)
+     */
     email: z
         .string()
         .trim()
         .regex(emailRegex, 'Invalid email address')
         .describe('User email address'),
+
+    /**
+     * User password.
+     *
+     * Constraints:
+     * - Must be a string
+     * - Minimum length: 8 characters
+     * - Maximum length: 64 characters
+     * - Must contain at least:
+     *   - One uppercase letter (A–Z)
+     *   - One numeric digit (0–9)
+     *   - One special character (non-alphanumeric)
+     */
     password: z
         .string()
         .min(8, 'Password must be at least 8 characters')

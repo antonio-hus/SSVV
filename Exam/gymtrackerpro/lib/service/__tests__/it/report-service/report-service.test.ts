@@ -29,6 +29,7 @@ const seedMember = async (overrides: Partial<CreateMemberInput> = {}) => {
 describe('getMemberProgressReport', () => {
 
     it('getMemberProgressReport_oneSesssionOneExercise_returnsCorrectlyComputedReport', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
@@ -44,8 +45,10 @@ describe('getMemberProgressReport', () => {
         const inputStartDate: Date = new Date('2024-01-01');
         const inputEndDate: Date = new Date('2024-01-31');
 
+        // Act
         const result = await reportService.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+        // Assert
         expect(result.memberId).toBe(seededMember.id);
         expect(result.memberName).toBe(seededMember.user.fullName);
         expect(result.startDate).toEqual(inputStartDate);
@@ -72,6 +75,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_multipleSessionsMultipleExercises_aggregatesCorrectlyAndSortsBreakdownByVolumeDescending', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const benchPress = await exerciseRepository.create({
             name: 'Bench Press',
@@ -100,8 +104,10 @@ describe('getMemberProgressReport', () => {
         const inputStartDate: Date = new Date('2024-01-01');
         const inputEndDate: Date = new Date('2024-01-31');
 
+        // Act
         const result = await reportService.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+        // Assert
         expect(result.totalSessions).toBe(2);
         expect(result.totalVolume).toBe(7280);
         expect(result.averageSessionDuration).toBe(75);
@@ -118,6 +124,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_sameExerciseAcrossMultipleSessions_sessionCountReflectsDistinctSessions', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await exerciseRepository.create({
             name: 'Squat',
@@ -137,8 +144,10 @@ describe('getMemberProgressReport', () => {
         const inputStartDate: Date = new Date('2024-01-01');
         const inputEndDate: Date = new Date('2024-01-31');
 
+        // Act
         const result = await reportService.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+        // Assert
         expect(result.exerciseBreakdown).toHaveLength(1);
         expect(result.exerciseBreakdown[0].exerciseName).toBe('Squat');
         expect(result.exerciseBreakdown[0].totalSets).toBe(6);
@@ -148,6 +157,7 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_noSessionsInDateWindow_returnsZeroedAggregatesAndEmptyArrays', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await exerciseRepository.create({
             name: 'Bench Press',
@@ -163,8 +173,10 @@ describe('getMemberProgressReport', () => {
         const inputStartDate: Date = new Date('2024-01-01');
         const inputEndDate: Date = new Date('2024-01-31');
 
+        // Act
         const result = await reportService.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+        // Assert
         expect(result.totalSessions).toBe(0);
         expect(result.totalVolume).toBe(0);
         expect(result.averageSessionDuration).toBe(0);
@@ -173,12 +185,15 @@ describe('getMemberProgressReport', () => {
     });
 
     it('getMemberProgressReport_nonExistentMemberId_throwsNotFoundError', async () => {
+        // Arrange
         const inputMemberId: string = '00000000-0000-0000-0000-000000000000';
         const inputStartDate: Date = new Date('2024-01-01');
         const inputEndDate: Date = new Date('2024-01-31');
 
+        // Act
         const action = () => reportService.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 

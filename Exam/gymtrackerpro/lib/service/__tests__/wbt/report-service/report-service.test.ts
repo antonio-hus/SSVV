@@ -124,6 +124,7 @@ describe('getMemberProgressReport', () => {
     describe('Independent Paths', () => {
 
         it('Path1_outerOnce_innerOnce_D1True_loopForOnce_D2True', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
@@ -131,8 +132,11 @@ describe('getMemberProgressReport', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalSessions).toBe(1);
             expect(result.totalVolume).toBe(VOL_ONE);
             expect(result.averageSessionDuration).toBe(30);
@@ -149,14 +153,18 @@ describe('getMemberProgressReport', () => {
         });
 
         it('Path2_outerZero_loopForZero_D2False_averageDurationZero', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: [], total: 0} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalSessions).toBe(0);
             expect(result.totalVolume).toBe(0);
             expect(result.averageSessionDuration).toBe(0);
@@ -165,6 +173,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('Path3_outerOnce_innerZero_loopForZero_D2True', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
@@ -172,8 +181,11 @@ describe('getMemberProgressReport', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalSessions).toBe(1);
             expect(result.totalVolume).toBe(0);
             expect(result.averageSessionDuration).toBe(30);
@@ -183,6 +195,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('Path4_outerOnce_innerTwiceSameEx_D1TrueThenFalse', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
@@ -190,8 +203,11 @@ describe('getMemberProgressReport', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.exerciseBreakdown).toHaveLength(1);
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex_s1_1');
             expect(result.exerciseBreakdown[0].totalSets).toBe(5);
@@ -203,6 +219,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('Path5_outerTwice_innerOncePerSession', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
@@ -210,8 +227,11 @@ describe('getMemberProgressReport', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalSessions).toBe(2);
             expect(result.totalVolume).toBe(VOL_ONE * 2);
             expect(result.averageSessionDuration).toBe(30);
@@ -219,6 +239,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('Path6_outerOnce_innerTwoDistinct_loopForTwice_sortedDescByVolume', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
@@ -226,8 +247,11 @@ describe('getMemberProgressReport', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
             const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.exerciseBreakdown).toHaveLength(2);
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex_s1_2');
             expect(result.exerciseBreakdown[1].exerciseId).toBe('ex_s1_1');
@@ -240,14 +264,18 @@ describe('getMemberProgressReport', () => {
         describe('Outer_0', () => {
 
             it('Outer0_InnerNA_noSessions', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: [], total: 0} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(0);
                 expect(result.totalVolume).toBe(0);
                 expect(result.averageSessionDuration).toBe(0);
@@ -260,6 +288,7 @@ describe('getMemberProgressReport', () => {
         describe('Outer_1', () => {
 
             it('Outer1_Inner0_sessionEmpty', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -267,8 +296,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(1);
                 expect(result.totalVolume).toBe(0);
                 expect(result.exerciseBreakdown).toHaveLength(0);
@@ -277,6 +309,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_Inner1_oneExercise', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -284,8 +317,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(1);
                 expect(result.totalVolume).toBe(VOL_ONE);
                 expect(result.exerciseBreakdown).toHaveLength(1);
@@ -295,6 +331,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_Inner2_sameExerciseTwice_D1BothBranches', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -302,8 +339,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.sessionDetails).toHaveLength(1);
                 expect(result.sessionDetails[0].exercises).toHaveLength(2);
                 expect(result.exerciseBreakdown).toHaveLength(1);
@@ -312,6 +352,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_InnerM_twoDistinctExercises', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -319,8 +360,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.sessionDetails).toHaveLength(1);
                 expect(result.sessionDetails[0].exercises).toHaveLength(2);
                 expect(result.exerciseBreakdown).toHaveLength(2);
@@ -329,6 +373,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_InnerNMinus1_threeDistinctExercises', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -336,8 +381,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.sessionDetails).toHaveLength(1);
                 expect(result.sessionDetails[0].exercises).toHaveLength(3);
                 expect(result.exerciseBreakdown).toHaveLength(3);
@@ -346,6 +394,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_InnerN_fourDistinctExercises', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -353,8 +402,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.sessionDetails).toHaveLength(1);
                 expect(result.sessionDetails[0].exercises).toHaveLength(4);
                 expect(result.exerciseBreakdown).toHaveLength(4);
@@ -363,6 +415,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer1_InnerNPlus1_fiveDistinctExercises', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -370,8 +423,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 1} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.sessionDetails).toHaveLength(1);
                 expect(result.sessionDetails[0].exercises).toHaveLength(5);
                 expect(result.exerciseBreakdown).toHaveLength(5);
@@ -384,6 +440,7 @@ describe('getMemberProgressReport', () => {
         describe('Outer_2', () => {
 
             it('Outer2_Inner0_allSessionsEmpty', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -391,8 +448,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(0);
                 expect(result.exerciseBreakdown).toHaveLength(0);
@@ -402,6 +462,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer2_Inner1_oneExercisePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -409,8 +470,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_ONE * 2);
                 expect(result.exerciseBreakdown).toHaveLength(2);
@@ -419,6 +483,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer2_Inner2_sameExerciseTwicePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -426,8 +491,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_SAME_TWICE * 2);
                 expect(result.exerciseBreakdown).toHaveLength(2);
@@ -436,6 +504,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer2_InnerM_twoDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -443,14 +512,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_M * 2);
                 expect(result.exerciseBreakdown).toHaveLength(4);
             });
 
             it('Outer2_InnerNMinus1_threeDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -458,14 +531,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_N_MINUS1 * 2);
                 expect(result.exerciseBreakdown).toHaveLength(6);
             });
 
             it('Outer2_InnerN_fourDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -473,14 +550,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_N * 2);
                 expect(result.exerciseBreakdown).toHaveLength(8);
             });
 
             it('Outer2_InnerNPlus1_fiveDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -488,8 +569,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 2} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(2);
                 expect(result.totalVolume).toBe(VOL_N_PLUS1 * 2);
                 expect(result.exerciseBreakdown).toHaveLength(10);
@@ -500,6 +584,7 @@ describe('getMemberProgressReport', () => {
         describe('Outer_NMinus1 (outer=4, n=5)', () => {
 
             it('Outer_NMinus1_Inner0_allSessionsEmpty', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -507,8 +592,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(0);
                 expect(result.exerciseBreakdown).toHaveLength(0);
@@ -516,6 +604,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_NMinus1_Inner1_oneExercisePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -523,8 +612,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_ONE * 4);
                 expect(result.exerciseBreakdown).toHaveLength(4);
@@ -532,6 +624,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_NMinus1_Inner2_sameExerciseTwicePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -539,14 +632,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_SAME_TWICE * 4);
                 expect(result.exerciseBreakdown).toHaveLength(4);
             });
 
             it('Outer_NMinus1_InnerM_twoDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -554,14 +651,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_M * 4);
                 expect(result.exerciseBreakdown).toHaveLength(8);
             });
 
             it('Outer_NMinus1_InnerNMinus1_threeDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -569,14 +670,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_N_MINUS1 * 4);
                 expect(result.exerciseBreakdown).toHaveLength(12);
             });
 
             it('Outer_NMinus1_InnerN_fourDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -584,14 +689,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_N * 4);
                 expect(result.exerciseBreakdown).toHaveLength(16);
             });
 
             it('Outer_NMinus1_InnerNPlus1_fiveDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -599,8 +708,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 4} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(4);
                 expect(result.totalVolume).toBe(VOL_N_PLUS1 * 4);
                 expect(result.exerciseBreakdown).toHaveLength(20);
@@ -611,6 +723,7 @@ describe('getMemberProgressReport', () => {
         describe('Outer_N (outer=5, n=5)', () => {
 
             it('Outer_N_Inner0_allSessionsEmpty', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -618,8 +731,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(0);
                 expect(result.exerciseBreakdown).toHaveLength(0);
@@ -627,6 +743,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_N_Inner1_oneExercisePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -634,8 +751,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_ONE * 5);
                 expect(result.exerciseBreakdown).toHaveLength(5);
@@ -643,6 +763,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_N_Inner2_sameExerciseTwicePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -650,14 +771,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_SAME_TWICE * 5);
                 expect(result.exerciseBreakdown).toHaveLength(5);
             });
 
             it('Outer_N_InnerM_twoDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -665,14 +790,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_M * 5);
                 expect(result.exerciseBreakdown).toHaveLength(10);
             });
 
             it('Outer_N_InnerNMinus1_threeDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -680,14 +809,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_N_MINUS1 * 5);
                 expect(result.exerciseBreakdown).toHaveLength(15);
             });
 
             it('Outer_N_InnerN_fourDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -695,14 +828,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_N * 5);
                 expect(result.exerciseBreakdown).toHaveLength(20);
             });
 
             it('Outer_N_InnerNPlus1_fiveDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -710,8 +847,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 5} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(5);
                 expect(result.totalVolume).toBe(VOL_N_PLUS1 * 5);
                 expect(result.exerciseBreakdown).toHaveLength(25);
@@ -722,6 +862,7 @@ describe('getMemberProgressReport', () => {
         describe('Outer_NPlus1 (outer=6, n=5)', () => {
 
             it('Outer_NPlus1_Inner0_allSessionsEmpty', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -729,8 +870,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(0);
                 expect(result.exerciseBreakdown).toHaveLength(0);
@@ -738,6 +882,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_NPlus1_Inner1_oneExercisePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -745,8 +890,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_ONE * 6);
                 expect(result.exerciseBreakdown).toHaveLength(6);
@@ -754,6 +902,7 @@ describe('getMemberProgressReport', () => {
             });
 
             it('Outer_NPlus1_Inner2_sameExerciseTwicePerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -761,14 +910,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_SAME_TWICE * 6);
                 expect(result.exerciseBreakdown).toHaveLength(6);
             });
 
             it('Outer_NPlus1_InnerM_twoDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -776,14 +929,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_M * 6);
                 expect(result.exerciseBreakdown).toHaveLength(12);
             });
 
             it('Outer_NPlus1_InnerNMinus1_threeDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -791,14 +948,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_N_MINUS1 * 6);
                 expect(result.exerciseBreakdown).toHaveLength(18);
             });
 
             it('Outer_NPlus1_InnerN_fourDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -806,14 +967,18 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_N * 6);
                 expect(result.exerciseBreakdown).toHaveLength(24);
             });
 
             it('Outer_NPlus1_InnerNPlus1_fiveDistinctPerSession', async () => {
+                // Arrange
                 const inputMemberId: string = MEMBER_ID;
                 const inputStartDate: Date = START_DATE;
                 const inputEndDate: Date = END_DATE;
@@ -821,8 +986,11 @@ describe('getMemberProgressReport', () => {
                 mockWorkoutSessionRepo.findAll.mockResolvedValue({items: sessions, total: 6} as never);
 
                 const service = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
+
+                // Act
                 const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+                // Assert
                 expect(result.totalSessions).toBe(6);
                 expect(result.totalVolume).toBe(VOL_N_PLUS1 * 6);
                 expect(result.exerciseBreakdown).toHaveLength(30);
@@ -842,19 +1010,25 @@ describe('getMemberProgressReport', () => {
 describe('getInstance', () => {
 
     it('getInstance_Path1_returnsValidInstance', () => {
+        // Act
         const instance = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
 
+        // Assert
         expect(instance).toBeDefined();
         expect(instance).toBeInstanceOf(ReportService);
     });
 
     it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        // Arrange
         const firstCall = ReportService.getInstance(mockWorkoutSessionRepo, mockUserRepo);
 
         const secondWsRepo = mock<WorkoutSessionRepositoryInterface>();
         const secondUserRepo = mock<UserRepositoryInterface>();
+
+        // Act
         const secondCall = ReportService.getInstance(secondWsRepo, secondUserRepo);
 
+        // Assert
         expect(secondCall).toBe(firstCall);
 
         const internalWsRepo = (secondCall as unknown as { workoutSessionRepository: unknown }).workoutSessionRepository;

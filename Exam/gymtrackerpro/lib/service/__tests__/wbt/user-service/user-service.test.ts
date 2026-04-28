@@ -87,14 +87,18 @@ describe('generateTempPassword', () => {
     describe('Independent Paths', () => {
 
         it('generateTempPassword_Path1_normalExecution_returns16CharPassword', () => {
+            // Arrange
             jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
                 (array as Uint8Array).fill(0);
                 return array as Uint8Array;
             });
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = (service as any).generateTempPassword();
 
+            // Assert
             expect(result).toHaveLength(16);
             expect(result).toMatch(/[A-Z]/);
             expect(result).toMatch(/[0-9]/);
@@ -106,6 +110,7 @@ describe('generateTempPassword', () => {
     describe('Loop Coverage', () => {
 
         it('generateTempPassword_Loop_n_shuffles15Times_returns16CharPassword', () => {
+            // Arrange
             const callCounts: number[] = [];
             let callIndex = 0;
             jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
@@ -115,8 +120,11 @@ describe('generateTempPassword', () => {
             });
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = (service as any).generateTempPassword();
 
+            // Assert
             // 3 required + 13 remaining + 15 shuffle iterations = 31 total getRandomValues calls
             expect(callIndex).toBe(31);
             expect(result).toHaveLength(16);
@@ -134,12 +142,16 @@ describe('createMember', () => {
     describe('Independent Paths', () => {
 
         it('createMember_Path1_validInput_returnsMemberWithUser', async () => {
+            // Arrange
             const inputData: CreateMemberInput = {...CREATE_MEMBER_INPUT};
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.createMember(inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
             expect(mockUserRepo.createMember).toHaveBeenCalledWith(inputData);
         });
@@ -153,13 +165,17 @@ describe('createMemberWithTempPassword', () => {
     describe('Independent Paths', () => {
 
         it('createMemberWithTempPassword_Path1_validInput_returnsMemberWithTempPassword', async () => {
+            // Arrange
             const inputData: CreateMemberWithTempPasswordInput = {...CREATE_MEMBER_WITH_TEMP_PASSWORD_INPUT};
             mockUserRepo.createMember.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
             const service = UserService.getInstance(mockUserRepo);
             jest.spyOn(service as any, 'generateTempPassword').mockReturnValue(TEMP_PASSWORD);
+
+            // Act
             const result = await service.createMemberWithTempPassword(inputData);
 
+            // Assert
             expect(result).toEqual({...MOCK_MEMBER_WITH_USER, tempPassword: TEMP_PASSWORD});
             expect(mockUserRepo.createMember).toHaveBeenCalledWith({...inputData, password: TEMP_PASSWORD});
         });
@@ -173,12 +189,16 @@ describe('createAdmin', () => {
     describe('Independent Paths', () => {
 
         it('createAdmin_Path1_validInput_returnsAdminWithUser', async () => {
+            // Arrange
             const inputData: CreateAdminInput = {...CREATE_ADMIN_INPUT};
             mockUserRepo.createAdmin.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.createAdmin(inputData);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
             expect(mockUserRepo.createAdmin).toHaveBeenCalledWith(inputData);
         });
@@ -192,12 +212,16 @@ describe('getMember', () => {
     describe('Independent Paths', () => {
 
         it('getMember_Path1_validId_returnsMemberWithUser', async () => {
+            // Arrange
             const inputId: string = MEMBER_ID;
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER_WITH_USER);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.getMember(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_MEMBER_WITH_USER);
             expect(mockUserRepo.findMemberById).toHaveBeenCalledWith(inputId);
         });
@@ -211,12 +235,16 @@ describe('getAdmin', () => {
     describe('Independent Paths', () => {
 
         it('getAdmin_Path1_validId_returnsAdminWithUser', async () => {
+            // Arrange
             const inputId: string = ADMIN_ID;
             mockUserRepo.findAdminById.mockResolvedValue(MOCK_ADMIN_WITH_USER);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.getAdmin(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_ADMIN_WITH_USER);
             expect(mockUserRepo.findAdminById).toHaveBeenCalledWith(inputId);
         });
@@ -230,13 +258,17 @@ describe('listMembers', () => {
     describe('Independent Paths', () => {
 
         it('listMembers_Path1_noOptions_returnsPageResult', async () => {
+            // Arrange
             const inputOptions: MemberListOptions | undefined = undefined;
             const pageResult: PageResult<MemberWithUser> = {items: [MOCK_MEMBER_WITH_USER], total: 1};
             mockUserRepo.findMembers.mockResolvedValue(pageResult);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.listMembers(inputOptions);
 
+            // Assert
             expect(result).toEqual(pageResult);
             expect(mockUserRepo.findMembers).toHaveBeenCalledWith(inputOptions);
         });
@@ -250,13 +282,17 @@ describe('listAdmins', () => {
     describe('Independent Paths', () => {
 
         it('listAdmins_Path1_noOptions_returnsPageResult', async () => {
+            // Arrange
             const inputOptions: AdminListOptions | undefined = undefined;
             const pageResult: PageResult<AdminWithUser> = {items: [MOCK_ADMIN_WITH_USER], total: 1};
             mockUserRepo.findAdmins.mockResolvedValue(pageResult);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.listAdmins(inputOptions);
 
+            // Assert
             expect(result).toEqual(pageResult);
             expect(mockUserRepo.findAdmins).toHaveBeenCalledWith(inputOptions);
         });
@@ -270,6 +306,7 @@ describe('updateMember', () => {
     describe('Independent Paths', () => {
 
         it('updateMember_Path1_validInput_returnsUpdatedMemberWithUser', async () => {
+            // Arrange
             const inputId: string = MEMBER_ID;
             const inputData: UpdateMemberInput = {...UPDATE_MEMBER_INPUT};
             const updatedMember: MemberWithUser = {
@@ -279,8 +316,11 @@ describe('updateMember', () => {
             mockUserRepo.updateMember.mockResolvedValue(updatedMember);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.updateMember(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(updatedMember);
             expect(mockUserRepo.updateMember).toHaveBeenCalledWith(inputId, inputData);
         });
@@ -294,13 +334,17 @@ describe('suspendMember', () => {
     describe('Independent Paths', () => {
 
         it('suspendMember_Path1_validId_returnsSuspendedMemberWithUser', async () => {
+            // Arrange
             const inputId: string = MEMBER_ID;
             const suspendedMember: MemberWithUser = {...MOCK_MEMBER_WITH_USER, isActive: false};
             mockUserRepo.setMemberActive.mockResolvedValue(suspendedMember);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.suspendMember(inputId);
 
+            // Assert
             expect(result).toEqual(suspendedMember);
             expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, false);
         });
@@ -314,13 +358,17 @@ describe('activateMember', () => {
     describe('Independent Paths', () => {
 
         it('activateMember_Path1_validId_returnsActivatedMemberWithUser', async () => {
+            // Arrange
             const inputId: string = MEMBER_ID;
             const activatedMember: MemberWithUser = {...MOCK_MEMBER_WITH_USER, isActive: true};
             mockUserRepo.setMemberActive.mockResolvedValue(activatedMember);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.activateMember(inputId);
 
+            // Assert
             expect(result).toEqual(activatedMember);
             expect(mockUserRepo.setMemberActive).toHaveBeenCalledWith(inputId, true);
         });
@@ -334,6 +382,7 @@ describe('updateAdmin', () => {
     describe('Independent Paths', () => {
 
         it('updateAdmin_Path1_validInput_returnsUpdatedAdminWithUser', async () => {
+            // Arrange
             const inputId: string = ADMIN_ID;
             const inputData: UpdateAdminInput = {...UPDATE_ADMIN_INPUT};
             const updatedAdmin: AdminWithUser = {
@@ -343,8 +392,11 @@ describe('updateAdmin', () => {
             mockUserRepo.updateAdmin.mockResolvedValue(updatedAdmin);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.updateAdmin(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(updatedAdmin);
             expect(mockUserRepo.updateAdmin).toHaveBeenCalledWith(inputId, inputData);
         });
@@ -358,12 +410,16 @@ describe('deleteMember', () => {
     describe('Independent Paths', () => {
 
         it('deleteMember_Path1_validId_resolvesVoid', async () => {
+            // Arrange
             const inputId: string = MEMBER_ID;
             mockUserRepo.delete.mockResolvedValue(undefined);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.deleteMember(inputId);
 
+            // Assert
             expect(result).toBeUndefined();
             expect(mockUserRepo.delete).toHaveBeenCalledWith(inputId);
         });
@@ -377,12 +433,16 @@ describe('deleteAdmin', () => {
     describe('Independent Paths', () => {
 
         it('deleteAdmin_Path1_validId_resolvesVoid', async () => {
+            // Arrange
             const inputId: string = ADMIN_ID;
             mockUserRepo.delete.mockResolvedValue(undefined);
 
             const service = UserService.getInstance(mockUserRepo);
+
+            // Act
             const result = await service.deleteAdmin(inputId);
 
+            // Assert
             expect(result).toBeUndefined();
             expect(mockUserRepo.delete).toHaveBeenCalledWith(inputId);
         });
@@ -399,18 +459,24 @@ describe('deleteAdmin', () => {
 describe('getInstance', () => {
 
     it('getInstance_Path1_returnsValidInstance', () => {
+        // Act
         const instance = UserService.getInstance(mockUserRepo);
 
+        // Assert
         expect(instance).toBeDefined();
         expect(instance).toBeInstanceOf(UserService);
     });
 
     it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        // Arrange
         const firstCall = UserService.getInstance(mockUserRepo);
 
         const secondRepo = mock<UserRepositoryInterface>();
+
+        // Act
         const secondCall = UserService.getInstance(secondRepo);
 
+        // Assert
         expect(secondCall).toBe(firstCall);
 
         const internalRepo = (secondCall as unknown as { userRepository: unknown }).userRepository;

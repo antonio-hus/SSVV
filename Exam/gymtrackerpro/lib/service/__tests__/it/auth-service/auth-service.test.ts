@@ -17,6 +17,7 @@ afterAll(async () => {
 describe('login', () => {
 
     it('login_memberUserWithCorrectCredentials_returnsSessionDataWithMemberIdAndIsActive', async () => {
+        // Arrange
         const memberInput: CreateMemberInput = {
             email: 'member@gym.test',
             fullName: 'Test Member',
@@ -28,8 +29,10 @@ describe('login', () => {
         const seededMember = await userRepository.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: memberInput.password};
 
+        // Act
         const result = await authService.login(input);
 
+        // Assert
         expect(result.userId).toBe(seededMember.user.id);
         expect(result.email).toBe(seededMember.user.email);
         expect(result.fullName).toBe(seededMember.user.fullName);
@@ -40,6 +43,7 @@ describe('login', () => {
     });
 
     it('login_adminUserWithCorrectCredentials_returnsSessionDataWithAdminIdAndNoMemberFields', async () => {
+        // Arrange
         const adminInput: CreateAdminInput = {
             email: 'admin@gym.test',
             fullName: 'Test Admin',
@@ -50,8 +54,10 @@ describe('login', () => {
         const seededAdmin = await userRepository.createAdmin(adminInput);
         const input: LoginUserInput = {email: adminInput.email, password: adminInput.password};
 
+        // Act
         const result = await authService.login(input);
 
+        // Assert
         expect(result.userId).toBe(seededAdmin.user.id);
         expect(result.email).toBe(seededAdmin.user.email);
         expect(result.fullName).toBe(seededAdmin.user.fullName);
@@ -62,14 +68,18 @@ describe('login', () => {
     });
 
     it('login_emailNotRegistered_throwsNotFoundError', async () => {
+        // Arrange
         const input: LoginUserInput = {email: 'ghost@gym.test', password: 'AnyPass123!'};
 
+        // Act
         const action = () => authService.login(input);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('login_incorrectPassword_throwsAuthorizationError', async () => {
+        // Arrange
         const memberInput: CreateMemberInput = {
             email: 'member@gym.test',
             fullName: 'Test Member',
@@ -81,8 +91,10 @@ describe('login', () => {
         await userRepository.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: 'WrongPass999!'};
 
+        // Act
         const action = () => authService.login(input);
 
+        // Assert
         await expect(action()).rejects.toThrow(AuthorizationError);
     });
 

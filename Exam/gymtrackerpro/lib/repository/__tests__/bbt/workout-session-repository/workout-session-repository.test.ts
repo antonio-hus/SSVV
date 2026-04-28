@@ -96,14 +96,17 @@ beforeEach(() => {
 describe('create', () => {
     describe('Equivalence Classes', () => {
         it('create_EC_validDataWithExercises_returnsSessionWithExercises', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue(MOCK_MEMBER);
             prismaMock.workoutSession.create.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await repo.create(inputSessionData, inputExercises);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
@@ -111,6 +114,7 @@ describe('create', () => {
         });
 
         it('create_EC_multipleExercises_returnsSessionWithAllExercises', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [
@@ -127,45 +131,56 @@ describe('create', () => {
             prismaMock.member.findUnique.mockResolvedValue(MOCK_MEMBER);
             prismaMock.workoutSession.create.mockResolvedValue(multiExerciseSession);
 
+            // Act
             const result = await repo.create(inputSessionData, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(2);
             expect(result.exercises[1].exerciseId).toBe('exercise-uuid-002');
             expect(result.exercises[1].sets).toBe(4);
         });
 
         it('create_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [];
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
             await expect(act).rejects.toThrow('A workout session must include at least one exercise.');
         });
 
         it('create_EC_nonExistentMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
 
         it('create_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue(MOCK_MEMBER);
             prismaMock.workoutSession.create.mockRejectedValue(new Error('DB error'));
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB error');
         });
@@ -173,28 +188,35 @@ describe('create', () => {
 
     describe('Boundary Value Analysis', () => {
         it('create_BVA_emptyMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: ''};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('create_BVA_inexistentOneCharMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: 'a'};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.member.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('create_BVA_existingOneCharMemberId_returnsSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: 'a'};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
@@ -202,23 +224,29 @@ describe('create', () => {
             const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, memberId: 'a'};
             prismaMock.workoutSession.create.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await repo.create(inputSessionData, inputExercises);
 
+            // Assert
             expect(result.memberId).toBe('a');
             expect(result).toEqual(expectedReturn);
         });
 
         it('create_BVA_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [];
 
+            // Act
             const act = repo.create(inputSessionData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
         });
 
         it('create_BVA_oneExercise_returnsSessionWithOneExercise', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputSessionData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [{
@@ -230,8 +258,10 @@ describe('create', () => {
             prismaMock.member.findUnique.mockResolvedValue(MOCK_MEMBER);
             prismaMock.workoutSession.create.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await repo.create(inputSessionData, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(1);
             expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
@@ -241,24 +271,30 @@ describe('create', () => {
 describe('findById', () => {
     describe('Equivalence Classes', () => {
         it('findById_EC_existingSessionId_returnsSessionWithExercises', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             prismaMock.workoutSession.findUnique.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await repo.findById(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
         });
 
         it('findById_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = NONEXISTENT_ID;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.findById(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Workout session not found');
         });
@@ -266,33 +302,42 @@ describe('findById', () => {
 
     describe('Boundary Value Analysis', () => {
         it('findById_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = '';
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.findById(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('findById_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.findById(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('findById_BVA_existingOneCharId_returnsSessionWithExercises', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, id: 'a'};
             prismaMock.workoutSession.findUnique.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await repo.findById(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result).toEqual(expectedReturn);
         });
@@ -302,14 +347,17 @@ describe('findById', () => {
 describe('findAll', () => {
     describe('Equivalence Classes', () => {
         it('findAll_EC_noOptions_returnsAllSessionsUnpaginated', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002', date: new Date('2024-07-01')};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll();
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.items[0]).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.items[1]).toEqual(session2);
@@ -317,20 +365,24 @@ describe('findAll', () => {
         });
 
         it('findAll_EC_withMemberId_returnsMemberSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {memberId: MEMBER_ID};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].memberId).toBe(MEMBER_ID);
             expect(result.items[0]).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('findAll_EC_withStartDate_returnsSessionsFromDate', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const startDate = new Date('2024-06-01');
             const inputOptions: WorkoutSessionListOptions = {startDate};
@@ -338,13 +390,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
         });
 
         it('findAll_EC_withEndDate_returnsSessionsUntilDate', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const endDate = new Date('2024-06-30');
             const inputOptions: WorkoutSessionListOptions = {endDate};
@@ -352,13 +407,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeLessThanOrEqual(endDate.getTime());
         });
 
         it('findAll_EC_withDateRange_returnsSessionsInRange', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const startDate = new Date('2024-01-01');
             const endDate = new Date('2024-12-31');
@@ -367,14 +425,17 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
             expect(result.items[0].date.getTime()).toBeLessThanOrEqual(endDate.getTime());
         });
 
         it('findAll_EC_withMemberIdAndDateRange_returnsFilteredSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {
                 memberId: MEMBER_ID,
@@ -385,39 +446,48 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].memberId).toBe(MEMBER_ID);
         });
 
         it('findAll_EC_withPagination_returnsPaginatedSubset', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 2, pageSize: 10};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(25);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(25);
         });
 
         it('findAll_EC_noMatchingSessions_returnsEmptyPageResult', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {memberId: NONEXISTENT_ID};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([]);
             prismaMock.workoutSession.count.mockResolvedValue(0);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
 
         it('findAll_EC_unpaginatedMultipleSessions_returnsSessionsOrderedByDateAscending', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const olderSession: WorkoutSessionWithExercises = {
                 ...MOCK_SESSION_WITH_EXERCISES,
@@ -433,8 +503,10 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([olderSession, newerSession]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll();
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.items[0].id).toBe('older');
             expect(result.items[1].id).toBe('newer');
@@ -442,6 +514,7 @@ describe('findAll', () => {
         });
 
         it('findAll_EC_paginatedMultipleSessions_returnsSessionsOrderedByDateDescending', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 10};
             const olderSession: WorkoutSessionWithExercises = {
@@ -458,8 +531,10 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([newerSession, olderSession]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.items[0].id).toBe('newer');
             expect(result.items[1].id).toBe('older');
@@ -469,6 +544,7 @@ describe('findAll', () => {
 
     describe('Boundary Value Analysis', () => {
         it('findAll_BVA_memberIdUndefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {memberId: undefined};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -476,39 +552,48 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_memberIdEmpty_returnsNoSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {memberId: ''};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([]);
             prismaMock.workoutSession.count.mockResolvedValue(0);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
 
         it('findAll_BVA_memberIdOneChar_returnsMatchingItems', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {memberId: 'a'};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].memberId).toBe(MEMBER_ID);
         });
 
         it('findAll_BVA_startDateUndefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {startDate: undefined};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -516,13 +601,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_endDateUndefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {endDate: undefined};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -530,13 +618,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_startDateEqualsEndDate_returnsSameDaySessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const sameDay = new Date('2024-06-01');
             const inputOptions: WorkoutSessionListOptions = {startDate: sameDay, endDate: sameDay};
@@ -544,13 +635,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(1);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date).toEqual(sameDay);
         });
 
         it('findAll_BVA_pageAndPageSizeUndefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: undefined, pageSize: undefined};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -559,13 +653,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2, session3]);
             prismaMock.workoutSession.count.mockResolvedValue(3);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(3);
             expect(result.total).toBe(3);
         });
 
         it('findAll_BVA_pageUndefinedPageSizeDefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: undefined, pageSize: 10};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -573,13 +670,16 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_pageDefinedPageSizeUndefined_returnsAllSessions', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: undefined};
             const session2: WorkoutSessionWithExercises = {...MOCK_SESSION_WITH_EXERCISES, id: 'session-uuid-002'};
@@ -587,60 +687,74 @@ describe('findAll', () => {
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES, session2]);
             prismaMock.workoutSession.count.mockResolvedValue(2);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.total).toBe(2);
         });
 
         it('findAll_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 0, pageSize: 10};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(5);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
 
         it('findAll_BVA_page1_returnsFirstPage', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 10};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(25);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(25);
         });
 
         it('findAll_BVA_page2_returnsSecondPage', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 2, pageSize: 10};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([]);
             prismaMock.workoutSession.count.mockResolvedValue(25);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(25);
         });
 
         it('findAll_BVA_pageSize1_returnsOneItemPerPage', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 1};
             mockTransaction();
             prismaMock.workoutSession.findMany.mockResolvedValue([MOCK_SESSION_WITH_EXERCISES]);
             prismaMock.workoutSession.count.mockResolvedValue(5);
 
+            // Act
             const result = await repo.findAll(inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
@@ -650,6 +764,7 @@ describe('findAll', () => {
 describe('update', () => {
     describe('Equivalence Classes', () => {
         it('update_EC_existingSessionValidData_returnsUpdatedSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -657,20 +772,25 @@ describe('update', () => {
             const expectedReturn = {...MOCK_SESSION, duration: 75};
             prismaMock.workoutSession.update.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await repo.update(inputId, inputData);
 
+            // Assert
             expect(result.duration).toBe(75);
             expect(result).toEqual(expectedReturn);
         });
 
         it('update_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = NONEXISTENT_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.update(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Workout session not found');
         });
@@ -678,28 +798,35 @@ describe('update', () => {
 
     describe('Boundary Value Analysis', () => {
         it('update_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = '';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.update(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('update_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.update(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('update_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -708,8 +835,10 @@ describe('update', () => {
             const expectedReturn = {...existing, duration: 75};
             prismaMock.workoutSession.update.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await repo.update(inputId, inputData);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.duration).toBe(75);
             expect(result).toEqual(expectedReturn);
@@ -720,6 +849,7 @@ describe('update', () => {
 describe('updateWithExercises', () => {
     describe('Equivalence Classes', () => {
         it('updateWithExercises_EC_existingSessionWithNewExercises_returnsUpdatedSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -733,38 +863,47 @@ describe('updateWithExercises', () => {
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [];
 
+            // Act
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
         });
 
         it('updateWithExercises_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = NONEXISTENT_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Workout session not found');
         });
 
         it('updateWithExercises_EC_existingExerciseIdKept_returnsUpdatedSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -784,8 +923,10 @@ describe('updateWithExercises', () => {
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
             expect(result.exercises[0].sets).toBe(4);
@@ -793,6 +934,7 @@ describe('updateWithExercises', () => {
         });
 
         it('updateWithExercises_EC_staleExerciseRemoved_returnsUpdatedSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -809,13 +951,16 @@ describe('updateWithExercises', () => {
                 (fn as (tx: PrismaClient) => Promise<never>)(txMock),
             );
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe(SESSION_ID);
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_mixedExercises_returnsUpdatedSession', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -837,13 +982,16 @@ describe('updateWithExercises', () => {
                 (fn as (tx: PrismaClient) => Promise<never>)(txMock),
             );
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe(SESSION_ID);
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
         });
 
         it('updateWithExercises_EC_transactionFails_throwsTransactionError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -851,8 +999,10 @@ describe('updateWithExercises', () => {
             prismaMock.workoutSession.findUnique.mockResolvedValue(MOCK_SESSION);
             prismaMock.$transaction.mockRejectedValue(new Error('DB connection lost'));
 
+            // Act
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB connection lost');
         });
@@ -860,30 +1010,37 @@ describe('updateWithExercises', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateWithExercises_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = '';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWithExercises_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWithExercises_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -898,13 +1055,16 @@ describe('updateWithExercises', () => {
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result).toEqual(expectedReturn);
         });
 
         it('updateWithExercises_BVA_oneExercise_returnsUpdatedSessionWithOneExercise', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -923,8 +1083,10 @@ describe('updateWithExercises', () => {
                 return (fn as (tx: PrismaClient) => Promise<never>)(tx);
             });
 
+            // Act
             const result = await repo.updateWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(1);
             expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
@@ -934,23 +1096,29 @@ describe('updateWithExercises', () => {
 describe('delete', () => {
     describe('Equivalence Classes', () => {
         it('delete_EC_existingSessionId_resolvesSuccessfully', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = SESSION_ID;
             prismaMock.workoutSession.findUnique.mockResolvedValue(MOCK_SESSION);
             prismaMock.workoutSession.delete.mockResolvedValue(MOCK_SESSION);
 
+            // Act
             const act = repo.delete(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
 
         it('delete_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = NONEXISTENT_ID;
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.delete(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Workout session not found');
         });
@@ -958,33 +1126,42 @@ describe('delete', () => {
 
     describe('Boundary Value Analysis', () => {
         it('delete_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = '';
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repo.delete(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('delete_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const repoActual = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             prismaMock.workoutSession.findUnique.mockResolvedValue(null);
 
+            // Act
             const act = repoActual.delete(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('delete_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            // Arrange
             const repo = WorkoutSessionRepository.getInstance(prismaMock);
             const inputId = 'a';
             prismaMock.workoutSession.findUnique.mockResolvedValue({...MOCK_SESSION, id: 'a'});
             prismaMock.workoutSession.delete.mockResolvedValue({...MOCK_SESSION, id: 'a'});
 
+            // Act
             const act = repo.delete(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
     });

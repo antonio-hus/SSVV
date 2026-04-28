@@ -61,6 +61,7 @@ const seedWorkoutSession = async (
 describe('createWorkoutSession', () => {
 
     it('createWorkoutSession_newSessionWithOneExercise_returnsPersistedSessionAndCreatesWseRow', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const inputData: CreateWorkoutSessionInput = {
@@ -73,8 +74,10 @@ describe('createWorkoutSession', () => {
             {exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionService.createWorkoutSession(inputData, inputExercises);
 
+        // Assert
         expect(result.id).toBeDefined();
         expect(result.memberId).toBe(seededMember.id);
         expect(result.duration).toBe(60);
@@ -88,6 +91,7 @@ describe('createWorkoutSession', () => {
     });
 
     it('createWorkoutSession_newSessionWithMultipleExercises_createsOneWseRowPerExercise', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const exercise1 = await seedExercise('Bench Press');
         const exercise2 = await seedExercise('Deadlift');
@@ -101,14 +105,17 @@ describe('createWorkoutSession', () => {
             {exerciseId: exercise2.id, sets: 4, reps: 8, weight: 80},
         ];
 
+        // Act
         const result = await workoutSessionService.createWorkoutSession(inputData, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
         const sessionInRepository = await workoutSessionRepository.findById(result.id);
         expect(sessionInRepository.exercises).toHaveLength(2);
     });
 
     it('createWorkoutSession_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const inputData: CreateWorkoutSessionInput = {
             memberId: seededMember.id,
@@ -116,14 +123,17 @@ describe('createWorkoutSession', () => {
             duration: 60,
         };
 
+        // Act
         const action = () => workoutSessionService.createWorkoutSession(inputData, []);
 
+        // Assert
         await expect(action()).rejects.toThrow(WorkoutSessionRequiresExercisesError);
         const { total: sessionCount } = await workoutSessionRepository.findAll();
         expect(sessionCount).toBe(0);
     });
 
     it('createWorkoutSession_memberNotFound_throwsNotFoundError', async () => {
+        // Arrange
         const seededExercise = await seedExercise();
         const inputData: CreateWorkoutSessionInput = {
             memberId: '00000000-0000-0000-0000-000000000000',
@@ -134,14 +144,17 @@ describe('createWorkoutSession', () => {
             {exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const action = () => workoutSessionService.createWorkoutSession(inputData, inputExercises);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
         const { total: sessionCount } = await workoutSessionRepository.findAll();
         expect(sessionCount).toBe(0);
     });
 
     it('createWorkoutSession_afterNotFoundError_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await workoutSessionService.createWorkoutSession(
@@ -158,8 +171,10 @@ describe('createWorkoutSession', () => {
             {exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionService.createWorkoutSession(inputData, inputExercises);
 
+        // Assert
         expect(result.memberId).toBe(seededMember.id);
         const { total: sessionCount } = await workoutSessionRepository.findAll();
         expect(sessionCount).toBe(1);
@@ -170,6 +185,7 @@ describe('createWorkoutSession', () => {
 describe('getWorkoutSession', () => {
 
     it('getWorkoutSession_existingSession_returnsSessionWithAllFieldsAndExercisesMatching', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {
@@ -177,8 +193,10 @@ describe('getWorkoutSession', () => {
         });
         const inputId: string = seededSession.id;
 
+        // Act
         const result = await workoutSessionService.getWorkoutSession(inputId);
 
+        // Assert
         expect(result.id).toBe(seededSession.id);
         expect(result.memberId).toBe(seededMember.id);
         expect(result.duration).toBe(60);
@@ -188,10 +206,13 @@ describe('getWorkoutSession', () => {
     });
 
     it('getWorkoutSession_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => workoutSessionService.getWorkoutSession(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
@@ -200,14 +221,17 @@ describe('getWorkoutSession', () => {
 describe('listMemberWorkoutSessions', () => {
 
     it('listMemberWorkoutSessions_noOptions_returnsAllSessionsForMemberOrderedByDateAsc', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-03-01'});
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-06-01'});
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id);
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-01-01'));
@@ -216,54 +240,67 @@ describe('listMemberWorkoutSessions', () => {
     });
 
     it('listMemberWorkoutSessions_noSessions_returnsEmptyPage', async () => {
+        // Arrange
         const seededMember = await seedMember();
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id);
 
+        // Assert
         expect(result.total).toBe(0);
         expect(result.items).toHaveLength(0);
     });
 
     it('listMemberWorkoutSessions_otherMemberSessionsExist_returnsOnlySessionsForSpecifiedMember', async () => {
+        // Arrange
         const member1 = await seedMember({email: 'm1@test.com', fullName: 'M1'});
         const member2 = await seedMember({email: 'm2@test.com', fullName: 'M2'});
         const seededExercise = await seedExercise();
         const session1 = await seedWorkoutSession(member1.id, [seededExercise.id]);
         await seedWorkoutSession(member2.id, [seededExercise.id]);
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(member1.id);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(session1.id);
     });
 
     it('listMemberWorkoutSessions_startDateFilter_returnsOnlySessionsOnOrAfterStartDate', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
         const laterSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-06-01'});
         const inputOptions: WorkoutSessionListOptions = {startDate: new Date('2024-03-01')};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(laterSession.id);
     });
 
     it('listMemberWorkoutSessions_endDateFilter_returnsOnlySessionsOnOrBeforeEndDate', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const earlySession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-06-01'});
         const inputOptions: WorkoutSessionListOptions = {endDate: new Date('2024-03-01')};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(earlySession.id);
     });
 
     it('listMemberWorkoutSessions_startDateAndEndDate_returnsOnlySessionsWithinRange', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
@@ -274,13 +311,16 @@ describe('listMemberWorkoutSessions', () => {
             endDate: new Date('2024-06-01'),
         };
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(1);
         expect(result.items[0].id).toBe(midSession.id);
     });
 
     it('listMemberWorkoutSessions_pageAndPageSize_returnsPaginatedSliceOrderedByDateDesc', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         for (let month = 1; month <= 5; month++) {
@@ -290,8 +330,10 @@ describe('listMemberWorkoutSessions', () => {
         }
         const inputOptions: WorkoutSessionListOptions = {page: 2, pageSize: 2};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(5);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
@@ -299,6 +341,7 @@ describe('listMemberWorkoutSessions', () => {
     });
 
     it('listMemberWorkoutSessions_pageZeroWithPageSize_clampedToPageOneReturnsFirstSliceDesc', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
@@ -306,8 +349,10 @@ describe('listMemberWorkoutSessions', () => {
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-03-01'});
         const inputOptions: WorkoutSessionListOptions = {page: 0, pageSize: 2};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(2);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
@@ -315,6 +360,7 @@ describe('listMemberWorkoutSessions', () => {
     });
 
     it('listMemberWorkoutSessions_pageSizeExceedsTotalWithPage_returnsAllRowsDesc', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
@@ -322,14 +368,17 @@ describe('listMemberWorkoutSessions', () => {
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-03-01'});
         const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 100};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-03-01'));
     });
 
     it('listMemberWorkoutSessions_onlyPageWithoutPageSize_notPaginatedReturnsAllSessionsAsc', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
@@ -337,12 +386,32 @@ describe('listMemberWorkoutSessions', () => {
         await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-03-01'});
         const inputOptions: WorkoutSessionListOptions = {page: 2};
 
+        // Act
         const result = await workoutSessionService.listMemberWorkoutSessions(seededMember.id, inputOptions);
 
+        // Assert
         expect(result.total).toBe(3);
         expect(result.items).toHaveLength(3);
         expect(result.items[0].date).toEqual(new Date('2024-01-01'));
         expect(result.items[1].date).toEqual(new Date('2024-02-01'));
+    });
+
+    it('listMemberWorkoutSessions_startDateFilterWithOtherMemberSessions_returnsOnlyTargetMembersSessionsAfterStartDate', async () => {
+        // Arrange
+        const member1 = await seedMember({email: 'm1@test.com', fullName: 'M1'});
+        const member2 = await seedMember({email: 'm2@test.com', fullName: 'M2'});
+        const seededExercise = await seedExercise();
+        await seedWorkoutSession(member1.id, [seededExercise.id], {date: '2024-01-01'});
+        const targetSession = await seedWorkoutSession(member1.id, [seededExercise.id], {date: '2024-06-01'});
+        await seedWorkoutSession(member2.id, [seededExercise.id], {date: '2024-06-01'});
+        const inputOptions: WorkoutSessionListOptions = {startDate: new Date('2024-03-01')};
+
+        // Act
+        const result = await workoutSessionService.listMemberWorkoutSessions(member1.id, inputOptions);
+
+        // Assert
+        expect(result.total).toBe(1);
+        expect(result.items[0].id).toBe(targetSession.id);
     });
 
 });
@@ -350,6 +419,7 @@ describe('listMemberWorkoutSessions', () => {
 describe('updateWorkoutSession', () => {
 
     it('updateWorkoutSession_allFields_returnsUpdatedSessionAndPersistsAllChanges', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {
@@ -358,8 +428,10 @@ describe('updateWorkoutSession', () => {
         const inputId: string = seededSession.id;
         const inputData: UpdateWorkoutSessionInput = {date: '2025-01-15', duration: 90, notes: 'Updated'};
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSession(inputId, inputData);
 
+        // Assert
         expect(result.date).toEqual(new Date('2025-01-15'));
         expect(result.duration).toBe(90);
         expect(result.notes).toBe('Updated');
@@ -371,15 +443,19 @@ describe('updateWorkoutSession', () => {
     });
 
     it('updateWorkoutSession_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
         const inputData: UpdateWorkoutSessionInput = {duration: 90};
 
+        // Act
         const action = () => workoutSessionService.updateWorkoutSession(inputId, inputData);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateWorkoutSession_partialInput_onlyDurationChangedOtherFieldsUntouched', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {
@@ -388,8 +464,10 @@ describe('updateWorkoutSession', () => {
         const inputId: string = seededSession.id;
         const inputData: UpdateWorkoutSessionInput = {duration: 90};
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSession(inputId, inputData);
 
+        // Assert
         expect(result.duration).toBe(90);
 
         const sessionInRepository = await workoutSessionRepository.findById(inputId);
@@ -399,6 +477,7 @@ describe('updateWorkoutSession', () => {
     });
 
     it('updateWorkoutSession_emptyInput_noFieldsMutated', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {
@@ -407,8 +486,10 @@ describe('updateWorkoutSession', () => {
         const inputId: string = seededSession.id;
         const inputData: UpdateWorkoutSessionInput = {};
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSession(inputId, inputData);
 
+        // Assert
         expect(result.date).toEqual(new Date('2024-06-01'));
         expect(result.duration).toBe(60);
         expect(result.notes).toBe('Original');
@@ -420,6 +501,7 @@ describe('updateWorkoutSession', () => {
     });
 
     it('updateWorkoutSession_afterNotFoundError_subsequentValidCallOnDifferentSessionSucceeds', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const sessionA = await seedWorkoutSession(seededMember.id, [seededExercise.id], {
@@ -435,8 +517,10 @@ describe('updateWorkoutSession', () => {
         const inputId: string = sessionB.id;
         const inputData: UpdateWorkoutSessionInput = {duration: 90};
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSession(inputId, inputData);
 
+        // Assert
         expect(result.duration).toBe(90);
 
         const sessionAInRepository = await workoutSessionRepository.findById(sessionA.id);
@@ -450,6 +534,7 @@ describe('updateWorkoutSession', () => {
 describe('updateWorkoutSessionWithExercises', () => {
 
     it('updateWorkoutSessionWithExercises_sessionFieldsAndExistingExercise_updatesSessionAndWseRow', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id], {duration: 60});
@@ -460,8 +545,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {id: wse1[0].id, exerciseId: seededExercise.id, sets: 5, reps: 8, weight: 100},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+        // Assert
         expect(result.duration).toBe(90);
         expect(result.exercises).toHaveLength(1);
         expect(result.exercises[0].sets).toBe(5);
@@ -478,13 +565,16 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id]);
         const inputId: string = seededSession.id;
 
+        // Act
         const action = () => workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, []);
 
+        // Assert
         await expect(action()).rejects.toThrow(WorkoutSessionRequiresExercisesError);
 
         const sessionInRepository = await workoutSessionRepository.findById(inputId);
@@ -493,18 +583,22 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_nonExistentSession_throwsNotFoundError', async () => {
+        // Arrange
         const seededExercise = await seedExercise();
         const inputId: string = '00000000-0000-0000-0000-000000000000';
         const inputExercises: WorkoutSessionExerciseUpdateInput[] = [
             {exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const action = () => workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('updateWorkoutSessionWithExercises_exerciseOmittedFromInput_deletesItsWseRow', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const exercise1 = await seedExercise('Bench Press');
         const exercise2 = await seedExercise('Deadlift');
@@ -516,8 +610,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {id: wse1.id, exerciseId: exercise1.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(1);
         expect(result.exercises[0].id).toBe(wse1.id);
 
@@ -527,6 +623,7 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_exerciseWithIdInInput_updatesItsWseFields', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id]);
@@ -536,8 +633,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {id: wse1[0].id, exerciseId: seededExercise.id, sets: 5, reps: 8, weight: 100},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises[0].sets).toBe(5);
         expect(result.exercises[0].reps).toBe(8);
         expect(result.exercises[0].weight).toBe(100);
@@ -551,6 +650,7 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_exerciseWithoutIdInInput_createsNewWseRow', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const exercise1 = await seedExercise('Bench Press');
         const exercise2 = await seedExercise('Deadlift');
@@ -562,8 +662,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {exerciseId: exercise2.id, sets: 2, reps: 15, weight: 20},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
 
         const sessionInRepository = await workoutSessionRepository.findById(inputId);
@@ -571,6 +673,7 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_mixKeepDeleteAdd_reconcileAllThreeBranchesCorrectly', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const exercise1 = await seedExercise('Bench Press');
         const exercise2 = await seedExercise('Deadlift');
@@ -584,8 +687,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {exerciseId: exercise3.id, sets: 3, reps: 10, weight: 40},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, {}, inputExercises);
 
+        // Assert
         expect(result.exercises).toHaveLength(2);
         expect(result.exercises.find(e => e.id === wse1.id)?.sets).toBe(4);
         expect(result.exercises.find(e => e.id === wse2.id)).toBeUndefined();
@@ -602,6 +707,7 @@ describe('updateWorkoutSessionWithExercises', () => {
     });
 
     it('updateWorkoutSessionWithExercises_afterRequiresExercisesError_subsequentValidCallSucceeds', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id]);
@@ -614,8 +720,10 @@ describe('updateWorkoutSessionWithExercises', () => {
             {id: wse1[0].id, exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 50},
         ];
 
+        // Act
         const result = await workoutSessionService.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+        // Assert
         expect(result.duration).toBe(90);
 
         const sessionInRepository = await workoutSessionRepository.findById(inputId);
@@ -627,37 +735,47 @@ describe('updateWorkoutSessionWithExercises', () => {
 describe('deleteWorkoutSession', () => {
 
     it('deleteWorkoutSession_existingSession_removesSessionAndItsWseRowsViaCascade', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const seededSession = await seedWorkoutSession(seededMember.id, [seededExercise.id]);
         const inputId: string = seededSession.id;
 
+        // Act
         await workoutSessionService.deleteWorkoutSession(inputId);
 
+        // Assert
         await expect(workoutSessionRepository.findById(inputId)).rejects.toThrow(NotFoundError);
     });
 
     it('deleteWorkoutSession_nonExistentId_throwsNotFoundError', async () => {
+        // Arrange
         const inputId: string = '00000000-0000-0000-0000-000000000000';
 
+        // Act
         const action = () => workoutSessionService.deleteWorkoutSession(inputId);
 
+        // Assert
         await expect(action()).rejects.toThrow(NotFoundError);
     });
 
     it('deleteWorkoutSession_sessionWithMultipleWseRows_cascadesAllWseRowsDeletion', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const exercise1 = await seedExercise('Bench Press');
         const exercise2 = await seedExercise('Deadlift');
         const seededSession = await seedWorkoutSession(seededMember.id, [exercise1.id, exercise2.id]);
         const inputId: string = seededSession.id;
 
+        // Act
         await workoutSessionService.deleteWorkoutSession(inputId);
 
+        // Assert
         await expect(workoutSessionRepository.findById(inputId)).rejects.toThrow(NotFoundError);
     });
 
     it('deleteWorkoutSession_afterNotFoundError_subsequentValidCallOnDifferentSessionSucceeds', async () => {
+        // Arrange
         const seededMember = await seedMember();
         const seededExercise = await seedExercise();
         const sessionA = await seedWorkoutSession(seededMember.id, [seededExercise.id], {date: '2024-01-01'});
@@ -666,8 +784,10 @@ describe('deleteWorkoutSession', () => {
         });
         const inputId: string = sessionB.id;
 
+        // Act
         await workoutSessionService.deleteWorkoutSession(inputId);
 
+        // Assert
         const sessionAInRepository = await workoutSessionRepository.findById(sessionA.id);
         expect(sessionAInRepository).toBeDefined();
         await expect(workoutSessionRepository.findById(sessionB.id)).rejects.toThrow(NotFoundError);

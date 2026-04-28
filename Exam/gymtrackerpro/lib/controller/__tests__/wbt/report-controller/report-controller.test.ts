@@ -56,14 +56,17 @@ describe('getMemberProgressReport', () => {
     describe('Independent Paths', () => {
 
         it('getMemberProgressReport_Path1_validInputServiceSucceeds_returnsReport', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: string = START_DATE;
             const inputEndDate: string = END_DATE;
             memberProgressReportSchemaMock.safeParse.mockReturnValue({success: true, data: MOCK_VALID_PARSED_DATA});
             reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
 
+            // Act
             const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result).toEqual({success: true, data: MOCK_REPORT});
             expect(memberProgressReportSchemaMock.safeParse).toHaveBeenCalledWith({
                 memberId: inputMemberId,
@@ -78,13 +81,16 @@ describe('getMemberProgressReport', () => {
         });
 
         it('getMemberProgressReport_Path2_invalidInput_returnsValidationError', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: string = 'not-a-date';
             const inputEndDate: string = END_DATE;
             memberProgressReportSchemaMock.safeParse.mockReturnValue({success: false, error: MOCK_ZOD_ERROR});
 
+            // Act
             const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result).toEqual({
                 success: false,
                 message: 'Validation failed',
@@ -94,6 +100,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('getMemberProgressReport_Path3_serviceThrowsAppError_returnsAppErrorMessage', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: string = START_DATE;
             const inputEndDate: string = END_DATE;
@@ -102,20 +109,25 @@ describe('getMemberProgressReport', () => {
                 new NotFoundError(`Member not found: ${MEMBER_ID}`),
             );
 
+            // Act
             const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result).toEqual({success: false, message: `Member not found: ${MEMBER_ID}`});
         });
 
         it('getMemberProgressReport_Path4_serviceThrowsUnknownError_returnsGenericMessage', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: string = START_DATE;
             const inputEndDate: string = END_DATE;
             memberProgressReportSchemaMock.safeParse.mockReturnValue({success: true, data: MOCK_VALID_PARSED_DATA});
             reportServiceMock.getMemberProgressReport.mockRejectedValue(new Error('Database failure'));
 
+            // Act
             const result = await getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
         });
 

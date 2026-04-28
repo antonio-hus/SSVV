@@ -26,6 +26,8 @@ export const LogoutButton = ({className}: LogoutButtonProps) => {
         startTransition(async () => {
             try {
                 await logout();
+            } catch (error) {
+                console.error(error);
             } finally {
                 router.push('/login');
             }

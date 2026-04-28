@@ -21,47 +21,48 @@ const globalIgnorePatterns = [
     '<rootDir>/node_modules/',
 ];
 
-/**
- * Root Jest configuration.
- *
- * Unit and integration suites are separated at the **script level** rather than
- * the config level:
- *
- * ```bash
- * # Unit tests only - no Docker needed, runs in parallel
- * npm test
- *
- * # Integration tests only - requires Docker, always serial (-i)
- * npm run test:integration
- * ```
- * 
- * @see docker-compose.test.yml   for the test database setup
- * @see .env.test                 for the DATABASE_URL used by integration tests
- */
-const config: Config = {
-    testEnvironment: 'node',
-
-    /**
-     * Matches all test files under `__tests__/` regardless of nesting depth.
-     * The npm scripts narrow this further using `--testPathPattern`:
-     *   - `npm test` → excludes `integration/`
-     *   - `npm run test:integration` → matches only `integration/`
-     */
-    testMatch: [
-        '**/__tests__/**/*.test.ts',
-        '**/__tests__/**/*.test.tsx',
-    ],
-
-    /**
-     * Keeps the `@/` alias in sync with `tsconfig.json` → `paths`.
-     * Add any other aliases here if `tsconfig.json` is extended later.
-     */
+const sharedConfig = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1',
     },
-
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
     testPathIgnorePatterns: globalIgnorePatterns,
     modulePathIgnorePatterns: globalIgnorePatterns,
 };
 
-export default createJestConfig(config);
+/**
+ * Resolves the full Next.js config (transforms, CSS mocks, etc.) first, then
+ * spreads it into each project so the transforms are present in every suite.
+ *
+ * - `node`  → bbt, wbt, it  (no DOM needed)
+ * - `jsdom` → ft            (React components require a browser-like environment)
+ */
+async function buildConfig(): Promise<Config> {
+    const nextConfig = await createJestConfig(sharedConfig)();
+
+    return {
+        projects: [
+            {
+                ...nextConfig,
+                displayName: 'node',
+                testEnvironment: 'node',
+                testMatch: [
+                    '**/__tests__/bbt/**/*.test.ts',
+                    '**/__tests__/wbt/**/*.test.ts',
+                    '**/__tests__/it/**/*.test.ts',
+                ],
+            },
+            {
+                ...nextConfig,
+                displayName: 'jsdom',
+                testEnvironment: 'jsdom',
+                testMatch: [
+                    '**/__tests__/ft/**/*.test.ts',
+                    '**/__tests__/ft/**/*.test.tsx',
+                ],
+            },
+        ],
+    };
+}
+
+export default buildConfig();

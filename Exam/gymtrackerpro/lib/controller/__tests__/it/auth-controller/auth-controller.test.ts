@@ -37,6 +37,7 @@ afterAll(async () => {
 describe('login', () => {
 
     it('login_validMemberCredentials_returnsSuccessWithSessionDataAndWritesSession', async () => {
+        // Arrange
         const memberInput: CreateMemberInput = {
             email: 'member@gym.test',
             fullName: 'Test Member',
@@ -48,8 +49,10 @@ describe('login', () => {
         const seededMember = await userService.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: memberInput.password};
 
+        // Act
         const result: ActionResult<SessionData> = await login(input);
 
+        // Assert
         expect(result).toEqual({
             success: true,
             data: {
@@ -74,10 +77,13 @@ describe('login', () => {
     });
 
     it('login_invalidInputFormat_returnsValidationFailureWithFieldErrors', async () => {
+        // Arrange
         const input = {email: 'not-an-email', password: 'weak'} as unknown as LoginUserInput;
 
+        // Act
         const result: ActionResult<SessionData> = await login(input);
 
+        // Assert
         expect(result).toEqual({
             success: false,
             message: 'Validation failed',
@@ -90,15 +96,19 @@ describe('login', () => {
     });
 
     it('login_emailNotRegistered_returnsFailureWithInvalidCredentialsMessage', async () => {
+        // Arrange
         const input: LoginUserInput = {email: 'ghost@gym.test', password: 'ValidPass123!'};
 
+        // Act
         const result: ActionResult<SessionData> = await login(input);
 
+        // Assert
         expect(result).toEqual({success: false, message: 'Invalid email or password'});
         expect(mockSession.save).not.toHaveBeenCalled();
     });
 
     it('login_incorrectPassword_returnsFailureWithInvalidCredentialsMessage', async () => {
+        // Arrange
         const memberInput: CreateMemberInput = {
             email: 'member@gym.test',
             fullName: 'Test Member',
@@ -110,8 +120,10 @@ describe('login', () => {
         await userService.createMember(memberInput);
         const input: LoginUserInput = {email: memberInput.email, password: 'WrongPass999!'};
 
+        // Act
         const result: ActionResult<SessionData> = await login(input);
 
+        // Assert
         expect(result).toEqual({success: false, message: 'Invalid email or password'});
         expect(mockSession.save).not.toHaveBeenCalled();
     });
@@ -121,19 +133,25 @@ describe('login', () => {
 describe('logout', () => {
 
     it('logout_sessionExists_destroysSessionAndReturnsSuccess', async () => {
+        // Arrange
         mockSession.destroy.mockResolvedValue(undefined);
 
+        // Act
         const result: ActionResult<void> = await logout();
 
+        // Assert
         expect(result).toEqual({success: true, data: undefined});
         expect(mockSession.destroy).toHaveBeenCalledTimes(1);
     });
 
     it('logout_sessionDestroyThrowsUnexpectedError_returnsGenericFailureMessage', async () => {
+        // Arrange
         mockSession.destroy.mockRejectedValue(new Error('Storage failure'));
 
+        // Act
         const result: ActionResult<void> = await logout();
 
+        // Assert
         expect(result).toEqual({success: false, message: 'An unexpected error occurred'});
     });
 

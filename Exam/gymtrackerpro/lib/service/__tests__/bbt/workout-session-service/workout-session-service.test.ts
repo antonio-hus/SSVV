@@ -77,13 +77,16 @@ beforeEach(() => {
 describe('createWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('createWorkoutSession_EC_validDataWithExercises_returnsSessionWithExercises', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputData: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             mockSessionRepo.create.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await service.createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
@@ -91,6 +94,7 @@ describe('createWorkoutSession', () => {
         });
 
         it('createWorkoutSession_EC_multipleExercises_returnsSessionWithAllExercises', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [
@@ -106,45 +110,56 @@ describe('createWorkoutSession', () => {
             };
             mockSessionRepo.create.mockResolvedValue(multiExerciseSession);
 
+            // Act
             const result = await service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(2);
             expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
             expect(result.exercises[1].exerciseId).toBe('exercise-uuid-002');
         });
 
         it('createWorkoutSession_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [];
             mockSessionRepo.create.mockRejectedValue(new WorkoutSessionRequiresExercisesError('Session requires exercises'));
 
+            // Act
             const act = service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
             await expect(act).rejects.toThrow('Session requires exercises');
         });
 
         it('createWorkoutSession_EC_memberNotFound_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             mockSessionRepo.create.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
 
         it('createWorkoutSession_EC_databaseWriteFails_throwsTransactionError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             mockSessionRepo.create.mockRejectedValue(new TransactionError('DB error'));
 
+            // Act
             const act = service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB error');
         });
@@ -152,48 +167,60 @@ describe('createWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('createWorkoutSession_BVA_emptyMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: ''};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             mockSessionRepo.create.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('createWorkoutSession_BVA_inexistentOneCharMemberId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: 'a'};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             mockSessionRepo.create.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('createWorkoutSession_BVA_existingOneCharMemberId_returnsSession', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputData: CreateWorkoutSessionInput = {...CREATE_SESSION_INPUT, memberId: 'a'};
             const inputExercises: WorkoutSessionExerciseInput[] = EXERCISE_INPUT;
             const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, memberId: 'a'};
             mockSessionRepo.create.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result.memberId).toBe('a');
             expect(result.id).toBe(SESSION_ID);
         });
 
         it('createWorkoutSession_BVA_oneExercise_returnsSessionWithOneExercise', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputSession: CreateWorkoutSessionInput = CREATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseInput[] = [EXERCISE_INPUT[0]];
             mockSessionRepo.create.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await service.createWorkoutSession(inputSession, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(1);
             expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
@@ -203,24 +230,30 @@ describe('createWorkoutSession', () => {
 describe('getWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('getWorkoutSession_EC_existingSessionId_returnsSessionWithExercises', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             mockSessionRepo.findById.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await service.getWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
         });
 
         it('getWorkoutSession_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = NONEXISTENT_ID;
             mockSessionRepo.findById.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.getWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Session not found');
         });
@@ -228,33 +261,42 @@ describe('getWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getWorkoutSession_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = '';
             mockSessionRepo.findById.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.getWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getWorkoutSession_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             mockSessionRepo.findById.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.getWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getWorkoutSession_BVA_existingOneCharId_returnsSessionWithExercises', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, id: 'a'};
             mockSessionRepo.findById.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.getWorkoutSession(inputId);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.exercises).toHaveLength(1);
         });
@@ -264,44 +306,54 @@ describe('getWorkoutSession', () => {
 describe('listMemberWorkoutSessions', () => {
     describe('Equivalence Classes', () => {
         it('listMemberWorkoutSessions_EC_noOptions_returnsAllSessionsUnpaginated', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0]).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.total).toBe(1);
         });
 
         it('listMemberWorkoutSessions_EC_withStartDate_returnsSessionsFromDate', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = new Date('2024-06-01');
             const inputOptions: WorkoutSessionListOptions = {startDate: inputStartDate};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(inputStartDate.getTime());
         });
 
         it('listMemberWorkoutSessions_EC_withEndDate_returnsSessionsUntilDate', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputEndDate: Date = new Date('2024-06-30');
             const inputOptions: WorkoutSessionListOptions = {endDate: inputEndDate};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeLessThanOrEqual(inputEndDate.getTime());
         });
 
         it('listMemberWorkoutSessions_EC_withDateRange_returnsSessionsInRange', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = new Date('2024-01-01');
@@ -309,45 +361,56 @@ describe('listMemberWorkoutSessions', () => {
             const inputOptions: WorkoutSessionListOptions = {startDate: inputStartDate, endDate: inputEndDate};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date.getTime()).toBeGreaterThanOrEqual(inputStartDate.getTime());
             expect(result.items[0].date.getTime()).toBeLessThanOrEqual(inputEndDate.getTime());
         });
 
         it('listMemberWorkoutSessions_EC_withPagination_returnsPaginatedSubset', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {page: 2, pageSize: 10};
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 25});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.total).toBe(25);
             expect(result.items).toHaveLength(0);
         });
 
         it('listMemberWorkoutSessions_EC_noMatchingSessions_returnsEmptyPageResult', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = NONEXISTENT_ID;
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
 
         it('listMemberWorkoutSessions_EC_orderingByDateAscending', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const sessionOlder = {...MOCK_SESSION_WITH_EXERCISES, date: new Date('2024-01-01'), id: 'older'};
             const sessionNewer = {...MOCK_SESSION_WITH_EXERCISES, date: new Date('2024-12-31'), id: 'newer'};
             mockSessionRepo.findAll.mockResolvedValue({items: [sessionOlder, sessionNewer], total: 2});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.items[0].id).toBe('older');
             expect(result.items[1].id).toBe('newer');
@@ -355,6 +418,7 @@ describe('listMemberWorkoutSessions', () => {
         });
 
         it('listMemberWorkoutSessions_EC_orderingByDateDescending', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {page: 1, pageSize: 10};
@@ -362,8 +426,10 @@ describe('listMemberWorkoutSessions', () => {
             const sessionNewer = {...MOCK_SESSION_WITH_EXERCISES, date: new Date('2024-12-31'), id: 'newer'};
             mockSessionRepo.findAll.mockResolvedValue({items: [sessionNewer, sessionOlder], total: 2});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(2);
             expect(result.items[0].id).toBe('newer');
             expect(result.items[1].id).toBe('older');
@@ -373,72 +439,90 @@ describe('listMemberWorkoutSessions', () => {
 
     describe('Boundary Value Analysis', () => {
         it('listMemberWorkoutSessions_BVA_memberIdEmpty_returnsNoSessions', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = '';
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId);
 
+            // Assert
             expect(result.items).toHaveLength(0);
             expect(result.total).toBe(0);
         });
 
         it('listMemberWorkoutSessions_BVA_memberIdOneChar_returnsMatchingItems', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = 'a';
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].memberId).toBe(MEMBER_ID); // In black box we just care it returns what repo gives
         });
 
         it('listMemberWorkoutSessions_BVA_startDateEqualsEndDate_returnsSameDaySessions', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputDate: Date = new Date('2024-06-01');
             const inputOptions: WorkoutSessionListOptions = {startDate: inputDate, endDate: inputDate};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 1});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.items[0].date).toEqual(inputDate);
         });
 
         it('listMemberWorkoutSessions_BVA_page0_returnsFirstPage', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {page: 0};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 5});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
 
         it('listMemberWorkoutSessions_BVA_page1_returnsFirstPage', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {page: 1};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 5});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
 
         it('listMemberWorkoutSessions_BVA_pageSize1_returnsOneItemPerPage', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions = {pageSize: 1};
             mockSessionRepo.findAll.mockResolvedValue({items: [MOCK_SESSION_WITH_EXERCISES], total: 5});
 
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result.items).toHaveLength(1);
             expect(result.total).toBe(5);
         });
@@ -448,27 +532,33 @@ describe('listMemberWorkoutSessions', () => {
 describe('updateWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('updateWorkoutSession_EC_existingSessionValidData_returnsUpdatedSession', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const expectedReturn = {...MOCK_SESSION, duration: 75};
             mockSessionRepo.update.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(expectedReturn);
             expect(result.duration).toBe(75);
             expect(result.id).toBe(SESSION_ID);
         });
 
         it('updateWorkoutSession_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             mockSessionRepo.update.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Session not found');
         });
@@ -476,36 +566,45 @@ describe('updateWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateWorkoutSession_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = '';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             mockSessionRepo.update.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWorkoutSession_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             mockSessionRepo.update.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWorkoutSession_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const expectedReturn = {...MOCK_SESSION, id: 'a', duration: 75};
             mockSessionRepo.update.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result.duration).toBe(75);
             expect(result.memberId).toBe(MEMBER_ID);
@@ -516,14 +615,17 @@ describe('updateWorkoutSession', () => {
 describe('updateWorkoutSessionWithExercises', () => {
     describe('Equivalence Classes', () => {
         it('updateWorkoutSessionWithExercises_EC_existingSessionWithNewExercises_returnsUpdatedSession', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = EXERCISE_INPUT;
             mockSessionRepo.updateWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(result.id).toBe(SESSION_ID);
             expect(result.exercises).toHaveLength(1);
@@ -531,32 +633,39 @@ describe('updateWorkoutSessionWithExercises', () => {
         });
 
         it('updateWorkoutSessionWithExercises_EC_emptyExercisesArray_throwsWorkoutSessionRequiresExercisesError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [];
             mockSessionRepo.updateWithExercises.mockRejectedValue(new WorkoutSessionRequiresExercisesError('Requires exercises'));
 
+            // Act
             const act = service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(WorkoutSessionRequiresExercisesError);
             await expect(act).rejects.toThrow('Requires exercises');
         });
 
         it('updateWorkoutSessionWithExercises_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = NONEXISTENT_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = EXERCISE_INPUT;
             mockSessionRepo.updateWithExercises.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Session not found');
         });
 
         it('updateWorkoutSessionWithExercises_EC_existingExerciseIdKept_returnsUpdatedSession', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -569,21 +678,26 @@ describe('updateWorkoutSessionWithExercises', () => {
             };
             mockSessionRepo.updateWithExercises.mockResolvedValue(updatedMock);
 
+            // Act
             const result = await service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual(updatedMock);
             expect(result.exercises[0].sets).toBe(4);
         });
 
         it('updateWorkoutSessionWithExercises_EC_transactionFails_throwsTransactionError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = EXERCISE_INPUT;
             mockSessionRepo.updateWithExercises.mockRejectedValue(new TransactionError('DB error'));
 
+            // Act
             const act = service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(TransactionError);
             await expect(act).rejects.toThrow('DB error');
         });
@@ -591,30 +705,37 @@ describe('updateWorkoutSessionWithExercises', () => {
 
     describe('Boundary Value Analysis', () => {
         it('updateWorkoutSessionWithExercises_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = '';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = EXERCISE_INPUT;
             mockSessionRepo.updateWithExercises.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWorkoutSessionWithExercises_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = EXERCISE_INPUT;
             mockSessionRepo.updateWithExercises.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('updateWorkoutSessionWithExercises_BVA_existingOneCharId_updatesSuccessfully', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
@@ -622,21 +743,26 @@ describe('updateWorkoutSessionWithExercises', () => {
             const expectedReturn = {...MOCK_SESSION_WITH_EXERCISES, id: 'a'};
             mockSessionRepo.updateWithExercises.mockResolvedValue(expectedReturn);
 
+            // Act
             const result = await service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.id).toBe('a');
             expect(result).toEqual(expectedReturn);
         });
 
         it('updateWorkoutSessionWithExercises_BVA_oneExercise_returnsUpdatedSessionWithOneExercise', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = UPDATE_SESSION_INPUT;
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [EXERCISE_INPUT[0]];
             mockSessionRepo.updateWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
+            // Act
             const result = await service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result.exercises).toHaveLength(1);
             expect(result.exercises[0].exerciseId).toBe(EXERCISE_ID);
         });
@@ -646,22 +772,28 @@ describe('updateWorkoutSessionWithExercises', () => {
 describe('deleteWorkoutSession', () => {
     describe('Equivalence Classes', () => {
         it('deleteWorkoutSession_EC_existingSessionId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = SESSION_ID;
             mockSessionRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteWorkoutSession(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
 
         it('deleteWorkoutSession_EC_nonExistentSessionId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = NONEXISTENT_ID;
             mockSessionRepo.delete.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.deleteWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Session not found');
         });
@@ -669,32 +801,41 @@ describe('deleteWorkoutSession', () => {
 
     describe('Boundary Value Analysis', () => {
         it('deleteWorkoutSession_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = '';
             mockSessionRepo.delete.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.deleteWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteWorkoutSession_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             mockSessionRepo.delete.mockRejectedValue(new NotFoundError('Session not found'));
 
+            // Act
             const act = service.deleteWorkoutSession(inputId);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('deleteWorkoutSession_BVA_existingOneCharId_resolvesSuccessfully', async () => {
+            // Arrange
             const service = WorkoutSessionService.getInstance(mockSessionRepo);
             const inputId: string = 'a';
             mockSessionRepo.delete.mockResolvedValue(undefined);
 
+            // Act
             const act = service.deleteWorkoutSession(inputId);
 
+            // Assert
             await expect(act).resolves.toBeUndefined();
         });
     });

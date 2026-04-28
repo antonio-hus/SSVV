@@ -91,13 +91,17 @@ describe('createWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('createWorkoutSession_Path1_validInput_returnsCreatedSessionWithExercises', async () => {
+            // Arrange
             const inputData: CreateWorkoutSessionInput = {...CREATE_WORKOUT_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseInput[] = [...WORKOUT_SESSION_EXERCISE_INPUTS];
             mockWorkoutSessionRepo.create.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.createWorkoutSession(inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(mockWorkoutSessionRepo.create).toHaveBeenCalledWith(inputData, inputExercises);
         });
@@ -111,12 +115,16 @@ describe('getWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('getWorkoutSession_Path1_validId_returnsSessionWithExercises', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             mockWorkoutSessionRepo.findById.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.getWorkoutSession(inputId);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(mockWorkoutSessionRepo.findById).toHaveBeenCalledWith(inputId);
         });
@@ -130,6 +138,7 @@ describe('listMemberWorkoutSessions', () => {
     describe('Independent Paths', () => {
 
         it('listMemberWorkoutSessions_Path1_memberIdNoOptions_returnsPageResult', async () => {
+            // Arrange
             const inputMemberId: string = MEMBER_ID;
             const inputOptions: WorkoutSessionListOptions | undefined = undefined;
             const pageResult: PageResult<WorkoutSessionWithExercises> = {
@@ -139,8 +148,11 @@ describe('listMemberWorkoutSessions', () => {
             mockWorkoutSessionRepo.findAll.mockResolvedValue(pageResult);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.listMemberWorkoutSessions(inputMemberId, inputOptions);
 
+            // Assert
             expect(result).toEqual(pageResult);
             expect(mockWorkoutSessionRepo.findAll).toHaveBeenCalledWith({memberId: inputMemberId});
         });
@@ -154,14 +166,18 @@ describe('updateWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('updateWorkoutSession_Path1_validInput_returnsUpdatedSession', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...UPDATE_WORKOUT_SESSION_INPUT};
             const updatedSession: WorkoutSession = {...MOCK_SESSION, notes: 'Updated notes'};
             mockWorkoutSessionRepo.update.mockResolvedValue(updatedSession);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.updateWorkoutSession(inputId, inputData);
 
+            // Assert
             expect(result).toEqual(updatedSession);
             expect(mockWorkoutSessionRepo.update).toHaveBeenCalledWith(inputId, inputData);
         });
@@ -175,14 +191,18 @@ describe('updateWorkoutSessionWithExercises', () => {
     describe('Independent Paths', () => {
 
         it('updateWorkoutSessionWithExercises_Path1_validInput_returnsUpdatedSessionWithExercises', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             const inputData: UpdateWorkoutSessionInput = {...UPDATE_WORKOUT_SESSION_INPUT};
             const inputExercises: WorkoutSessionExerciseUpdateInput[] = [...WORKOUT_SESSION_EXERCISE_UPDATE_INPUTS];
             mockWorkoutSessionRepo.updateWithExercises.mockResolvedValue(MOCK_SESSION_WITH_EXERCISES);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.updateWorkoutSessionWithExercises(inputId, inputData, inputExercises);
 
+            // Assert
             expect(result).toEqual(MOCK_SESSION_WITH_EXERCISES);
             expect(mockWorkoutSessionRepo.updateWithExercises).toHaveBeenCalledWith(inputId, inputData, inputExercises);
         });
@@ -196,12 +216,16 @@ describe('deleteWorkoutSession', () => {
     describe('Independent Paths', () => {
 
         it('deleteWorkoutSession_Path1_validId_resolvesVoid', async () => {
+            // Arrange
             const inputId: string = SESSION_ID;
             mockWorkoutSessionRepo.delete.mockResolvedValue(undefined);
 
             const service = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
+            
+            // Act
             const result = await service.deleteWorkoutSession(inputId);
 
+            // Assert
             expect(result).toBeUndefined();
             expect(mockWorkoutSessionRepo.delete).toHaveBeenCalledWith(inputId);
         });
@@ -218,18 +242,24 @@ describe('deleteWorkoutSession', () => {
 describe('getInstance', () => {
 
     it('getInstance_Path1_returnsValidInstance', () => {
+        // Act
         const instance = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
 
+        // Assert
         expect(instance).toBeDefined();
         expect(instance).toBeInstanceOf(WorkoutSessionService);
     });
 
     it('getInstance_Path2_returnsExactSameInstanceOnSubsequentCalls', () => {
+        // Arrange
         const firstCall = WorkoutSessionService.getInstance(mockWorkoutSessionRepo);
 
         const secondRepo = mock<WorkoutSessionRepositoryInterface>();
+        
+        // Act
         const secondCall = WorkoutSessionService.getInstance(secondRepo);
 
+        // Assert
         expect(secondCall).toBe(firstCall);
 
         const internalRepo = (secondCall as unknown as { workoutSessionRepository: unknown }).workoutSessionRepository;

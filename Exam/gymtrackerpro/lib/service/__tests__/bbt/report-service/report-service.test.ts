@@ -71,19 +71,23 @@ beforeEach(() => {
 describe('getMemberProgressReport', () => {
     describe('Equivalence Classes', () => {
         it('getMemberProgressReport_EC_memberNotFound_throwsNotFoundError', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
             await expect(act).rejects.toThrow('Member not found');
         });
 
         it('getMemberProgressReport_EC_noSessionsInRange_returnsZeroStats', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -91,8 +95,10 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.memberId).toBe(MEMBER_ID);
             expect(result.memberName).toBe(MOCK_MEMBER.user.fullName);
             expect(result.totalSessions).toBe(0);
@@ -103,6 +109,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('getMemberProgressReport_EC_multipleSessions_computesCorrectAggregates', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -117,8 +124,10 @@ describe('getMemberProgressReport', () => {
                 total: 2
             });
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalSessions).toBe(2);
             expect(result.averageSessionDuration).toBe(75);
             expect(result.exerciseBreakdown[0].totalReps).toBe(60);
@@ -133,6 +142,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('getMemberProgressReport_EC_multipleExercises_aggregatesCorrectly', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -159,8 +169,10 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: inputSessions, total: 1});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.exerciseBreakdown).toHaveLength(2);
             const bench = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-a');
             const ohp = result.exerciseBreakdown.find(e => e.exerciseId === 'ex-b');
@@ -172,6 +184,7 @@ describe('getMemberProgressReport', () => {
         });
 
         it('getMemberProgressReport_EC_sortingByVolumeDescending', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -198,8 +211,10 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: inputSessions, total: 1});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.exerciseBreakdown[0].exerciseId).toBe('ex-high');
             expect(result.exerciseBreakdown[1].exerciseId).toBe('ex-low');
             expect(result.exerciseBreakdown[0].totalVolume).toBeGreaterThan(result.exerciseBreakdown[1].totalVolume);
@@ -208,30 +223,37 @@ describe('getMemberProgressReport', () => {
 
     describe('Boundary Value Analysis', () => {
         it('getMemberProgressReport_BVA_emptyId_throwsNotFoundError', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = '';
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getMemberProgressReport_BVA_inexistentOneCharId_throwsNotFoundError', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = 'a';
             const inputStartDate: Date = START_DATE;
             const inputEndDate: Date = END_DATE;
             mockUserRepo.findMemberById.mockRejectedValue(new NotFoundError('Member not found'));
 
+            // Act
             const act = service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             await expect(act).rejects.toThrow(NotFoundError);
         });
 
         it('getMemberProgressReport_BVA_existingOneCharId_returnsReport', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = 'a';
             const inputStartDate: Date = START_DATE;
@@ -239,26 +261,32 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue({...MOCK_MEMBER, id: 'a'});
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.memberId).toBe('a');
             expect(result.totalSessions).toBe(0);
         });
 
         it('getMemberProgressReport_BVA_startDateEqualsEndDate_returnsReport', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const sameDate: Date = new Date('2024-06-15');
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: [], total: 0});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, sameDate, sameDate);
 
+            // Assert
             expect(result.startDate).toEqual(sameDate);
             expect(result.endDate).toEqual(sameDate);
         });
 
         it('getMemberProgressReport_BVA_weightZero_returnsReportWithZeroVolume', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -267,13 +295,16 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: inputSessions, total: 1});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalVolume).toBe(0);
             expect(result.exerciseBreakdown[0].totalVolume).toBe(0);
         });
 
         it('getMemberProgressReport_BVA_repsZero_returnsReportWithZeroVolume', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -282,13 +313,16 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: inputSessions, total: 1});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.totalVolume).toBe(0);
             expect(result.exerciseBreakdown[0].totalVolume).toBe(0);
         });
 
         it('getMemberProgressReport_BVA_durationZero_returnsReportWithZeroAverageDuration', async () => {
+            // Arrange
             const service = ReportService.getInstance(mockSessionRepo, mockUserRepo);
             const inputMemberId: string = MEMBER_ID;
             const inputStartDate: Date = START_DATE;
@@ -297,8 +331,10 @@ describe('getMemberProgressReport', () => {
             mockUserRepo.findMemberById.mockResolvedValue(MOCK_MEMBER);
             mockSessionRepo.findAll.mockResolvedValue({items: inputSessions, total: 1});
 
+            // Act
             const result = await service.getMemberProgressReport(inputMemberId, inputStartDate, inputEndDate);
 
+            // Assert
             expect(result.averageSessionDuration).toBe(0);
             expect(result.totalSessions).toBe(1);
         });
