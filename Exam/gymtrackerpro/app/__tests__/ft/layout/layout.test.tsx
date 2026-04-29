@@ -13,50 +13,38 @@ beforeEach(() => {
 
 describe('RootLayout', () => {
 
-    describe('children', () => {
+    it('rootLayout_childrenProp_renderedInsideBody', () => {
+        // Arrange
+        render(<RootLayout><p>child content</p></RootLayout>);
 
-        it('rootLayout_childrenProp_renderedInsideBody', () => {
-            // Arrange
-            render(<RootLayout><p>child content</p></RootLayout>);
-
-            // Assert
-            expect(screen.getByText('child content')).toBeInTheDocument();
-        });
-
+        // Assert
+        expect(screen.getByText('child content')).toBeInTheDocument();
     });
 
-    describe('html element', () => {
+    it('rootLayout_htmlElement_hasLangAttributeEn', () => {
+        // Arrange
+        render(<RootLayout><p>child content</p></RootLayout>);
 
-        it('rootLayout_htmlElement_hasLangAttributeEn', () => {
-            // Arrange
-            render(<RootLayout><p>child content</p></RootLayout>);
-
-            // Assert
-            expect(document.documentElement).toHaveAttribute('lang', 'en');
-        });
-
-        it('rootLayout_htmlElement_hasFontCssVariableClass', () => {
-            // Arrange
-            render(<RootLayout><p>child content</p></RootLayout>);
-
-            // Assert
-            expect(document.documentElement).toHaveClass('mock-inter-variable');
-        });
-
+        // Assert
+        expect(document.documentElement).toHaveAttribute('lang', 'en');
     });
 
-    describe('metadata', () => {
+    it('rootLayout_htmlElement_hasFontCssVariableClass', () => {
+        // Arrange
+        render(<RootLayout><p>child content</p></RootLayout>);
 
-        it('rootLayout_metadata_titleIsGymTrackerPro', () => {
-            // Assert
-            expect(metadata.title).toBe('GymTracker Pro');
-        });
+        // Assert
+        expect(document.documentElement).toHaveClass('mock-inter-variable');
+    });
 
-        it('rootLayout_metadata_descriptionIsCorrect', () => {
-            // Assert
-            expect(metadata.description).toBe('Gym management and workout tracking platform');
-        });
+    it('rootLayout_metadata_titleIsGymTrackerPro', () => {
+        // Assert
+        expect(metadata.title).toBe('GymTracker Pro');
+    });
 
+    it('rootLayout_metadata_descriptionIsCorrect', () => {
+        // Assert
+        expect(metadata.description).toBe('Gym management and workout tracking platform');
     });
 
 });

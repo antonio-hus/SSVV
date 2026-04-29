@@ -38,7 +38,7 @@ export default async function MemberWorkoutSessionsPage({searchParams}: MemberWo
         <div>
             <PageHeader title="My Sessions" description="Your workout history"/>
             <WorkoutSessionsTable sessions={items}/>
-            <Pagination page={page} pageSize={PAGE_SIZE} total={total} baseUrl="/member/sessions"/>
+            <Pagination page={page} pageSize={PAGE_SIZE} total={total} baseUrl="/member/workout-sessions"/>
         </div>
     );
 }

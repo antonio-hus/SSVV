@@ -21,114 +21,102 @@ beforeEach(() => {
 
 describe('SidebarNav', () => {
 
-    describe('default rendering', () => {
+    it('sidebarNav_defaultRender_rendersNavWithDefaultAriaLabelAndAllItems', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/other');
+        render(<SidebarNav items={mockItems}/>);
 
-        it('sidebarNav_defaultRender_rendersNavWithDefaultAriaLabelAndAllItems', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/other');
-            render(<SidebarNav items={mockItems}/>);
-
-            // Assert
-            expect(screen.getByRole('navigation', {name: 'Navigation'})).toBeInTheDocument();
-            expect(screen.getByRole('link', {name: 'Home'})).toBeInTheDocument();
-            expect(screen.getByRole('link', {name: 'Settings'})).toBeInTheDocument();
-        });
-
-        it('sidebarNav_customAriaLabel_setsAriaLabelOnNavElement', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/other');
-            render(<SidebarNav items={mockItems} ariaLabel="Main navigation"/>);
-
-            // Assert
-            expect(
-                screen.getByRole('navigation', {name: 'Main navigation'}),
-            ).toBeInTheDocument();
-        });
-
-        it('sidebarNav_emptyItems_rendersNavWithNoLinks', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/other');
-            render(<SidebarNav items={[]}/>);
-
-            // Assert
-            expect(screen.getByRole('navigation')).toBeInTheDocument();
-            expect(screen.queryAllByRole('link')).toHaveLength(0);
-        });
-
+        // Assert
+        expect(screen.getByRole('navigation', {name: 'Navigation'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Home'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Settings'})).toBeInTheDocument();
     });
 
-    describe('active state', () => {
+    it('sidebarNav_customAriaLabel_setsAriaLabelOnNavElement', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/other');
+        render(<SidebarNav items={mockItems} ariaLabel="Main navigation"/>);
 
-        it('sidebarNav_pathnameMatchesItemHref_linkReceivesActiveStyles', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/home');
-            render(<SidebarNav items={mockItems}/>);
-
-            // Assert
-            expect(screen.getByRole('link', {name: 'Home'})).toHaveClass(
-                'bg-blue-50',
-                'text-blue-700',
-            );
-        });
-
-        it('sidebarNav_pathnameDoesNotMatchItemHref_linkReceivesInactiveStyles', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/other');
-            render(<SidebarNav items={mockItems}/>);
-
-            // Assert
-            const homeLink = screen.getByRole('link', {name: 'Home'});
-            expect(homeLink).toHaveClass('text-gray-600');
-            expect(homeLink).not.toHaveClass('bg-blue-50');
-        });
-
-        it('sidebarNav_pathnameStartsWithItemHref_linkTreatedAsActive', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/home/dashboard');
-            render(<SidebarNav items={mockItems}/>);
-
-            // Assert
-            expect(screen.getByRole('link', {name: 'Home'})).toHaveClass(
-                'bg-blue-50',
-                'text-blue-700',
-            );
-        });
-
-        it('sidebarNav_multipleItemsOneActive_onlyMatchingItemHasActiveStyles', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/settings');
-            render(<SidebarNav items={mockItems}/>);
-
-            // Assert
-            expect(screen.getByRole('link', {name: 'Settings'})).toHaveClass(
-                'bg-blue-50',
-                'text-blue-700',
-            );
-            const homeLink = screen.getByRole('link', {name: 'Home'});
-            expect(homeLink).not.toHaveClass('bg-blue-50');
-            expect(homeLink).toHaveClass('text-gray-600');
-        });
-
+        // Assert
+        expect(
+            screen.getByRole('navigation', {name: 'Main navigation'}),
+        ).toBeInTheDocument();
     });
 
-    describe('link attributes', () => {
+    it('sidebarNav_emptyItems_rendersNavWithNoLinks', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/other');
+        render(<SidebarNav items={[]}/>);
 
-        it('sidebarNav_itemsRendered_eachLinkHasCorrectHref', () => {
-            // Arrange
-            mockUsePathname.mockReturnValue('/other');
-            render(<SidebarNav items={mockItems}/>);
+        // Assert
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.queryAllByRole('link')).toHaveLength(0);
+    });
 
-            // Assert
-            expect(screen.getByRole('link', {name: 'Home'})).toHaveAttribute(
-                'href',
-                '/home',
-            );
-            expect(screen.getByRole('link', {name: 'Settings'})).toHaveAttribute(
-                'href',
-                '/settings',
-            );
-        });
+    it('sidebarNav_pathnameMatchesItemHref_linkReceivesActiveStyles', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/home');
+        render(<SidebarNav items={mockItems}/>);
 
+        // Assert
+        expect(screen.getByRole('link', {name: 'Home'})).toHaveClass(
+            'bg-blue-50',
+            'text-blue-700',
+        );
+    });
+
+    it('sidebarNav_pathnameDoesNotMatchItemHref_linkReceivesInactiveStyles', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/other');
+        render(<SidebarNav items={mockItems}/>);
+
+        // Assert
+        const homeLink = screen.getByRole('link', {name: 'Home'});
+        expect(homeLink).toHaveClass('text-gray-600');
+        expect(homeLink).not.toHaveClass('bg-blue-50');
+    });
+
+    it('sidebarNav_pathnameStartsWithItemHref_linkTreatedAsActive', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/home/dashboard');
+        render(<SidebarNav items={mockItems}/>);
+
+        // Assert
+        expect(screen.getByRole('link', {name: 'Home'})).toHaveClass(
+            'bg-blue-50',
+            'text-blue-700',
+        );
+    });
+
+    it('sidebarNav_multipleItemsOneActive_onlyMatchingItemHasActiveStyles', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/settings');
+        render(<SidebarNav items={mockItems}/>);
+
+        // Assert
+        expect(screen.getByRole('link', {name: 'Settings'})).toHaveClass(
+            'bg-blue-50',
+            'text-blue-700',
+        );
+        const homeLink = screen.getByRole('link', {name: 'Home'});
+        expect(homeLink).not.toHaveClass('bg-blue-50');
+        expect(homeLink).toHaveClass('text-gray-600');
+    });
+
+    it('sidebarNav_itemsRendered_eachLinkHasCorrectHref', () => {
+        // Arrange
+        mockUsePathname.mockReturnValue('/other');
+        render(<SidebarNav items={mockItems}/>);
+
+        // Assert
+        expect(screen.getByRole('link', {name: 'Home'})).toHaveAttribute(
+            'href',
+            '/home',
+        );
+        expect(screen.getByRole('link', {name: 'Settings'})).toHaveAttribute(
+            'href',
+            '/settings',
+        );
     });
 
 });

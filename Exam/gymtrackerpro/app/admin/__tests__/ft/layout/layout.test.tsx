@@ -38,118 +38,108 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-const children = <div data-testid="page-content"/>;
-
 describe('AdminLayout', () => {
 
-    describe('authentication guard', () => {
+    it('adminLayout_noUserId_redirectsToLogin', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: null,
+            email: null,
+            fullName: null,
+            role: null,
+        } as unknown as IronSession<SessionData>);
 
-        it('adminLayout_noUserId_redirectsToLogin', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: null,
-                email: null,
-                fullName: null,
-                role: null,
-            } as unknown as IronSession<SessionData>);
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await AdminLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await AdminLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/login');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/login');
-        });
-
-        it('adminLayout_roleNotAdmin_redirectsToLogin', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.MEMBER,
-            } as unknown as IronSession<SessionData>);
-
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await AdminLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/login');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/login');
-        });
-
+        // Assert
+        expect(caughtError?.message).toContain('/login');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/login');
     });
 
-    describe('authorised render', () => {
+    it('adminLayout_roleNotAdmin_redirectsToLogin', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.MEMBER,
+        } as IronSession<SessionData>);
 
-        it('adminLayout_validAdminSession_rendersNavSidebarAndChildren', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'john@example.com',
-                fullName: 'John Smith',
-                role: Role.ADMIN,
-            } as unknown as IronSession<SessionData>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await AdminLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            render(await AdminLayout({children}));
+        // Assert
+        expect(caughtError?.message).toContain('/login');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/login');
+    });
 
-            // Assert
-            expect(screen.getByRole('navigation', {name: 'Admin Navigation'})).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Sign out'})).toBeInTheDocument();
-            expect(screen.getByTestId('page-content')).toBeInTheDocument();
-            expect(mockRedirect).not.toHaveBeenCalled();
-        });
+    it('adminLayout_validAdminSession_rendersNavSidebarAndChildren', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'john@example.com',
+            fullName: 'John Smith',
+            role: Role.ADMIN,
+        } as IronSession<SessionData>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
 
-        it('adminLayout_fullNameDefined_showsAvatarInitialAndFullName', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'john@example.com',
-                fullName: 'John Smith',
-                role: Role.ADMIN,
-            } as unknown as IronSession<SessionData>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+        // Act
+        render(await AdminLayout({children: <div data-testid="page-content"/>}));
 
-            // Act
-            render(await AdminLayout({children: <div/>}));
+        // Assert
+        expect(screen.getByRole('navigation', {name: 'Admin Navigation'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Sign out'})).toBeInTheDocument();
+        expect(screen.getByTestId('page-content')).toBeInTheDocument();
+        expect(mockRedirect).not.toHaveBeenCalled();
+    });
 
-            // Assert
-            expect(screen.getByText('J')).toBeInTheDocument();
-            expect(screen.getByText('John Smith')).toBeInTheDocument();
-        });
+    it('adminLayout_fullNameDefined_showsAvatarInitialAndFullName', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'john@example.com',
+            fullName: 'John Smith',
+            role: Role.ADMIN,
+        } as IronSession<SessionData>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
 
-        it('adminLayout_fullNameNull_showsFallbackAvatarInitialAndAdminLabel', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'john@example.com',
-                fullName: null,
-                role: Role.ADMIN,
-            } as unknown as IronSession<SessionData>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+        // Act
+        render(await AdminLayout({children: <div/>}));
 
-            // Act
-            render(await AdminLayout({children: <div/>}));
+        // Assert
+        expect(screen.getByText('J')).toBeInTheDocument();
+        expect(screen.getByText('John Smith')).toBeInTheDocument();
+    });
 
-            // Assert
-            expect(screen.getByText('A')).toBeInTheDocument();
-            expect(screen.getByText('Admin')).toBeInTheDocument();
-        });
+    it('adminLayout_fullNameNull_showsFallbackAvatarInitialAndAdminLabel', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'john@example.com',
+            fullName: null,
+            role: Role.ADMIN,
+        } as unknown as IronSession<SessionData>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
 
+        // Act
+        render(await AdminLayout({children: <div/>}));
+
+        // Assert
+        expect(screen.getByText('A')).toBeInTheDocument();
+        expect(screen.getByText('Admin')).toBeInTheDocument();
     });
 
 });

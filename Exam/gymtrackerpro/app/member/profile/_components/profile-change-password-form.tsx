@@ -61,7 +61,7 @@ export const ProfileChangePasswordForm = ({memberId}: ChangePasswordFormProps) =
     }, [inputs, memberId]);
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-sm">
+        <form noValidate onSubmit={handleSubmit} className="space-y-4 max-w-sm">
             {result && !result.success && (
                 <Alert variant="destructive"><AlertDescription>{result.message}</AlertDescription></Alert>
             )}

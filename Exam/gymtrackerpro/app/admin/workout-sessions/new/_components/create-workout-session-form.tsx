@@ -108,7 +108,7 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
     }, [inputs, rows, router]);
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+        <form noValidate onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
             {result && !result.success && (
                 <Alert variant="destructive"><AlertDescription>{result.message}</AlertDescription></Alert>
             )}
@@ -164,7 +164,7 @@ export const CreateWorkoutSessionForm = ({exercises, members, defaultMemberId}: 
                         id="notes"
                         name="notes"
                         rows={2}
-                        value={inputs.notes ?? ''}
+                        value={inputs.notes}
                         onChange={handleChange}
                     />
                 </div>

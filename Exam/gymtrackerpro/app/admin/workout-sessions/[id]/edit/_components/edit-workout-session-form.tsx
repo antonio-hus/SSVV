@@ -111,7 +111,7 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
 
     return (
         <div className="space-y-6 max-w-2xl">
-            <form onSubmit={handleUpdate} className="space-y-4">
+            <form noValidate onSubmit={handleUpdate} className="space-y-4">
                 {result && !result.success && (
                     <Alert variant="destructive"><AlertDescription>{result.message}</AlertDescription></Alert>
                 )}
@@ -126,7 +126,7 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                             id="date"
                             name="date"
                             type="date"
-                            value={inputs.date ?? ''}
+                            value={inputs.date}
                             onChange={handleChange}
                             required
                         />
@@ -139,7 +139,7 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                             name="duration"
                             type="text"
                             inputMode="numeric"
-                            value={inputs.duration ?? ''}
+                            value={inputs.duration}
                             onChange={handleChange}
                             required
                         />
@@ -151,7 +151,7 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                             id="notes"
                             name="notes"
                             rows={3}
-                            value={inputs.notes ?? ''}
+                            value={inputs.notes}
                             onChange={handleChange}
                         />
                     </div>

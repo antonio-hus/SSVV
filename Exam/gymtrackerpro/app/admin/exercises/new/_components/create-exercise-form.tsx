@@ -70,7 +70,7 @@ export const CreateExerciseForm = () => {
     }, [inputs, router]);
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+        <form noValidate onSubmit={handleSubmit} className="space-y-4 max-w-lg">
             {result && !result.success && (
                 <Alert variant="destructive"><AlertDescription>{result.message}</AlertDescription></Alert>
             )}

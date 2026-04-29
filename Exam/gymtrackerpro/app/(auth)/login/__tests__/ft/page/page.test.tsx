@@ -23,37 +23,33 @@ beforeEach(() => {
 
 describe('LoginPage', () => {
 
-    describe('layout and content', () => {
+    it('loginPage_defaultRender_showsSignInHeadingAndSubtitle', async () => {
+        // Arrange
+        render(await LoginPage());
 
-        it('loginPage_defaultRender_showsSignInHeadingAndSubtitle', async () => {
-            // Arrange
-            render(await LoginPage());
+        // Assert
+        expect(screen.getByRole('heading', {name: 'Sign in'})).toBeInTheDocument();
+        expect(screen.getByText('Enter your credentials to continue.')).toBeInTheDocument();
+    });
 
-            // Assert
-            expect(screen.getByRole('heading', {name: 'Sign in'})).toBeInTheDocument();
-            expect(screen.getByText('Enter your credentials to continue.')).toBeInTheDocument();
-        });
+    it('loginPage_defaultRender_showsBrandNameAndDumbbellIcon', async () => {
+        // Arrange
+        render(await LoginPage());
 
-        it('loginPage_defaultRender_showsBrandNameAndDumbbellIcon', async () => {
-            // Arrange
-            render(await LoginPage());
+        // Assert
+        const brandName = screen.getByText('GymTracker Pro');
+        expect(brandName).toBeInTheDocument();
+        expect(brandName.closest('div')!.querySelector('svg')).toBeInTheDocument();
+    });
 
-            // Assert
-            const brandName = screen.getByText('GymTracker Pro');
-            expect(brandName).toBeInTheDocument();
-            expect(brandName.closest('div')!.querySelector('svg')).toBeInTheDocument();
-        });
+    it('loginPage_defaultRender_mountsLoginFormWithEmailAndPasswordFields', async () => {
+        // Arrange
+        render(await LoginPage());
 
-        it('loginPage_defaultRender_mountsLoginFormWithEmailAndPasswordFields', async () => {
-            // Arrange
-            render(await LoginPage());
-
-            // Assert
-            expect(screen.getByLabelText('Email')).toBeInTheDocument();
-            expect(screen.getByLabelText('Password')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Sign in'})).toBeInTheDocument();
-        });
-
+        // Assert
+        expect(screen.getByLabelText('Email')).toBeInTheDocument();
+        expect(screen.getByLabelText('Password')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Sign in'})).toBeInTheDocument();
     });
 
 });

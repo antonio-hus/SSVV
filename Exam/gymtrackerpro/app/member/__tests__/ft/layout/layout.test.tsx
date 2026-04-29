@@ -46,193 +46,179 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-const children = <div data-testid="page-content"/>;
-
 describe('MemberLayout', () => {
 
-    describe('authentication guard', () => {
+    it('memberLayout_noUserId_redirectsToLogin', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: null,
+            email: null,
+            fullName: null,
+            role: null,
+        } as unknown as IronSession<SessionData>);
 
-        it('memberLayout_noUserId_redirectsToLogin', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: null,
-                email: null,
-                fullName: null,
-                role: null,
-            } as unknown as IronSession<SessionData>);
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await MemberLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await MemberLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/login');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/login');
-        });
-
-        it('memberLayout_roleNotMember_redirectsToLogin', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.ADMIN,
-            } as unknown as IronSession<SessionData>);
-
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await MemberLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/login');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/login');
-        });
-
+        // Assert
+        expect(caughtError?.message).toContain('/login');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/login');
     });
 
-    describe('member record guard', () => {
+    it('memberLayout_roleNotMember_redirectsToLogin', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.ADMIN,
+        } as unknown as IronSession<SessionData>);
 
-        it('memberLayout_getMemberFails_redirectsToUnauthorized', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.MEMBER,
-                memberId: 'm-1',
-            } as unknown as IronSession<SessionData>);
-            mockGetMember.mockResolvedValueOnce({
-                success: false,
-                message: 'Member not found',
-            });
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await MemberLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await MemberLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/unauthorized');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/unauthorized');
-        });
-
-        it('memberLayout_memberInactive_redirectsToUnauthorized', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.MEMBER,
-                memberId: 'm-1',
-            } as unknown as IronSession<SessionData>);
-            mockGetMember.mockResolvedValueOnce({
-                success: true,
-                data: {isActive: false},
-            } as ActionResult<MemberWithUser>);
-
-            // Act
-            let caughtError: Error | undefined;
-            try {
-                await MemberLayout({children});
-            } catch (e) {
-                caughtError = e as Error;
-            }
-
-            // Assert
-            expect(caughtError?.message).toContain('/unauthorized');
-            expect(mockRedirect).toHaveBeenCalledTimes(1);
-            expect(mockRedirect).toHaveBeenCalledWith('/unauthorized');
-        });
-
+        // Assert
+        expect(caughtError?.message).toContain('/login');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/login');
     });
 
-    describe('authorised render', () => {
-
-        it('memberLayout_validActiveMemberSession_rendersNavSidebarAndChildren', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.MEMBER,
-                memberId: 'm-1',
-            } as unknown as IronSession<SessionData>);
-            mockGetMember.mockResolvedValueOnce({
-                success: true,
-                data: {isActive: true},
-            } as ActionResult<MemberWithUser>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
-
-            // Act
-            render(await MemberLayout({children}));
-
-            // Assert
-            expect(screen.getByRole('navigation', {name: 'Member Navigation'})).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Sign out'})).toBeInTheDocument();
-            expect(screen.getByTestId('page-content')).toBeInTheDocument();
-            expect(mockRedirect).not.toHaveBeenCalled();
+    it('memberLayout_getMemberFails_redirectsToUnauthorized', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.MEMBER,
+            memberId: 'm-1',
+        } as unknown as IronSession<SessionData>);
+        mockGetMember.mockResolvedValueOnce({
+            success: false,
+            message: 'Member not found',
         });
 
-        it('memberLayout_fullNameDefined_showsAvatarInitialAndFullName', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: 'Jane Doe',
-                role: Role.MEMBER,
-                memberId: 'm-1',
-            } as unknown as IronSession<SessionData>);
-            mockGetMember.mockResolvedValueOnce({
-                success: true,
-                data: {isActive: true},
-            } as ActionResult<MemberWithUser>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await MemberLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            render(await MemberLayout({children: <div/>}));
+        // Assert
+        expect(caughtError?.message).toContain('/unauthorized');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/unauthorized');
+    });
 
-            // Assert
-            expect(screen.getByText('J')).toBeInTheDocument();
-            expect(screen.getByText('Jane Doe')).toBeInTheDocument();
-        });
+    it('memberLayout_memberInactive_redirectsToUnauthorized', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.MEMBER,
+            memberId: 'm-1',
+        } as unknown as IronSession<SessionData>);
+        mockGetMember.mockResolvedValueOnce({
+            success: true,
+            data: {isActive: false},
+        } as ActionResult<MemberWithUser>);
 
-        it('memberLayout_fullNameNull_showsFallbackAvatarInitialAndMemberLabel', async () => {
-            // Arrange
-            mockGetSession.mockResolvedValueOnce({
-                userId: 'u-1',
-                email: 'jane@example.com',
-                fullName: null,
-                role: Role.MEMBER,
-                memberId: 'm-1',
-            } as unknown as IronSession<SessionData>);
-            mockGetMember.mockResolvedValueOnce({
-                success: true,
-                data: {isActive: true},
-            } as ActionResult<MemberWithUser>);
-            mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+        // Act
+        let caughtError: Error | undefined;
+        try {
+            await MemberLayout({children: <div data-testid="page-content"/>});
+        } catch (e) {
+            caughtError = e as Error;
+        }
 
-            // Act
-            render(await MemberLayout({children: <div/>}));
+        // Assert
+        expect(caughtError?.message).toContain('/unauthorized');
+        expect(mockRedirect).toHaveBeenCalledTimes(1);
+        expect(mockRedirect).toHaveBeenCalledWith('/unauthorized');
+    });
 
-            // Assert
-            expect(screen.getByText('M')).toBeInTheDocument();
-            expect(screen.getByText('Member')).toBeInTheDocument();
-        });
+    it('memberLayout_validActiveMemberSession_rendersNavSidebarAndChildren', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.MEMBER,
+            memberId: 'm-1',
+        } as unknown as IronSession<SessionData>);
+        mockGetMember.mockResolvedValueOnce({
+            success: true,
+            data: {isActive: true},
+        } as ActionResult<MemberWithUser>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
 
+        // Act
+        render(await MemberLayout({children: <div data-testid="page-content"/>}));
+
+        // Assert
+        expect(screen.getByRole('navigation', {name: 'Member Navigation'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Sign out'})).toBeInTheDocument();
+        expect(screen.getByTestId('page-content')).toBeInTheDocument();
+        expect(mockRedirect).not.toHaveBeenCalled();
+    });
+
+    it('memberLayout_fullNameDefined_showsAvatarInitialAndFullName', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: 'Jane Doe',
+            role: Role.MEMBER,
+            memberId: 'm-1',
+        } as unknown as IronSession<SessionData>);
+        mockGetMember.mockResolvedValueOnce({
+            success: true,
+            data: {isActive: true},
+        } as ActionResult<MemberWithUser>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+
+        // Act
+        render(await MemberLayout({children: <div/>}));
+
+        // Assert
+        expect(screen.getByText('J')).toBeInTheDocument();
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+    });
+
+    it('memberLayout_fullNameNull_showsFallbackAvatarInitialAndMemberLabel', async () => {
+        // Arrange
+        mockGetSession.mockResolvedValueOnce({
+            userId: 'u-1',
+            email: 'jane@example.com',
+            fullName: null,
+            role: Role.MEMBER,
+            memberId: 'm-1',
+        } as unknown as IronSession<SessionData>);
+        mockGetMember.mockResolvedValueOnce({
+            success: true,
+            data: {isActive: true},
+        } as ActionResult<MemberWithUser>);
+        mockLogout.mockResolvedValueOnce({success: true, data: undefined});
+
+        // Act
+        render(await MemberLayout({children: <div/>}));
+
+        // Assert
+        expect(screen.getByText('M')).toBeInTheDocument();
+        expect(screen.getByText('Member')).toBeInTheDocument();
     });
 
 });

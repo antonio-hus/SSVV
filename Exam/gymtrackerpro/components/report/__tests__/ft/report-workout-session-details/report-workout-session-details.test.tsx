@@ -46,104 +46,84 @@ beforeEach(() => {
 
 describe('ReportWorkoutSessionDetails', () => {
 
-    describe('empty state', () => {
+    it('reportWorkoutSessionDetails_emptySessions_rendersNothing', () => {
+        // Arrange
+        const {container} = render(<ReportWorkoutSessionDetails sessions={[]}/>);
 
-        it('reportWorkoutSessionDetails_emptySessions_rendersNothing', () => {
-            // Arrange
-            const {container} = render(<ReportWorkoutSessionDetails sessions={[]}/>);
-
-            // Assert
-            expect(container.firstChild).toBeNull();
-        });
-
+        // Assert
+        expect(container.firstChild).toBeNull();
     });
 
-    describe('default rendering', () => {
+    it('reportWorkoutSessionDetails_nonEmptySessions_rendersSessionDetailsHeading', () => {
+        // Arrange
+        render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
 
-        it('reportWorkoutSessionDetails_nonEmptySessions_rendersSessionDetailsHeading', () => {
-            // Arrange
-            render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
-
-            // Assert
-            expect(screen.getByRole('heading', {name: 'Session Details'})).toBeInTheDocument();
-        });
-
-        it('reportWorkoutSessionDetails_sessionDate_formattedWithToLocaleDateString', () => {
-            // Arrange
-            render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
-
-            // Assert
-            expect(
-                screen.getByText(new Date('2024-01-15').toLocaleDateString()),
-            ).toBeInTheDocument();
-        });
-
-        it('reportWorkoutSessionDetails_sessionDurationAndVolume_renderedInCorrectFormat', () => {
-            // Arrange
-            render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
-
-            // Assert
-            expect(
-                screen.getByText(`45 min · ${(10000).toLocaleString()} kg`),
-            ).toBeInTheDocument();
-        });
-
+        // Assert
+        expect(screen.getByRole('heading', {name: 'Session Details'})).toBeInTheDocument();
     });
 
-    describe('notes', () => {
+    it('reportWorkoutSessionDetails_sessionDate_formattedWithToLocaleDateString', () => {
+        // Arrange
+        render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
 
-        it('reportWorkoutSessionDetails_sessionNotesPresent_rendersNotesText', () => {
-            // Arrange
-            render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
-
-            // Assert
-            expect(screen.getByText('Felt strong today')).toBeInTheDocument();
-        });
-
-        it('reportWorkoutSessionDetails_sessionNotesAbsent_doesNotRenderNotesParagraph', () => {
-            // Arrange
-            render(
-                <ReportWorkoutSessionDetails
-                    sessions={[{...mockSession, notes: undefined}]}
-                />,
-            );
-
-            // Assert
-            expect(screen.queryByText('Felt strong today')).toBeNull();
-        });
-
+        // Assert
+        expect(
+            screen.getByText(new Date('2024-01-15').toLocaleDateString()),
+        ).toBeInTheDocument();
     });
 
-    describe('exercise rows', () => {
+    it('reportWorkoutSessionDetails_sessionDurationAndVolume_renderedInCorrectFormat', () => {
+        // Arrange
+        render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
 
-        it('reportWorkoutSessionDetails_exerciseRow_rendersNameAndSetsRepsWeightFormat', () => {
-            // Arrange
-            render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
-
-            // Assert
-            expect(screen.getByText('Bench Press')).toBeInTheDocument();
-            expect(screen.getByText('3×10 @ 80 kg')).toBeInTheDocument();
-        });
-
+        // Assert
+        expect(
+            screen.getByText(`45 min · ${(10000).toLocaleString()} kg`),
+        ).toBeInTheDocument();
     });
 
-    describe('multiple sessions', () => {
+    it('reportWorkoutSessionDetails_sessionNotesPresent_rendersNotesText', () => {
+        // Arrange
+        render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
 
-        it('reportWorkoutSessionDetails_multipleSessions_rendersOneCardPerSession', () => {
-            // Arrange
-            render(
-                <ReportWorkoutSessionDetails sessions={[mockSession, mockSecondSession]}/>,
-            );
+        // Assert
+        expect(screen.getByText('Felt strong today')).toBeInTheDocument();
+    });
 
-            // Assert
-            expect(
-                screen.getByText(new Date(mockSession.date).toLocaleDateString()),
-            ).toBeInTheDocument();
-            expect(
-                screen.getByText(new Date(mockSecondSession.date).toLocaleDateString()),
-            ).toBeInTheDocument();
-        });
+    it('reportWorkoutSessionDetails_sessionNotesAbsent_doesNotRenderNotesParagraph', () => {
+        // Arrange
+        render(
+            <ReportWorkoutSessionDetails
+                sessions={[{...mockSession, notes: undefined}]}
+            />,
+        );
 
+        // Assert
+        expect(screen.queryByText('Felt strong today')).toBeNull();
+    });
+
+    it('reportWorkoutSessionDetails_exerciseRow_rendersNameAndSetsRepsWeightFormat', () => {
+        // Arrange
+        render(<ReportWorkoutSessionDetails sessions={[mockSession]}/>);
+
+        // Assert
+        expect(screen.getByText('Bench Press')).toBeInTheDocument();
+        expect(screen.getByText('3×10 @ 80 kg')).toBeInTheDocument();
+    });
+
+    it('reportWorkoutSessionDetails_multipleSessions_rendersOneCardPerSession', () => {
+        // Arrange
+        render(
+            <ReportWorkoutSessionDetails sessions={[mockSession, mockSecondSession]}/>,
+        );
+
+        // Assert
+        expect(
+            screen.getByText(new Date(mockSession.date).toLocaleDateString()),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(new Date(mockSecondSession.date).toLocaleDateString()),
+        ).toBeInTheDocument();
     });
 
 });

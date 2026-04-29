@@ -109,7 +109,7 @@ export const EditMemberForm = ({member, memberId}: EditMemberFormProps) => {
 
     return (
         <div className="space-y-6 max-w-lg">
-            <form onSubmit={handleUpdate} className="space-y-4">
+            <form noValidate onSubmit={handleUpdate} className="space-y-4">
                 {result && !result.success && (
                     <Alert variant="destructive"><AlertDescription>{result.message}</AlertDescription></Alert>
                 )}

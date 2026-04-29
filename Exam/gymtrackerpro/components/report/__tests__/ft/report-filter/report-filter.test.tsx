@@ -23,106 +23,90 @@ beforeEach(() => {
 
 describe('ReportFilter', () => {
 
-    describe('default rendering', () => {
+    it('reportFilter_defaultRender_rendersEmptyInputsAndEnabledSubmitButton', () => {
+        // Arrange
+        mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
 
-        it('reportFilter_defaultRender_rendersEmptyInputsAndEnabledSubmitButton', () => {
-            // Arrange
-            mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Assert
-            expect(screen.getByLabelText('Start Date')).toHaveValue('');
-            expect(screen.getByLabelText('End Date')).toHaveValue('');
-            expect(screen.getByRole('button', {name: 'Generate Report'})).toBeEnabled();
-        });
-
-        it('reportFilter_bothInputs_haveRequiredAttribute', () => {
-            // Arrange
-            mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Assert
-            expect(screen.getByLabelText('Start Date')).toHaveAttribute('required');
-            expect(screen.getByLabelText('End Date')).toHaveAttribute('required');
-        });
-
+        // Assert
+        expect(screen.getByLabelText('Start Date')).toHaveValue('');
+        expect(screen.getByLabelText('End Date')).toHaveValue('');
+        expect(screen.getByRole('button', {name: 'Generate Report'})).toBeEnabled();
     });
 
-    describe('search param seeding', () => {
+    it('reportFilter_bothInputs_haveRequiredAttribute', () => {
+        // Arrange
+        mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
 
-        it('reportFilter_startDateInSearchParams_prefillsStartDateInput', () => {
-            // Arrange
-            mockUseSearchParams.mockReturnValue({
-                get: (key: string) => key === 'startDate' ? '2024-01-01' : null,
-            } as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Assert
-            expect(screen.getByLabelText('Start Date')).toHaveValue('2024-01-01');
-        });
-
-        it('reportFilter_endDateInSearchParams_prefillsEndDateInput', () => {
-            // Arrange
-            mockUseSearchParams.mockReturnValue({
-                get: (key: string) => key === 'endDate' ? '2024-01-31' : null,
-            } as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Assert
-            expect(screen.getByLabelText('End Date')).toHaveValue('2024-01-31');
-        });
-
+        // Assert
+        expect(screen.getByLabelText('Start Date')).toHaveAttribute('required');
+        expect(screen.getByLabelText('End Date')).toHaveAttribute('required');
     });
 
-    describe('user input', () => {
+    it('reportFilter_startDateInSearchParams_prefillsStartDateInput', () => {
+        // Arrange
+        mockUseSearchParams.mockReturnValue({
+            get: (key: string) => key === 'startDate' ? '2024-01-01' : null,
+        } as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
 
-        it('reportFilter_userTypesInStartDateInput_updatesInputValue', async () => {
-            // Arrange
-            const user = userEvent.setup();
-            mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Act
-            await user.type(screen.getByLabelText('Start Date'), '2024-01-15');
-
-            // Assert
-            expect(screen.getByLabelText('Start Date')).toHaveValue('2024-01-15');
-        });
-
-        it('reportFilter_userTypesInEndDateInput_updatesInputValue', async () => {
-            // Arrange
-            const user = userEvent.setup();
-            mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
-
-            // Act
-            await user.type(screen.getByLabelText('End Date'), '2024-01-31');
-
-            // Assert
-            expect(screen.getByLabelText('End Date')).toHaveValue('2024-01-31');
-        });
-
+        // Assert
+        expect(screen.getByLabelText('Start Date')).toHaveValue('2024-01-01');
     });
 
-    describe('form submission', () => {
+    it('reportFilter_endDateInSearchParams_prefillsEndDateInput', () => {
+        // Arrange
+        mockUseSearchParams.mockReturnValue({
+            get: (key: string) => key === 'endDate' ? '2024-01-31' : null,
+        } as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
 
-        it('reportFilter_formSubmitted_callsRouterPushWithCorrectUrl', async () => {
-            // Arrange
-            const user = userEvent.setup();
-            mockUsePathname.mockReturnValue('/reports');
-            mockUseSearchParams.mockReturnValue({
-                get: (key: string) => key === 'startDate' ? '2024-01-01' : '2024-01-31',
-            } as unknown as ReturnType<typeof useSearchParams>);
-            render(<ReportFilter/>);
+        // Assert
+        expect(screen.getByLabelText('End Date')).toHaveValue('2024-01-31');
+    });
 
-            // Act
-            await user.click(screen.getByRole('button', {name: 'Generate Report'}));
+    it('reportFilter_userTypesInStartDateInput_updatesInputValue', async () => {
+        // Arrange
+        const user = userEvent.setup();
+        mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
 
-            // Assert
-            expect(mockPush).toHaveBeenCalledTimes(1);
-            expect(mockPush).toHaveBeenCalledWith('/reports?startDate=2024-01-01&endDate=2024-01-31');
-        });
+        // Act
+        await user.type(screen.getByLabelText('Start Date'), '2024-01-15');
 
+        // Assert
+        expect(screen.getByLabelText('Start Date')).toHaveValue('2024-01-15');
+    });
+
+    it('reportFilter_userTypesInEndDateInput_updatesInputValue', async () => {
+        // Arrange
+        const user = userEvent.setup();
+        mockUseSearchParams.mockReturnValue({get: () => null} as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
+
+        // Act
+        await user.type(screen.getByLabelText('End Date'), '2024-01-31');
+
+        // Assert
+        expect(screen.getByLabelText('End Date')).toHaveValue('2024-01-31');
+    });
+
+    it('reportFilter_formSubmitted_callsRouterPushWithCorrectUrl', async () => {
+        // Arrange
+        const user = userEvent.setup();
+        mockUsePathname.mockReturnValue('/reports');
+        mockUseSearchParams.mockReturnValue({
+            get: (key: string) => key === 'startDate' ? '2024-01-01' : '2024-01-31',
+        } as unknown as ReturnType<typeof useSearchParams>);
+        render(<ReportFilter/>);
+
+        // Act
+        await user.click(screen.getByRole('button', {name: 'Generate Report'}));
+
+        // Assert
+        expect(mockPush).toHaveBeenCalledTimes(1);
+        expect(mockPush).toHaveBeenCalledWith('/reports?startDate=2024-01-01&endDate=2024-01-31');
     });
 
 });
