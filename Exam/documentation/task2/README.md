@@ -101,7 +101,8 @@ Each tested function/module is documented using structured XLSX files.
 ### Prerequisites
 
 1. Install Node.js and ensure `npm` is up-to-date
-2. Install dependencies:
+2. Make sure you are in the `gymtrackerpro` project directory
+3. Install dependencies:
 
 ```bash
 npm install
