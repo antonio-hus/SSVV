@@ -31,11 +31,11 @@ describe('MemberDetailInformation', () => {
         render(<MemberDetailInformation member={member}/>);
 
         // Assert
-        expect(screen.getByText('Contact')).toBeInTheDocument();
+        expect(screen.getByText('Member Information')).toBeInTheDocument();
         expect(screen.getByText('john@example.com')).toBeInTheDocument();
         expect(screen.getByText('+12345678901')).toBeInTheDocument();
         expect(screen.getByText(new Date(member.user.dateOfBirth).toLocaleDateString())).toBeInTheDocument();
-        expect(screen.getByText('Membership')).toBeInTheDocument();
+        expect(screen.getByText('Membership Information')).toBeInTheDocument();
         expect(screen.getByText(new Date(member.membershipStart).toLocaleDateString())).toBeInTheDocument();
     });
 
