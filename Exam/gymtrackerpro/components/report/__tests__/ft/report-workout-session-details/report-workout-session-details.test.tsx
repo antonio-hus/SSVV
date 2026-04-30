@@ -68,7 +68,7 @@ describe('ReportWorkoutSessionDetails', () => {
 
         // Assert
         expect(
-            screen.getByText(new Date('2024-01-15').toLocaleDateString()),
+            screen.getByText(new Date('2024-01-15').toLocaleDateString('ro-RO')),
         ).toBeInTheDocument();
     });
 
@@ -119,10 +119,10 @@ describe('ReportWorkoutSessionDetails', () => {
 
         // Assert
         expect(
-            screen.getByText(new Date(mockSession.date).toLocaleDateString()),
+            screen.getByText(new Date(mockSession.date).toLocaleDateString('ro-RO')),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(new Date(mockSecondSession.date).toLocaleDateString()),
+            screen.getByText(new Date(mockSecondSession.date).toLocaleDateString('ro-RO')),
         ).toBeInTheDocument();
     });
 

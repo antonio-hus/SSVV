@@ -20,7 +20,7 @@ services:
       start_period: 10s
 
   # Migrations + seed (one-shot service)
-  # Runs Prisma migrations then the seed script, then exits.
+  # Runs Prisma migrations, the admin seed, then the demo-data seed, then exits.
   # The app service will not start until this exits with code 0.
   # Re-running `docker compose up` is safe - the seed skips existing emails.
   #
@@ -32,7 +32,7 @@ services:
   migrate:
     build: .
     command: >
-      sh -c "npx prisma migrate deploy && npx prisma db seed"
+      sh -c "npx prisma migrate deploy && npx prisma db seed && npx tsx prisma/seed-demo-data.ts"
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/gymtrackerpro
       SEED_ADMINS:  ${SEED_ADMINS:-}

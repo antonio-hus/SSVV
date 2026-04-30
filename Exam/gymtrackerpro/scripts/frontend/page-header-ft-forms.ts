@@ -37,9 +37,7 @@ const pageHeaderDescriptor: FtDescriptor = {
     retested: 'not yet',
     retestRun: 0,
     remarks: [
-        'Run: npx jest page-header.test.tsx',
-        'No providers required.',
-        'Both description and children are independently conditional - all four combinations (neither, description only, children only, both) are tested.',
+        'Run: npx jest page-header.test.tsx --selectProjects jsdom',
     ],
     tcRows: [
         {

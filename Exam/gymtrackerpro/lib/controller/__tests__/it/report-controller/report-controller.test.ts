@@ -63,7 +63,7 @@ describe('getMemberProgressReport', () => {
                 memberId: seededMember.id,
                 memberName: seededMember.user.fullName,
                 startDate: new Date('2024-01-01'),
-                endDate: new Date('2024-01-31'),
+                endDate: new Date('2024-01-31T23:59:59.999Z'),
                 totalSessions: 1,
                 totalVolume: 3000,
                 averageSessionDuration: 60,
@@ -86,6 +86,41 @@ describe('getMemberProgressReport', () => {
         expect(report.exerciseBreakdown[0].totalReps).toBe(30);
         expect(report.exerciseBreakdown[0].totalVolume).toBe(3000);
         expect(report.exerciseBreakdown[0].sessionCount).toBe(1);
+    });
+
+    it('getMemberProgressReport_sameStartAndEndDate_includesSessionLaterThatDay', async () => {
+        // Arrange
+        const seededMember = await seedMember();
+        const seededExercise = await seedExercise({name: 'Evening Bench Press'});
+        await prisma.workoutSession.create({
+            data: {
+                memberId: seededMember.id,
+                date: new Date('2024-02-10T18:30:00.000Z'),
+                duration: 45,
+                notes: 'Evening session',
+                exercises: {
+                    create: [{exerciseId: seededExercise.id, sets: 3, reps: 10, weight: 100}],
+                },
+            },
+        });
+
+        // Act
+        const result: ActionResult<Report> = await getMemberProgressReport(
+            seededMember.id,
+            '2024-02-10',
+            '2024-02-10'
+        );
+
+        // Assert
+        expect(result).toEqual({
+            success: true,
+            data: expect.objectContaining({
+                totalSessions: 1,
+                totalVolume: 3000,
+                startDate: new Date('2024-02-10T00:00:00.000Z'),
+                endDate: new Date('2024-02-10T23:59:59.999Z'),
+            }),
+        });
     });
 
     it('getMemberProgressReport_multipleSessionsMultipleExercises_returnsSuccessWithCorrectAggregatesAndBreakdownSortedByVolumeDescending', async () => {

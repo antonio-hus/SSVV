@@ -48,9 +48,7 @@ const memberLayoutDescriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest layout.test.tsx --testPathPattern=app/member',
-        'MemberLayout is an async server component; invoke as render(await MemberLayout({children})).',
         'redirect() in Next.js terminates execution by throwing internally; the mock must replicate this behaviour to prevent the component rendering past the guard.',
-        'MemberLayout has two independent redirect guards; each guard has its own set of test cases.',
         'usePathname and useRouter are mocked to satisfy MemberNav and LogoutButton respectively.',
     ],
     tcRows: [

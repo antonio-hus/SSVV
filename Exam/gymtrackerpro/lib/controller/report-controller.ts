@@ -7,6 +7,19 @@ import {z} from 'zod';
 import {memberProgressReportSchema} from '@/lib/schema/report-schema';
 import {AppError} from '@/lib/domain/errors';
 
+const parseIsoDateAtUtcBoundary = (date: string, endOfDay: boolean): Date => {
+    const [year, month, day] = date.split('-').map(Number);
+    return new Date(Date.UTC(
+        year,
+        month - 1,
+        day,
+        endOfDay ? 23 : 0,
+        endOfDay ? 59 : 0,
+        endOfDay ? 59 : 0,
+        endOfDay ? 999 : 0,
+    ));
+};
+
 /**
  * Validates the date range and generates a progress report for the given member,
  * summarising workout frequency, volume, and exercise breakdown over the period.
@@ -29,8 +42,8 @@ export async function getMemberProgressReport(
     try {
         const report = await reportService.getMemberProgressReport(
             result.data.memberId,
-            new Date(result.data.startDate),
-            new Date(result.data.endDate),
+            parseIsoDateAtUtcBoundary(result.data.startDate, false),
+            parseIsoDateAtUtcBoundary(result.data.endDate, true),
         );
         return {success: true, data: report};
     } catch (error) {

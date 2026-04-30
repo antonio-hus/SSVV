@@ -16,7 +16,7 @@ export const MemberDetailInformation = ({member}: MemberDetailInfoProps) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <Card className="overflow-hidden">
             <div className="px-4 py-2.5 border-b border-border bg-muted/40">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Contact</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Member Information</p>
             </div>
             <CardContent className="p-0">
                 <dl className="divide-y divide-border">
@@ -37,7 +37,7 @@ export const MemberDetailInformation = ({member}: MemberDetailInfoProps) => (
         </Card>
         <Card className="overflow-hidden">
             <div className="px-4 py-2.5 border-b border-border bg-muted/40">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Membership</p>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Membership Information</p>
             </div>
             <CardContent className="p-0">
                 <dl className="divide-y divide-border">

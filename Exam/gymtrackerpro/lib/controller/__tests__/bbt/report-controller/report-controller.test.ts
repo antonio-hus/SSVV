@@ -15,8 +15,8 @@ const reportServiceMock = reportService as unknown as { getMemberProgressReport:
 const MEMBER_ID: string = 'member-uuid-001';
 const START_DATE_STR: string = '2024-01-01';
 const END_DATE_STR: string = '2024-12-31';
-const START_DATE: Date = new Date(START_DATE_STR);
-const END_DATE: Date = new Date(END_DATE_STR);
+const START_DATE: Date = new Date('2024-01-01T00:00:00.000Z');
+const END_DATE: Date = new Date('2024-12-31T23:59:59.999Z');
 
 const MOCK_EXERCISE_STATS: ExerciseStats = {
     exerciseId: 'ex-uuid-001',
@@ -91,6 +91,22 @@ describe('getMemberProgressReport', () => {
                 expect(result.data.exerciseBreakdown).toHaveLength(1);
                 expect(result.data.sessionDetails).toHaveLength(1);
             }
+        });
+
+        it('getMemberProgressReport_EC_sameStartAndEndDate_passesInclusiveWholeDayRange', async () => {
+            // Arrange
+            const sameDay = '2024-06-15';
+            reportServiceMock.getMemberProgressReport.mockResolvedValue(MOCK_REPORT);
+
+            // Act
+            await getMemberProgressReport(MEMBER_ID, sameDay, sameDay);
+
+            // Assert
+            expect(reportServiceMock.getMemberProgressReport).toHaveBeenCalledWith(
+                MEMBER_ID,
+                new Date('2024-06-15T00:00:00.000Z'),
+                new Date('2024-06-15T23:59:59.999Z'),
+            );
         });
 
         it('getMemberProgressReport_EC_noSessionsInRange_returnsZeroStats', async () => {

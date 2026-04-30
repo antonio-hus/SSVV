@@ -150,7 +150,7 @@ describe('CreateWorkoutSessionForm', () => {
         expect(mockCreateWorkoutSession).not.toHaveBeenCalled();
     });
 
-    it('createWorkoutSessionForm_notesTooLong_showsValidationAlertAndDoesNotCallCreate', async () => {
+    it('createWorkoutSessionForm_notesTooLong_showsNotesValidationErrorAndDoesNotCallCreate', async () => {
         // Arrange
         const user = userEvent.setup();
         render(<CreateWorkoutSessionForm exercises={mockExercises} members={mockMembers}/>);
@@ -163,6 +163,35 @@ describe('CreateWorkoutSessionForm', () => {
 
         // Assert
         expect(screen.getByText('Validation failed')).toBeInTheDocument();
+        expect(screen.getByText('Notes must be at most 1024 characters')).toBeInTheDocument();
+        expect(mockCreateWorkoutSession).not.toHaveBeenCalled();
+    });
+
+    it('createWorkoutSessionForm_invalidExerciseRow_showsFieldValidationErrorsAndDoesNotCallCreate', async () => {
+        // Arrange
+        const user = userEvent.setup();
+        render(<CreateWorkoutSessionForm exercises={mockExercises} members={mockMembers}/>);
+        await user.selectOptions(screen.getByLabelText('Member'), 'mem-1');
+        fireEvent.change(screen.getByLabelText('Date'), {target: {name: 'date', value: '2026-02-20'}});
+        const setsInput = screen.getByDisplayValue('3');
+        const repsInput = screen.getByDisplayValue('10');
+        const weightInput = screen.getByDisplayValue('0');
+        await user.clear(setsInput);
+        await user.type(setsInput, '7');
+        await user.clear(repsInput);
+        await user.type(repsInput, '31');
+        await user.clear(weightInput);
+        await user.type(weightInput, '500.1');
+
+        // Act
+        await user.click(screen.getByRole('button', {name: 'Create Session'}));
+
+        // Assert
+        expect(screen.getByText('Validation failed')).toBeInTheDocument();
+        expect(screen.getByText('Exercise is required')).toBeInTheDocument();
+        expect(screen.getByText('Sets must be at most 6')).toBeInTheDocument();
+        expect(screen.getByText('Reps must be at most 30')).toBeInTheDocument();
+        expect(screen.getByText('Weight must be at most 500.0')).toBeInTheDocument();
         expect(mockCreateWorkoutSession).not.toHaveBeenCalled();
     });
 

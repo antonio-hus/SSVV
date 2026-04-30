@@ -46,7 +46,6 @@ const adminLayoutDescriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest layout.test.tsx --testPathPattern=app/admin',
-        'AdminLayout is an async server component; invoke as render(await AdminLayout({children})).',
         'redirect() in Next.js terminates execution by throwing internally; the mock must replicate this behaviour to prevent the component rendering past the guard.',
         'usePathname and useRouter are mocked to satisfy AdminNav and LogoutButton respectively.',
     ],

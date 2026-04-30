@@ -48,9 +48,6 @@ const descriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest app/member/report --selectProjects jsdom',
-        'The test file intentionally has only the main describe("MemberReportPage") block.',
-        'Date-range predicate coverage is split across no dates, startDate only, endDate only, and both dates.',
-        'Page-level report branches cover no member session, no fetch, successful fetch, empty successful report, and failed fetch.',
     ],
     tcRows: [
         tc(

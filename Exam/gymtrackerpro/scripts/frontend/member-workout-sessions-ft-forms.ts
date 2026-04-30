@@ -102,7 +102,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'listMemberWorkoutSessions(session.memberId, {page, pageSize:10}) is called only when memberId exists.',
             remarks: [
                 'Run: npx jest app/member/workout-sessions/__tests__/ft/page/page.test.tsx --selectProjects jsdom',
-                'Suite is kept in a single main describe block and covers member-session gating, list success/failure, empty states, default/provided/non-numeric page params, and pagination edge branches.',
             ],
             tcRows: [
                 tc('TC-01', 'Renders nothing and does not fetch sessions when session.memberId is missing.', 'getSession resolves memberId null.', 'render(await MemberWorkoutSessionsPage({searchParams}))', 'container.firstChild is null; listMemberWorkoutSessions is not called.'),

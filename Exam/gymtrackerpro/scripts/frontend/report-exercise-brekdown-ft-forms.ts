@@ -36,9 +36,7 @@ const reportExerciseBreakdownDescriptor: FtDescriptor = {
     retested: 'not yet',
     retestRun: 0,
     remarks: [
-        'Run: npx jest report-exercise-breakdown.test.tsx',
-        'No mocking required - no hooks, server actions, or context.',
-        'Null return is asserted via container.firstChild - the standard RTL pattern for components that conditionally return null.',
+        'Run: npx jest report-exercise-breakdown.test.tsx --selectProjects jsdom',
         'toLocaleString() formatting is asserted by computing the expected value in the test itself ((10000).toLocaleString()) so the assertion remains locale-agnostic across environments.',
     ],
     tcRows: [

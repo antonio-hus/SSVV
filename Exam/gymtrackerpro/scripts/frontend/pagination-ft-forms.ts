@@ -47,11 +47,9 @@ const paginationDescriptor: FtDescriptor = {
     retested: 'not yet',
     retestRun: 0,
     remarks: [
-        'Run: npx jest pagination.test.tsx',
+        'Run: npx jest pagination.test.tsx --selectProjects jsdom',
         'Link renders as an <a> element in the Jest/RTL environment - assert via getByRole("link", {name: ...}).',
         'The "Previous" and "Next" spans are hidden on mobile (hidden sm:inline) but present in the DOM; RTL queries against the DOM so getByRole("link") works.',
-        'totalPages <= 1 boundary: component returns null - container.firstChild will be null.',
-        'totalPages === 2 boundary: exactly one prev and one next link exist simultaneously only on page 2 of 2 - only prev is shown.',
         'searchParams preservation is verified by inspecting the rendered href attribute.',
     ],
     tcRows: [

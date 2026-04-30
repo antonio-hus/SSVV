@@ -9,18 +9,18 @@ const adapter = new PrismaPg({connectionString: process.env.DATABASE_URL!});
 const prisma = new PrismaClient({adapter});
 
 const MEMBERS = [
-    {email: 'andrei.ionescu@gmail.com',     password: 'parola123', fullName: 'Andrei Ionescu',      phone: '+40721100001', dob: '1992-03-14', membershipStart: '2025-01-10'},
-    {email: 'maria.popescu@gmail.com',      password: 'parola123', fullName: 'Maria Popescu',       phone: '+40721100002', dob: '1995-07-22', membershipStart: '2025-02-01'},
-    {email: 'alex.constantin@yahoo.com',    password: 'parola123', fullName: 'Alexandru Constantin', phone: '+40721100003', dob: '1990-11-05', membershipStart: '2024-11-15'},
-    {email: 'elena.dumitrescu@gmail.com',   password: 'parola123', fullName: 'Elena Dumitrescu',    phone: '+40721100004', dob: '1998-04-30', membershipStart: '2025-03-20'},
-    {email: 'bogdan.popa@hotmail.com',      password: 'parola123', fullName: 'Bogdan Popa',         phone: '+40721100005', dob: '1988-09-18', membershipStart: '2024-09-01'},
-    {email: 'ioana.gheorghe@gmail.com',     password: 'parola123', fullName: 'Ioana Gheorghe',      phone: '+40721100006', dob: '1997-01-09', membershipStart: '2025-01-05'},
-    {email: 'mihai.stan@gmail.com',         password: 'parola123', fullName: 'Mihai Stan',          phone: '+40721100007', dob: '1993-06-27', membershipStart: '2025-04-01'},
-    {email: 'raluca.moldovan@yahoo.com',    password: 'parola123', fullName: 'Raluca Moldovan',     phone: '+40721100008', dob: '1996-12-03', membershipStart: '2024-12-10'},
-    {email: 'cristian.munteanu@gmail.com',  password: 'parola123', fullName: 'Cristian Munteanu',   phone: '+40721100009', dob: '1991-08-16', membershipStart: '2025-02-14'},
-    {email: 'anca.stoica@gmail.com',        password: 'parola123', fullName: 'Anca Stoica',         phone: '+40721100010', dob: '1999-05-21', membershipStart: '2025-03-01'},
-    {email: 'vlad.nistor@hotmail.com',      password: 'parola123', fullName: 'Vlad Nistor',         phone: '+40721100011', dob: '1987-10-11', membershipStart: '2024-10-20'},
-    {email: 'gabriela.luca@gmail.com',      password: 'parola123', fullName: 'Gabriela Luca',       phone: '+40721100012', dob: '1994-02-28', membershipStart: '2025-01-25'},
+    {email: 'andrei.ionescu@gmail.com',     password: 'Member1234*', fullName: 'Andrei Ionescu',      phone: '+40721100001', dob: '1992-03-14', membershipStart: '2025-01-10'},
+    {email: 'maria.popescu@gmail.com',      password: 'Member1234*', fullName: 'Maria Popescu',       phone: '+40721100002', dob: '1995-07-22', membershipStart: '2025-02-01'},
+    {email: 'alex.constantin@yahoo.com',    password: 'Member1234*', fullName: 'Alexandru Constantin', phone: '+40721100003', dob: '1990-11-05', membershipStart: '2024-11-15'},
+    {email: 'elena.dumitrescu@gmail.com',   password: 'Member1234*', fullName: 'Elena Dumitrescu',    phone: '+40721100004', dob: '1998-04-30', membershipStart: '2025-03-20'},
+    {email: 'bogdan.popa@hotmail.com',      password: 'Member1234*', fullName: 'Bogdan Popa',         phone: '+40721100005', dob: '1988-09-18', membershipStart: '2024-09-01'},
+    {email: 'ioana.gheorghe@gmail.com',     password: 'Member1234*', fullName: 'Ioana Gheorghe',      phone: '+40721100006', dob: '1997-01-09', membershipStart: '2025-01-05'},
+    {email: 'mihai.stan@gmail.com',         password: 'Member1234*', fullName: 'Mihai Stan',          phone: '+40721100007', dob: '1993-06-27', membershipStart: '2025-04-01'},
+    {email: 'raluca.moldovan@yahoo.com',    password: 'Member1234*', fullName: 'Raluca Moldovan',     phone: '+40721100008', dob: '1996-12-03', membershipStart: '2024-12-10'},
+    {email: 'cristian.munteanu@gmail.com',  password: 'Member1234*', fullName: 'Cristian Munteanu',   phone: '+40721100009', dob: '1991-08-16', membershipStart: '2025-02-14'},
+    {email: 'anca.stoica@gmail.com',        password: 'Member1234*', fullName: 'Anca Stoica',         phone: '+40721100010', dob: '1999-05-21', membershipStart: '2025-03-01'},
+    {email: 'vlad.nistor@hotmail.com',      password: 'Member1234*', fullName: 'Vlad Nistor',         phone: '+40721100011', dob: '1987-10-11', membershipStart: '2024-10-20'},
+    {email: 'gabriela.luca@gmail.com',      password: 'Member1234*', fullName: 'Gabriela Luca',       phone: '+40721100012', dob: '1994-02-28', membershipStart: '2025-01-25'},
 ];
 
 const EXERCISES = [

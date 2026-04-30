@@ -19,7 +19,7 @@ type AdminSeed = {
 const DEFAULT_ADMINS: AdminSeed[] = [
     {
         email: 'admin@gymtrackerpro.com',
-        password: 'admin',
+        password: 'Admin1234*',
         name: 'Gym Administrator',
         phone: '+1234567890',
         dob: '1990-01-01',

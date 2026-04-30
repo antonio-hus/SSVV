@@ -9,7 +9,12 @@ import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {updateWorkoutSessionWithExercises, deleteWorkoutSession} from '@/lib/controller/workout-session-controller';
-import {updateWorkoutSessionSchema, UpdateWorkoutSessionInput, WorkoutSessionExerciseUpdateInput} from '@/lib/schema/workout-session-schema';
+import {
+    updateWorkoutSessionSchema,
+    UpdateWorkoutSessionInput,
+    WorkoutSessionExerciseUpdateInput,
+    workoutSessionExercisesUpdateSchema
+} from '@/lib/schema/workout-session-schema';
 import type {ActionResult} from '@/lib/domain/action-result';
 import type {WorkoutSessionWithExercises} from '@/lib/domain/workout-session';
 import type {Exercise} from '@/lib/domain/exercise';
@@ -27,6 +32,23 @@ type EditWorkoutSessionFormProps = {
     exercises: Exercise[];
     sessionId: string;
 }
+
+const exerciseErrorKey = (rowIndex: number, field: keyof WorkoutSessionExerciseUpdateInput) => `exercises.${rowIndex}.${field}`;
+
+const getExerciseValidationErrors = (error: z.ZodError): Record<string, string[]> => {
+    const errors: Record<string, string[]> = {};
+
+    for (const issue of error.issues) {
+        const [rowIndex, field] = issue.path;
+        const key = typeof rowIndex === 'number' && typeof field === 'string'
+            ? `exercises.${rowIndex}.${field}`
+            : 'exercises';
+
+        errors[key] = [...(errors[key] ?? []), issue.message];
+    }
+
+    return errors;
+};
 
 export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWorkoutSessionFormProps) => {
     const router = useRouter();
@@ -85,8 +107,18 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
             weight: Number(r.weight),
         }));
 
+        const exerciseValidation = workoutSessionExercisesUpdateSchema.safeParse(parsedRows);
+        if (!exerciseValidation.success) {
+            setResult({
+                success: false,
+                message: 'Validation failed',
+                errors: getExerciseValidationErrors(exerciseValidation.error),
+            });
+            return;
+        }
+
         startTransition(async () => {
-            const res = await updateWorkoutSessionWithExercises(sessionId, validation.data, parsedRows);
+            const res = await updateWorkoutSessionWithExercises(sessionId, validation.data, exerciseValidation.data);
             setResult(res);
             if (res.success) router.refresh();
         });
@@ -107,6 +139,11 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
     const getFieldError = useCallback((field: string): string | undefined => {
         if (!result || result.success || !result.errors) return undefined;
         return result.errors[field]?.[0];
+    }, [result]);
+
+    const getExerciseFieldError = useCallback((rowIndex: number, field: keyof WorkoutSessionExerciseUpdateInput): string | undefined => {
+        if (!result || result.success || !result.errors) return undefined;
+        return result.errors[exerciseErrorKey(rowIndex, field)]?.[0];
     }, [result]);
 
     return (
@@ -154,6 +191,7 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                             value={inputs.notes}
                             onChange={handleChange}
                         />
+                        {getFieldError('notes') && <p className="text-sm text-destructive">{getFieldError('notes')}</p>}
                     </div>
                 </div>
 
@@ -180,6 +218,9 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                                             <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
                                         ))}
                                     </select>
+                                    {getExerciseFieldError(index, 'exerciseId') && (
+                                        <p className="text-xs text-destructive">{getExerciseFieldError(index, 'exerciseId')}</p>
+                                    )}
                                 </div>
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Sets</Label>
@@ -189,6 +230,9 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                                         value={row.sets}
                                         onChange={(e) => updateRow(index, 'sets', e.target.value)}
                                     />
+                                    {getExerciseFieldError(index, 'sets') && (
+                                        <p className="text-xs text-destructive">{getExerciseFieldError(index, 'sets')}</p>
+                                    )}
                                 </div>
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Reps</Label>
@@ -198,6 +242,9 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                                         value={row.reps}
                                         onChange={(e) => updateRow(index, 'reps', e.target.value)}
                                     />
+                                    {getExerciseFieldError(index, 'reps') && (
+                                        <p className="text-xs text-destructive">{getExerciseFieldError(index, 'reps')}</p>
+                                    )}
                                 </div>
                                 <div className="col-span-2 space-y-1">
                                     <Label className="text-xs">Weight (kg)</Label>
@@ -207,6 +254,9 @@ export const EditWorkoutSessionForm = ({session, exercises, sessionId}: EditWork
                                         value={row.weight}
                                         onChange={(e) => updateRow(index, 'weight', e.target.value)}
                                     />
+                                    {getExerciseFieldError(index, 'weight') && (
+                                        <p className="text-xs text-destructive">{getExerciseFieldError(index, 'weight')}</p>
+                                    )}
                                 </div>
                                 <div className="col-span-2 flex justify-end">
                                     <Button

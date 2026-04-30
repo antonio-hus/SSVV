@@ -22,7 +22,7 @@ export const ReportWorkoutSessionDetails = ({sessions}: ReportSessionDetailsProp
                 {sessions.map((session) => (
                     <div key={session.sessionId} className="rounded-md border p-4">
                         <div className="flex justify-between mb-2">
-                            <span className="font-medium">{new Date(session.date).toLocaleDateString()}</span>
+                            <span className="font-medium">{new Date(session.date).toLocaleDateString('ro-RO')}</span>
                             <span className="text-sm text-muted-foreground">
                                 {session.durationMinutes} min · {session.totalVolume.toLocaleString()} kg
                             </span>

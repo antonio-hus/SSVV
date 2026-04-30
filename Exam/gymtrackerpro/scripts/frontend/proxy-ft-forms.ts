@@ -36,8 +36,6 @@ const proxyDescriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest __tests__/ft/proxy/proxy.test.ts --selectProjects jsdom',
-        'Although proxy has no rendered DOM, it is included in FT because it protects frontend route access. NextResponse is mocked so the suite can run in the jsdom FT project.',
-        'Suite is kept in a single main describe block and covers matcher config plus every route/auth/role/active-status decision branch.',
     ],
     tcRows: [
         tc('TC-01', 'Exports matcher config for admin and member routes.', 'Import config from proxy.ts.', 'No interaction - inspect config.', 'config equals {matcher:["/admin/:path*","/member/:path*"]}.'),

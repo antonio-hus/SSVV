@@ -261,21 +261,6 @@ function addProblemSheet(workbook: ExcelJS.Workbook, descriptor: FtDescriptor): 
     styleLabel(row.getCell(1));
     styleData(row.getCell(2));
 
-    // ── Remarks ────────────────────────────────────────────────────────────────
-    if (descriptor.remarks && descriptor.remarks.length > 0) {
-        worksheet.addRow(['', '']);
-
-        row = worksheet.addRow(['Remarks', '']);
-        worksheet.mergeCells(`A${row.number}:B${row.number}`);
-        styleSection(row.getCell(1));
-
-        for (const remark of descriptor.remarks) {
-            row = worksheet.addRow(['', remark]);
-            styleData(row.getCell(1));
-            styleData(row.getCell(2));
-        }
-    }
-
     worksheet.getColumn(1).width = 22;
     autoFitWorksheet(worksheet, [1]);
 }

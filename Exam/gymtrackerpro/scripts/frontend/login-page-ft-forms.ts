@@ -37,9 +37,6 @@ const loginPageDescriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest page.test.tsx --testPathPattern=app/login',
-        'LoginPage is an async server component - must be awaited before passing to render(): render(await LoginPage()).',
-        'LoginForm is mocked to a stub - its behaviour is verified in FT-14.',
-        'This test covers only what the page itself contributes: layout, branding, and organism mounting.',
     ],
     tcRows: [
         {

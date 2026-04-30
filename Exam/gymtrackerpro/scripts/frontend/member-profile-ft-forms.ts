@@ -79,8 +79,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'updateMember(memberId, {password}) is called once for valid passwords; field resets only on success.',
             remarks: [
                 'Run: npx jest profile-change-password-form.test.tsx --selectProjects jsdom',
-                'Suite is kept in a single main describe block and covers password schema predicates, server action outcomes, and pending UI state.',
-                'The form uses noValidate so client schema validation, rather than browser constraint validation, is exercised in JSDOM.',
             ],
             tcRows: [
                 tc('TC-01', 'Renders empty password field and enabled submit button.', 'render(<ProfileChangePasswordForm memberId="mem-1" />)', 'No interaction - render only.', 'New Password input is empty and type password; Update Password button enabled.'),

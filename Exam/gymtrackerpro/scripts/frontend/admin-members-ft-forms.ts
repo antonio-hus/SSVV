@@ -103,10 +103,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'createMemberWithTempPassword(valid payload) is called once on valid submit; server errors remain visible and the form is re-enabled.',
             remarks: [
                 'Run: npx jest create-member-form.test.tsx --selectProjects jsdom',
-                'The test file intentionally has only the main describe("CreateMemberForm") block.',
-                'Predicate coverage includes createMemberSchema.omit({password:true}) fields independently: fullName, email, phone, dateOfBirth, and membershipStart.',
-                'The form uses noValidate so native browser validation does not bypass the Zod validation branch and inline field-error UI.',
-                'Branch coverage includes validation failure, create success, create failure, server field errors, pending UI, success replacement panel, and recovery after server error.',
             ],
             tcRows: [
                 tc('TC-01', 'Renders empty fields and enabled Create Member button with no alert.', 'render(<CreateMemberForm />)', 'No interaction - render only.', 'All fields are empty; Create Member is enabled; no alert is visible.'),
@@ -140,10 +136,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'Successful update refreshes the route; successful suspend/activate navigates to member detail; successful delete refreshes and navigates to /admin/members.',
             remarks: [
                 'Run: npx jest edit-member-form.test.tsx --selectProjects jsdom',
-                'The test file intentionally has only the main describe("EditMemberForm") block.',
-                'Predicate coverage includes updateMemberSchema fields independently: fullName, email, phone, dateOfBirth, and membershipStart.',
-                'The form uses noValidate so native browser validation does not bypass the Zod validation branch and inline field-error UI.',
-                'Branch coverage includes update success/failure, suspend success/failure, activate success/failure, delete success/failure, active vs suspended render, and pending UI.',
             ],
             tcRows: [
                 tc('TC-01', 'Prefills editable fields and shows status/delete controls.', 'render(<EditMemberForm member={member} memberId="mem-1" />)', 'No interaction - render only.', 'Full Name, Email, Phone, Date of Birth, and Membership Start values match member; Save Changes, Suspend Member, and Delete Member enabled; no alert visible.'),
@@ -183,7 +175,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'listMembers is called with search, page, and pageSize 10 derived from query params.',
             remarks: [
                 'Run: npx jest app/admin/members/__tests__/ft/page/page.test.tsx --selectProjects jsdom',
-                'Filter concerns are intentionally split: fetch args, seeded search input, page param, and pagination param preservation each have focused cases.',
             ],
             tcRows: [
                 tc('TC-01', 'Fetches first page and renders default page chrome and list output.', 'listMembers resolves one member; searchParams resolves {} and useSearchParams is empty.', 'render(await AdminMembersPage(...))', 'Members heading, description, Add Member href, empty search input, member row, and listMembers args {search:"", page:1, pageSize:10} are asserted.'),
@@ -264,9 +255,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'getMemberProgressReport(id,startDate,endDate) is called only when both dates are present; notFound() called when member fetch fails.',
             remarks: [
                 'Run: npx jest admin/members/.*/report/__tests__/ft/page/page.test.tsx --selectProjects jsdom',
-                'The test file intentionally has only the main describe("AdminMemberReportPage") block.',
-                'Date-range predicate coverage is split across no dates, startDate only, endDate only, and both dates.',
-                'Page-level branches cover member fetch failure/notFound, no report fetch, successful report fetch, empty successful report, and failed report fetch.',
             ],
             tcRows: [
                 tc('TC-01', 'Renders header and empty filter without fetching report when no date range is supplied.', 'getMember succeeds; useSearchParams empty; searchParams resolves {}.', 'render page.', 'Report heading, description, Back href, empty Start Date and End Date inputs, Generate Report button visible; getMember called with id; report action not called.'),

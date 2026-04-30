@@ -45,7 +45,6 @@ const adminDashboardPageDescriptor: FtDescriptor = {
     remarks: [
         'Run: npx jest app/admin/dashboard/__tests__/ft/page/page.test.tsx --selectProjects jsdom',
         'AdminDashboardPage is an async server component - must be awaited before passing to render(): render(await AdminDashboardPage()).',
-        'PageHeader and StatCard are rendered as real child components; their component-internal variants are covered by their own FT files.',
         'This page test covers only page-owned data fetching and prop threading into the visible dashboard output.',
     ],
     tcRows: [

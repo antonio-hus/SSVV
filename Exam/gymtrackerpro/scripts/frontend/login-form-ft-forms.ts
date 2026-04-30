@@ -65,11 +65,6 @@ const loginFormDescriptor: FtDescriptor = {
     retestRun: 0,
     remarks: [
         'Run: npx jest app/\\(auth\\)/login/_components/__tests__/ft/login-form/login-form.test.tsx --selectProjects jsdom',
-        'The test file intentionally has only the main describe("LoginForm") block.',
-        'Predicate coverage: email valid/invalid and password valid/invalid are covered as a four-combination truth table.',
-        'Password decision coverage includes min length, max length, uppercase, number, and special-character constraints.',
-        'jsdom does not enforce browser validation because the form has noValidate; the zod safeParse branch is the validation gate.',
-        'React 19 async-transition support keeps isPending=true while the mocked login promise is unresolved.',
     ],
     tcRows: [
         tc(

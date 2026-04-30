@@ -85,10 +85,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'createExercise(valid payload) is called once on valid submit; router.push("/admin/exercises") is called only on success.',
             remarks: [
                 'Run: npx jest create-exercise-form.test.tsx --selectProjects jsdom',
-                'The test file intentionally has only the main describe("CreateExerciseForm") block.',
-                'Predicate coverage includes each createExerciseSchema field independently: name, description, muscleGroup, and equipmentNeeded.',
-                'The form uses noValidate so native browser required validation does not bypass the Zod validation branch and inline field-error UI.',
-                'Branch coverage includes validation failure, create success, create failure, server field errors, pending UI, and recovery after server error.',
             ],
             tcRows: [
                 tc('TC-01', 'Renders empty fields and enabled submit button with no alert.', 'render(<CreateExerciseForm />)', 'No interaction - render only.', 'Name, Description, Muscle Group, and Equipment values are empty; Create Exercise is enabled; no alert is visible.'),
@@ -121,9 +117,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'Successful update refreshes the route; successful archive/unarchive/delete navigates to /admin/exercises; failures render error text.',
             remarks: [
                 'Run: npx jest edit-exercise-form.test.tsx --selectProjects jsdom',
-                'The test file intentionally has only the main describe("EditExerciseForm") block.',
-                'Predicate coverage includes each updateExerciseSchema field independently: name, description, muscleGroup, and equipmentNeeded.',
-                'Branch coverage includes update success/failure, archive success/failure, unarchive success/failure, delete success/failure, active vs archived render, and pending UI.',
             ],
             tcRows: [
                 tc('TC-01', 'Prefills editable fields and shows archive/delete controls for an active exercise.', 'render(<EditExerciseForm exercise={exercise} exerciseId="ex-1" />)', 'No interaction - render only.', 'Name, Description, Muscle Group, and Equipment values match exercise; Save Changes, Archive, and Delete Exercise are enabled; no alert is visible.'),
@@ -162,7 +155,6 @@ const descriptors: Array<{descriptor: FtDescriptor; outFile: string}> = [
             postcondition: 'listExercises is called with search, page, pageSize 10, and includeInactive derived from query params.',
             remarks: [
                 'Run: npx jest app/admin/exercises/__tests__/ft/page/page.test.tsx --selectProjects jsdom',
-                'Filter concerns are intentionally split: fetch args, seeded search input, archived toggle rendering, and pagination param preservation each have focused cases.',
             ],
             tcRows: [
                 tc('TC-01', 'Fetches first active page and renders default page chrome and list output.', 'listExercises resolves one active exercise; searchParams resolves {} and useSearchParams is empty.', 'render(await AdminExercisesPage(...))', 'Exercises heading, description, Add Exercise href, empty search input, Show Archived href, exercise row, and listExercises args {search:"", page:1, pageSize:10, includeInactive:false} are asserted.'),

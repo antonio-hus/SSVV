@@ -43,11 +43,7 @@ const reportFilterDescriptor: FtDescriptor = {
     retested: 'not yet',
     retestRun: 0,
     remarks: [
-        'Run: npx jest report-filter.test.tsx',
-        'isPending is driven by startTransition with a synchronous callback - the pending state resolves before the next render in jsdom and is not reliably observable in tests.',
-        'getByLabelText resolves inputs via the htmlFor/id association between <Label> and <Input>.',
-        'jsdom treats type="date" inputs as plain text inputs; userEvent.type with a YYYY-MM-DD string works correctly against controlled inputs.',
-        'useSearchParams mock uses get: (key) => ... pattern cast to the return type to avoid full ReadonlyURLSearchParams implementation.',
+        'Run: npx jest report-filter.test.tsx --selectProjects jsdom',
     ],
     tcRows: [
         {

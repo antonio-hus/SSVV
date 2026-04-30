@@ -24,12 +24,14 @@ const memberProgressReportSchemaMock = memberProgressReportSchema as unknown as 
 const MEMBER_ID: string = 'member-uuid-001';
 const START_DATE: string = '2024-01-01';
 const END_DATE: string = '2024-03-31';
+const START_DATE_BOUNDARY: Date = new Date('2024-01-01T00:00:00.000Z');
+const END_DATE_BOUNDARY: Date = new Date('2024-03-31T23:59:59.999Z');
 
 const MOCK_REPORT: Report = {
     memberId: MEMBER_ID,
     memberName: 'John Doe',
-    startDate: new Date(START_DATE),
-    endDate: new Date(END_DATE),
+    startDate: START_DATE_BOUNDARY,
+    endDate: END_DATE_BOUNDARY,
     totalSessions: 24,
     totalVolume: 15000,
     averageSessionDuration: 60,
@@ -75,8 +77,8 @@ describe('getMemberProgressReport', () => {
             });
             expect(reportServiceMock.getMemberProgressReport).toHaveBeenCalledWith(
                 MEMBER_ID,
-                new Date(START_DATE),
-                new Date(END_DATE),
+                START_DATE_BOUNDARY,
+                END_DATE_BOUNDARY,
             );
         });
 
